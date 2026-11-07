@@ -1,0 +1,79 @@
+#cloud-config
+# Paste this into "Cloud-Init User-Data" when creating a Vultr Ubuntu 24.04 instance.
+# It installs SpacetimeDB as a systemd service on 127.0.0.1:3000 and puts Caddy in front
+# with automatic HTTPS. Only the endpoints browser clients need are public; publishing and
+# admin calls go over SSH (see deploy/vultr/deploy.sh and stdb.sh).
+#
+# Hostname: defaults to <ip-with-dashes>.sslip.io so HTTPS works before a real domain exists.
+# To use a custom domain later, point an A record at the server and change the first line of
+# /etc/caddy/Caddyfile, then `systemctl reload caddy`.
+
+package_update: true
+packages:
+  - caddy
+  - ufw
+  - curl
+
+write_files:
+  - path: /etc/systemd/system/spacetimedb.service
+    content: |
+      [Unit]
+      Description=SpacetimeDB
+      After=network-online.target
+      Wants=network-online.target
+
+      [Service]
+      User=spacetimedb
+      WorkingDirectory=/stdb
+      # page pool defaults to 8 GiB; keep it well under the instance's RAM.
+      ExecStart=/stdb/spacetime --root-dir=/stdb start --listen-addr=127.0.0.1:3000 --page_pool_max_size=1073741824
+      Restart=always
+      RestartSec=3
+
+      [Install]
+      WantedBy=multi-user.target
+
+  - path: /etc/caddy/Caddyfile
+    content: |
+      __SPACETIME_HOST__ {
+        # Browser clients only need identity tokens and the websocket subscription endpoint.
+        @client path_regexp ^/v1/(identity(/.*)?|database/[^/]+/subscribe)$
+        handle @client {
+          reverse_proxy 127.0.0.1:3000
+        }
+        handle {
+          respond "Not found" 404
+        }
+      }
+
+runcmd:
+  # Swap so the TypeScript module host has headroom on 1-2 GB plans.
+  - [
+      bash,
+      -c,
+      "if [ ! -f /swapfile ]; then fallocate -l 2G /swapfile && chmod 600 /swapfile && mkswap /swapfile && swapon /swapfile && echo '/swapfile none swap sw 0 0' >> /etc/fstab; fi",
+    ]
+  - [
+      bash,
+      -c,
+      'id spacetimedb || useradd --system --home-dir /stdb --create-home --shell /usr/sbin/nologin spacetimedb',
+    ]
+  - [
+      bash,
+      -c,
+      "sudo -u spacetimedb -H bash -c 'curl -sSf https://install.spacetimedb.com | sh -s -- --root-dir /stdb --yes'",
+    ]
+  # The owner CLI on this box always talks to its own server (used by deploy.sh/stdb.sh over SSH).
+  - [bash, -c, 'sudo -u spacetimedb -H /stdb/spacetime --root-dir=/stdb server set-default local']
+  - [
+      bash,
+      -c,
+      'IP=$(curl -sf http://169.254.169.254/v1/interfaces/0/ipv4/address || curl -sf https://ifconfig.me) && sed -i "s/__SPACETIME_HOST__/${IP//./-}.sslip.io/" /etc/caddy/Caddyfile',
+    ]
+  - [systemctl, daemon-reload]
+  - [systemctl, enable, --now, spacetimedb]
+  - [systemctl, restart, caddy]
+  - [ufw, allow, OpenSSH]
+  - [ufw, allow, 80/tcp]
+  - [ufw, allow, 443/tcp]
+  - [ufw, --force, enable]

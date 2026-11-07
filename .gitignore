@@ -1,0 +1,14 @@
+node_modules/
+dist/
+.DS_Store
+.env
+.env.*
+!.env.example
+
+# AI assistant setup (local only)
+.claude/
+.cursor/
+.windsurfrules
+.github/copilot-instructions.md
+AGENTS.md
+CLAUDE.md

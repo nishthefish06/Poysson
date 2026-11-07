@@ -1,0 +1,13 @@
+node_modules/
+dist/
+package-lock.json
+module_bindings/
+.nuxt/
+.output/
+# AI assistant setup (local only, not committed)
+.claude/
+.cursor/
+.windsurfrules
+.github/copilot-instructions.md
+AGENTS.md
+CLAUDE.md
