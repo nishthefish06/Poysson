@@ -56,7 +56,7 @@ Generate typed bindings into the front-end project, then connect with the TypeSc
 spacetime generate --lang typescript --out-dir <frontend>/module_bindings --module-path spacetimedb
 ```
 
-- URL: `ws://localhost:3000` locally, `wss://<server-host>` on Vultr. Database: `hackutd2026`.
+- URL: `ws://127.0.0.1:3000` locally (not `localhost`, which can resolve to IPv6 while `spacetime start` listens on IPv4 only), `wss://<server-host>` on Vultr. Database: `hackutd2026`.
 - Store the token from `onConnect` (e.g. in `localStorage`) and pass it back with `withToken` so the browser keeps its identity, and therefore its session, across reloads.
 - In Nuxt, create the connection client-side only (a `.client` plugin); websockets don't run during SSR.
 

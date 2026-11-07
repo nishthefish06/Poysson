@@ -7,10 +7,12 @@
   },
   "workspaces": [
     "shared",
-    "spacetimedb"
+    "spacetimedb",
+    "test-client"
   ],
   "scripts": {
-    "typecheck": "tsc --noEmit -p shared && tsc --noEmit -p spacetimedb",
+    "typecheck": "tsc --noEmit -p shared && tsc --noEmit -p spacetimedb && vue-tsc --noEmit -p test-client",
+    "test-client": "npm run dev -w test-client",
     "lint": "eslint .",
     "format": "prettier --write .",
     "format:check": "prettier --check .",
