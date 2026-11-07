@@ -1,0 +1,28 @@
+{
+  "name": "@hack/app",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "nuxt dev --dotenv ../.env",
+    "build": "nuxt build --dotenv ../.env",
+    "preview": "nuxt preview",
+    "postinstall": "nuxt prepare",
+    "typecheck": "nuxt typecheck"
+  },
+  "dependencies": {
+    "@google/genai": "^3.0.0",
+    "@hack/shared": "*",
+    "@simplewebauthn/browser": "^14.0.0",
+    "@simplewebauthn/server": "^14.1.0",
+    "nuxt": "^3.21.0",
+    "openai": "^7.53.0",
+    "pdf-lib": "^1.17.1",
+    "vue": "^3.5.0",
+    "vue-router": "^4.5.0",
+    "zod": "^4.1.0"
+  },
+  "devDependencies": {
+    "@nuxtjs/tailwindcss": "^6.14.0",
+    "vue-tsc": "^3.1.0"
+  }
+}

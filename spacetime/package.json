@@ -1,0 +1,7 @@
+{
+  "name": "@hack/spacetime",
+  "private": true,
+  "type": "module",
+  "description": "OWNER: Person 1. Spacetime server module (replace with `spacetime init` output).",
+  "scripts": {}
+}

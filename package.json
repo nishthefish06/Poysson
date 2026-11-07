@@ -1,0 +1,33 @@
+{
+  "name": "hackutd2026",
+  "private": true,
+  "type": "module",
+  "engines": {
+    "node": ">=22"
+  },
+  "workspaces": [
+    "shared",
+    "app",
+    "spacetime"
+  ],
+  "scripts": {
+    "dev": "npm run dev -w app",
+    "build": "npm run build -w app",
+    "typecheck": "npm run typecheck -w shared && npm run typecheck -w app",
+    "lint": "eslint .",
+    "format": "prettier --write .",
+    "validate:scenarios": "npm run validate -w shared"
+  },
+  "devDependencies": {
+    "@eslint/js": "^9.39.0",
+    "eslint": "^9.39.0",
+    "eslint-config-prettier": "^10.1.0",
+    "prettier": "^3.6.0",
+    "typescript": "^5.9.0",
+    "typescript-eslint": "^8.46.0",
+    "eslint-plugin-vue": "^10.5.0"
+  },
+  "allowScripts": {
+    "esbuild@0.28.2": true
+  }
+}

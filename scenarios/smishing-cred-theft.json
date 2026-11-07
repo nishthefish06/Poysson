@@ -1,0 +1,83 @@
+{
+  "id": "smishing-cred-theft",
+  "title": "Smishing to Credential Theft",
+  "category": "smishing",
+  "difficulty": 2,
+  "est_minutes": 8,
+  "briefing": "SYNTHETIC DRILL. Multiple employees report a text claiming to be IT support asking them to re-verify their login. One employee clicked the link.",
+  "initial_state": {
+    "affected_accounts": 1,
+    "contained": false,
+    "creds_reset": false,
+    "reported": false
+  },
+  "timeline": [
+    {
+      "t": 0,
+      "feed": {
+        "type": "alert",
+        "text": "Helpdesk ticket: employee clicked link in SMS from 'IT-Support'"
+      }
+    },
+    {
+      "t": 45,
+      "feed": { "type": "log", "text": "Login from unfamiliar ASN for user j.rivera" }
+    },
+    {
+      "t": 90,
+      "feed": { "type": "alert", "text": "2 more reports of the same SMS" },
+      "requires_not": "contained",
+      "effects": { "affected_accounts": 3 }
+    }
+  ],
+  "actions": [
+    {
+      "id": "block_domain",
+      "label": "Block the phishing domain at the gateway",
+      "effects": { "contained": true },
+      "verdict": "ideal",
+      "points": 100
+    },
+    {
+      "id": "reset_creds",
+      "label": "Force password reset + revoke sessions for j.rivera",
+      "effects": { "creds_reset": true },
+      "verdict": "ideal",
+      "points": 100
+    },
+    {
+      "id": "report_to_security",
+      "label": "Open incident with Security Operations",
+      "prerequisites": ["contained"],
+      "effects": { "reported": true },
+      "verdict": "ideal",
+      "points": 75
+    },
+    {
+      "id": "reply_to_sms",
+      "label": "Reply to the SMS asking if it's legit",
+      "verdict": "harmful",
+      "points": -100,
+      "why": "Engaging the attacker confirms the number is active and wastes time."
+    },
+    {
+      "id": "notify_customers",
+      "label": "Email all customers about a breach",
+      "verdict": "harmful",
+      "points": -150,
+      "why": "No evidence of customer data exposure yet; premature notices cause panic and can themselves look like phishing."
+    },
+    {
+      "id": "ignore",
+      "label": "Wait and monitor",
+      "verdict": "neutral",
+      "points": 0
+    }
+  ],
+  "ideal_path": ["block_domain", "reset_creds", "report_to_security"],
+  "scoring": { "time_bonus_max": 150, "order_bonus": 50 },
+  "tips": [
+    "Contain the source before investigating scope.",
+    "Reset credentials before notifying anyone externally."
+  ]
+}
