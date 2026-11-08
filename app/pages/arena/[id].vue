@@ -10,8 +10,45 @@ import type {
   RunbookRef,
 } from '@hackutd2026/shared/arena';
 
+import { useTable } from 'spacetimedb/vue';
+import { tables } from '~/module_bindings';
+
 const id = useRoute().params.id as string;
 const state = ref<ArenaState | null>(null);
+// Newer snapshot wins, whether it came from an HTTP response or live from SpacetimeDB.
+function apply(s: ArenaState) {
+  if (!state.value || s.sessionId !== state.value.sessionId || s.rev >= state.value.rev) state.value = s;
+}
+const startRound = useStartArenaRound();
+
+// Live: the server mirrors this round into SpacetimeDB on every change (attacker moves included).
+const [liveRounds] = useTable(tables.myArenaRounds);
+const liveRow = computed(() => liveRounds.value.find((x) => x.roundKey === id));
+watch(liveRow, (row) => {
+  if (!row) return;
+  try {
+    apply(JSON.parse(row.stateJson) as ArenaState);
+  } catch {
+    // a malformed snapshot: keep what we have
+  }
+});
+// Fallback while the attacker is moving and this round isn't live (signed out, no SpacetimeDB).
+let poll: ReturnType<typeof setInterval> | undefined;
+watch(
+  () => state.value?.thinking && !liveRow.value,
+  (needPoll) => {
+    clearInterval(poll);
+    if (needPoll)
+      poll = setInterval(async () => {
+        try {
+          apply(await $fetch<ArenaState>(`/api/arena/${id}`));
+        } catch {
+          // try again next tick
+        }
+      }, 1500);
+  }
+);
+onUnmounted(() => clearInterval(poll));
 const selectedId = ref<string | null>(null);
 const last = ref<{ judgment: Judgment; counted: boolean; guidance: RunbookRef | null } | null>(null);
 const reportText = ref('');
@@ -28,20 +65,21 @@ const tabs: { id: Tab; label: string }[] = [
   { id: 'activity', label: 'Activity log' },
 ];
 
-onMounted(() => run(async () => (state.value = await $fetch<ArenaState>(`/api/arena/${id}`))));
+onMounted(() => run(async () => apply(await $fetch<ArenaState>(`/api/arena/${id}`))));
 
 const active = computed(() => state.value?.status === 'active');
-const locked = computed(() => !active.value || busy.value);
+const thinking = computed(() => state.value?.thinking ?? false);
+const locked = computed(() => !active.value || busy.value || thinking.value);
 const selected = computed<ScenarioStep | null>(
   () => state.value?.steps.find((s) => s.id === selectedId.value) ?? state.value?.steps.at(-1) ?? null
 );
 const encrypted = computed(() => state.value?.world.files.some((f) => f.encrypted) ?? false);
 
 async function post(path: string, body: ArenaAction | EnvAction, isDecision = true) {
-  if (busy.value) return; // the attacker is still moving
+  if (busy.value || thinking.value) return; // the attacker is still moving
   await run(async () => {
     const res = await $fetch<ArenaActionResponse>(`/api/arena/${id}/${path}`, { method: 'POST', body });
-    state.value = res.state;
+    apply(res.state);
     // opening a message isn't a decision: keep showing the last real verdict
     if (isDecision)
       last.value = { judgment: res.judgment, counted: res.counted, guidance: res.guidance ?? null };
@@ -57,14 +95,14 @@ async function report() {
 }
 
 async function endRound() {
-  if (busy.value) return;
-  await run(async () => (state.value = await $fetch<ArenaState>(`/api/arena/${id}/end`, { method: 'POST' })));
+  if (busy.value || thinking.value) return;
+  await run(async () => apply(await $fetch<ArenaState>(`/api/arena/${id}/end`, { method: 'POST' })));
 }
 
 async function newRound() {
   const mode = state.value?.mode ?? 'bait';
   await run(async () => {
-    const s = await $fetch<ArenaState>('/api/arena/start', { method: 'POST', body: { mode } });
+    const s = await startRound(mode);
     state.value = null;
     last.value = null;
     selectedId.value = null;
@@ -114,7 +152,12 @@ function open(s: ScenarioStep) {
       </p>
       <span class="font-bold">{{ state.score }} pts</span>
       <span class="text-neutral-600">turn {{ state.turn }}</span>
-      <button v-if="active" class="rounded border border-line px-3 py-1" :disabled="busy" @click="endRound">
+      <button
+        v-if="active"
+        class="rounded border border-line px-3 py-1"
+        :disabled="busy || thinking"
+        @click="endRound"
+      >
         End round
       </button>
     </header>
@@ -169,7 +212,7 @@ function open(s: ScenarioStep) {
       <aside class="space-y-3 text-sm">
         <div class="rounded bg-panel p-3">
           <p class="text-neutral-600">Accuracy {{ Math.round(state.accuracy * 100) }}%</p>
-          <p v-if="busy" class="mt-1 text-neon-pink">The attacker is moving…</p>
+          <p v-if="busy || thinking" class="mt-1 text-neon-pink">The attacker is moving…</p>
           <div v-if="last" data-testid="verdict" class="mt-2 rounded border border-line p-2">
             <p class="font-semibold" :class="`text-verdict-${last.judgment.verdict}`">
               {{ last.judgment.verdict }} ({{ last.counted ? last.judgment.points : 'already counted' }})

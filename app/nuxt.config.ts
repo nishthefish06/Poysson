@@ -40,6 +40,9 @@ export default defineNuxtConfig({
     photonProjectId: process.env.PHOTON_PROJECT_ID ?? '',
     photonProjectSecret: process.env.PHOTON_PROJECT_SECRET ?? '',
     demoPhoneMap: process.env.DEMO_PHONE_MAP ?? '',
+    // The server's own SpacetimeDB connection (arena-sync.ts), registered as the agent service.
+    spacetimeInternalUrl: process.env.SPACETIME_INTERNAL_URL ?? 'ws://127.0.0.1:3000',
+    serviceSecret: process.env.SERVICE_SECRET ?? '',
     public: {
       // NUXT_PUBLIC_SPACETIME_URL / NUXT_PUBLIC_SPACETIME_DB from .env
       spacetimeUrl: 'ws://127.0.0.1:3000',

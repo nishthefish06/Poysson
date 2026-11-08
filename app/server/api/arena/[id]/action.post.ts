@@ -1,6 +1,6 @@
 import { ArenaAction, type ArenaActionResponse } from '@hackutd2026/shared/arena';
 
-// Employee acts on a message -> judged (rules, then model) -> attacker reacts.
+// Employee acts on a message -> judged (rules, then model) -> attacker reacts (after the response).
 export default defineEventHandler(async (event): Promise<ArenaActionResponse> => {
   const r = getRound(getRouterParam(event, 'id') ?? '');
   const a = await parseBody(event, ArenaAction);
@@ -30,7 +30,8 @@ export default defineEventHandler(async (event): Promise<ArenaActionResponse> =>
     const guidance = decision
       ? guidanceFor(`${step.channel} ${a.kind.replaceAll('_', ' ')}. ${judgment.reason}`, r.mode)
       : Promise.resolve(null);
-    if (counted && decision) await attackerTurn(r, a);
+    // the attacker answers right after this response, live through SpacetimeDB
+    if (counted && decision) moveAfterResponse(r, () => attackerTurn(r, a));
     return { judgment, counted, state: toArenaState(r), guidance: await guidance };
   });
 });

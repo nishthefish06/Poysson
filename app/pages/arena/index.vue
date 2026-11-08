@@ -1,11 +1,12 @@
 <script setup lang="ts">
 // OWNER: Person 4 (arena).
-import type { ArenaMode, ArenaState } from '@hackutd2026/shared/arena';
+import type { ArenaMode } from '@hackutd2026/shared/arena';
 
 const { error, busy, run } = useRunner();
+const startRound = useStartArenaRound();
 async function start(mode: ArenaMode) {
   await run(async () => {
-    const s = await $fetch<ArenaState>('/api/arena/start', { method: 'POST', body: { mode } });
+    const s = await startRound(mode);
     await navigateTo(`/arena/${s.sessionId}`);
   });
 }

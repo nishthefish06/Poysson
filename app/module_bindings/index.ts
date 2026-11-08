@@ -44,6 +44,7 @@ import AssignScenarioToAllEmployeesReducer from "./assign_scenario_to_all_employ
 import BootstrapAdminReducer from "./bootstrap_admin_reducer";
 import CancelLoginReducer from "./cancel_login_reducer";
 import ChangePasswordReducer from "./change_password_reducer";
+import ClaimArenaRoundReducer from "./claim_arena_round_reducer";
 import CreatePracticeQuestionReducer from "./create_practice_question_reducer";
 import CreateScenarioReducer from "./create_scenario_reducer";
 import DeleteGuideReducer from "./delete_guide_reducer";
@@ -62,12 +63,14 @@ import ReviewRunReducer from "./review_run_reducer";
 import ScoreRunReducer from "./score_run_reducer";
 import SeedDemoAccountsReducer from "./seed_demo_accounts_reducer";
 import SeedDemoActivityReducer from "./seed_demo_activity_reducer";
+import SeedRunbooksReducer from "./seed_runbooks_reducer";
 import SendSimReplyReducer from "./send_sim_reply_reducer";
 import SetRunLockoutReducer from "./set_run_lockout_reducer";
 import SetScenarioStatusReducer from "./set_scenario_status_reducer";
 import StartRunReducer from "./start_run_reducer";
 import StartSimulationReducer from "./start_simulation_reducer";
 import SubmitReportReducer from "./submit_report_reducer";
+import SyncArenaRoundReducer from "./sync_arena_round_reducer";
 import UpdateScenarioReducer from "./update_scenario_reducer";
 import UpsertGuideReducer from "./upsert_guide_reducer";
 import VerifyTotpReducer from "./verify_totp_reducer";
@@ -76,6 +79,8 @@ import VerifyTotpReducer from "./verify_totp_reducer";
 
 // Import all table schema definitions
 import AdminAccountsRow from "./admin_accounts_table";
+import AllArenaLogRow from "./all_arena_log_table";
+import AllArenaRoundsRow from "./all_arena_rounds_table";
 import AllRunEventsRow from "./all_run_events_table";
 import AllRunMessagesRow from "./all_run_messages_table";
 import AllRunsRow from "./all_runs_table";
@@ -85,6 +90,8 @@ import AvailableScenariosRow from "./available_scenarios_table";
 import EmployeeAttackStatsRow from "./employee_attack_stats_table";
 import GuidesRow from "./guides_table";
 import MyAccountRow from "./my_account_table";
+import MyArenaLogRow from "./my_arena_log_table";
+import MyArenaRoundsRow from "./my_arena_rounds_table";
 import MyAttackStatsRow from "./my_attack_stats_table";
 import MyLoginStateRow from "./my_login_state_table";
 import MyPracticeAnswersRow from "./my_practice_answers_table";
@@ -105,6 +112,20 @@ const tablesSchema = __schema({
     constraints: [
     ],
   }, AdminAccountsRow),
+  allArenaLog: __table({
+    name: 'all_arena_log',
+    indexes: [
+    ],
+    constraints: [
+    ],
+  }, AllArenaLogRow),
+  allArenaRounds: __table({
+    name: 'all_arena_rounds',
+    indexes: [
+    ],
+    constraints: [
+    ],
+  }, AllArenaRoundsRow),
   allRunEvents: __table({
     name: 'all_run_events',
     indexes: [
@@ -168,6 +189,20 @@ const tablesSchema = __schema({
     constraints: [
     ],
   }, MyAccountRow),
+  myArenaLog: __table({
+    name: 'my_arena_log',
+    indexes: [
+    ],
+    constraints: [
+    ],
+  }, MyArenaLogRow),
+  myArenaRounds: __table({
+    name: 'my_arena_rounds',
+    indexes: [
+    ],
+    constraints: [
+    ],
+  }, MyArenaRoundsRow),
   myAttackStats: __table({
     name: 'my_attack_stats',
     indexes: [
@@ -238,6 +273,7 @@ const reducersSchema = __reducers(
   __reducerSchema("bootstrap_admin", BootstrapAdminReducer),
   __reducerSchema("cancel_login", CancelLoginReducer),
   __reducerSchema("change_password", ChangePasswordReducer),
+  __reducerSchema("claim_arena_round", ClaimArenaRoundReducer),
   __reducerSchema("create_practice_question", CreatePracticeQuestionReducer),
   __reducerSchema("create_scenario", CreateScenarioReducer),
   __reducerSchema("delete_guide", DeleteGuideReducer),
@@ -256,12 +292,14 @@ const reducersSchema = __reducers(
   __reducerSchema("score_run", ScoreRunReducer),
   __reducerSchema("seed_demo_accounts", SeedDemoAccountsReducer),
   __reducerSchema("seed_demo_activity", SeedDemoActivityReducer),
+  __reducerSchema("seed_runbooks", SeedRunbooksReducer),
   __reducerSchema("send_sim_reply", SendSimReplyReducer),
   __reducerSchema("set_run_lockout", SetRunLockoutReducer),
   __reducerSchema("set_scenario_status", SetScenarioStatusReducer),
   __reducerSchema("start_run", StartRunReducer),
   __reducerSchema("start_simulation", StartSimulationReducer),
   __reducerSchema("submit_report", SubmitReportReducer),
+  __reducerSchema("sync_arena_round", SyncArenaRoundReducer),
   __reducerSchema("update_scenario", UpdateScenarioReducer),
   __reducerSchema("upsert_guide", UpsertGuideReducer),
   __reducerSchema("verify_totp", VerifyTotpReducer),

@@ -22,7 +22,7 @@ trap 'rm -f "$ENV_FILE"' EXIT
   echo "NUXT_PUBLIC_SPACETIME_URL=wss://$HOST"
   echo "NUXT_PUBLIC_SPACETIME_DB=${SPACETIME_DB:-hackutd2026}"
   echo "NUXT_SPACETIME_INTERNAL_URL=ws://127.0.0.1:3000"
-  echo "SERVICE_SECRET=${SERVICE_SECRET:-}"
+  echo "NUXT_SERVICE_SECRET=${SERVICE_SECRET:-}"
   # Nuxt only reads runtimeConfig overrides as NUXT_<KEY> at runtime.
   echo "NUXT_GEMINI_API_KEY=${GEMINI_API_KEY:-}"
   echo "NUXT_GEMINI_MODEL=${GEMINI_MODEL:-gemini-flash-latest}"
