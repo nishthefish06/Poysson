@@ -228,6 +228,8 @@ export const ArenaSummary = z.object({
       malicious: z.boolean(),
       redFlags: z.array(z.string()),
       handledWell: z.boolean(),
+      // an attack the employee never acted on: safe (they didn't fall for it), but unreported
+      ignored: z.boolean().default(false),
     })
   ),
   debrief: z.string(),

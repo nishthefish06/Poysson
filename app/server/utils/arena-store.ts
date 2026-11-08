@@ -85,6 +85,12 @@ export async function withRoundLock<T>(r: ArenaRound, fn: () => Promise<T>): Pro
   }
 }
 
+/**
+ * Most distinct messages a round can hold. The model likes to send new mail every turn; past this
+ * the inbox buries the actual exercise (in Breach, the cleanup). Continuing a thread is always allowed.
+ */
+export const MAX_MESSAGES = { bait: 8, breach: 5 } as const;
+
 export function applyMove(r: ArenaRound, m: ArenaMove) {
   if (m.narration)
     push(r, { type: 'narration', stepId: null, kind: null, verdict: null, points: 0, text: m.narration });
@@ -92,6 +98,12 @@ export function applyMove(r: ArenaRound, m: ArenaMove) {
     const flag = m.flags.find((f) => f.stepId === s.id);
     if (!flag) continue;
     const continued = r.steps.has(s.id);
+    if (!continued && r.steps.size >= MAX_MESSAGES[r.mode]) {
+      r.history.push(
+        `(inbox full: '${s.id}' was not delivered; continue an existing thread or use your tools)`
+      );
+      continue;
+    }
     r.versions.set(s.id, (r.versions.get(s.id) ?? 0) + 1);
     r.steps.set(s.id, s);
     r.flags.set(s.id, flag);
@@ -203,6 +215,7 @@ export function summaryFacts(r: ArenaRound): Omit<ArenaSummary, 'debrief' | 'deb
     const flag = r.flags.get(s.id)!;
     const acts = r.log.filter((e) => e.type === 'action' && e.stepId === s.id);
     const harmful = acts.some((e) => e.verdict === 'harmful');
+    const decided = acts.some((e) => e.kind !== 'opened_step' && e.kind !== 'note');
     const handledWell = flag.isMalicious
       ? !harmful && acts.some((e) => e.kind !== null && SAFE_KINDS.has(e.kind))
       : !harmful && !acts.some((e) => e.kind !== null && DISTRUST_KINDS.has(e.kind));
@@ -212,6 +225,7 @@ export function summaryFacts(r: ArenaRound): Omit<ArenaSummary, 'debrief' | 'deb
       malicious: flag.isMalicious,
       redFlags: [...flag.redFlags],
       handledWell,
+      ignored: flag.isMalicious && !decided,
     };
   });
   return {

@@ -41,7 +41,7 @@ export async function debriefRunbook(
   mode: ArenaMode,
   mistakes: string[] = []
 ): Promise<RunbookRef[]> {
-  const missed = facts.messages.filter((m) => !m.handledWell);
+  const missed = facts.messages.filter((m) => !m.handledWell && !m.ignored);
   const left = facts.attackerActions.filter((a) => !a.remediated);
   // Root causes first (the harmful things the employee did), then what is still broken.
   const queries = [

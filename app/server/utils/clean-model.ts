@@ -88,6 +88,43 @@ export function normalizeAttackType(raw: unknown, fallback: AttackType = 'phishi
 
 // ---------- steps ----------
 
+// ---------- fictional domains ----------
+
+const DOC_IP = /^(192\.0\.2|198\.51\.100|203\.0\.113)\.\d{1,3}$/;
+
+/** Domain the project allows as is: .example (RFC 2606) or a documentation IP. */
+function isSafeHost(host: string): boolean {
+  const h = host.toLowerCase();
+  return h.endsWith('.example') || h === 'example' || DOC_IP.test(h);
+}
+
+/** attacker.ctrl -> attacker-ctrl.example: keeps the look-alike, never a real or unknown domain. */
+function safeHost(host: string): string {
+  if (isSafeHost(host)) return host;
+  const label = host
+    .toLowerCase()
+    .replace(/[^a-z0-9.-]/g, '')
+    .replace(/\./g, '-')
+    .replace(/^-+|-+$/g, '');
+  return `${label || 'unknown'}.example`;
+}
+
+/**
+ * Rewrites every e-mail domain and URL host in free text to a fictional one. The model sometimes
+ * invents domains (attacker.ctrl) or uses real ones; the app only ever shows .example domains.
+ */
+export function fictionalize(text: string): string {
+  return text
+    .replace(
+      /([A-Za-z0-9._%+-]+)@([A-Za-z0-9.-]+\.[A-Za-z]{2,})/g,
+      (_m, user: string, host: string) => `${user}@${safeHost(host)}`
+    )
+    .replace(
+      /\b(https?:\/\/)([A-Za-z0-9.-]+)/gi,
+      (_m, scheme: string, host: string) => `${scheme}${safeHost(host)}`
+    );
+}
+
 function cleanStep(raw: unknown): Obj | null {
   if (!isObj(raw)) return null;
   const id = normalizeId(raw.id);
@@ -97,15 +134,15 @@ function cleanStep(raw: unknown): Obj | null {
   const step: Obj = {
     id,
     channel: normalizeChannel(raw.channel),
-    from: clip(raw.from, 200) || 'Unknown sender',
-    subject: clip(raw.subject, 300),
-    body,
+    from: fictionalize(clip(raw.from, 200)) || 'Unknown sender',
+    subject: fictionalize(clip(raw.subject, 300)),
+    body: fictionalize(body),
   };
 
   const links = (Array.isArray(raw.links) ? raw.links : [])
     .filter((l): l is Obj => isObj(l) && nonEmpty(l.label) && nonEmpty(l.url))
     .slice(0, 5)
-    .map((l) => ({ label: clip(l.label, 200), url: clip(l.url, 500) }));
+    .map((l) => ({ label: fictionalize(clip(l.label, 200)), url: fictionalize(clip(l.url, 500)) }));
   if (links.length) step.links = links;
 
   const form = raw.form;
@@ -170,7 +207,7 @@ function cleanFlags(raw: unknown, idMap: Map<string, string>, keep: Set<string>)
       redFlags: (Array.isArray(f.redFlags) ? f.redFlags : [])
         .filter(nonEmpty)
         .slice(0, 10)
-        .map((r) => clip(r, 200)),
+        .map((r) => fictionalize(clip(r, 200))),
     });
   }
   return out;
@@ -237,13 +274,13 @@ export function cleanTools(raw: unknown, max = 3): AttackerTool[] {
     if (name === 'add_forwarding_rule')
       Object.assign(candidate, {
         match: clip(t.match, 60) || '*',
-        forwardTo: clip(t.forwardTo ?? t.to, 120),
+        forwardTo: fictionalize(clip(t.forwardTo ?? t.to, 120)),
       });
     if (name === 'send_mail_as_you')
       Object.assign(candidate, {
-        to: clip(t.to, 120),
-        subject: clip(t.subject, 200),
-        body: clip(t.body, 1500),
+        to: fictionalize(clip(t.to, 120)),
+        subject: fictionalize(clip(t.subject, 200)),
+        body: fictionalize(clip(t.body, 1500)),
       });
     if (name === 'add_mfa_device')
       Object.assign(candidate, {
@@ -253,11 +290,11 @@ export function cleanTools(raw: unknown, max = 3): AttackerTool[] {
       Object.assign(candidate, {
         customerId: normalizeId(t.customerId ?? t.customer) ?? '',
         field: customerField(t.field, rawTool, t.value),
-        value: clip(String(t.value ?? ''), 120),
+        value: fictionalize(clip(String(t.value ?? ''), 120)),
       });
     if (name === 'encrypt_files')
       Object.assign(candidate, {
-        note: clip(t.note, 600) || 'Your files are encrypted. Pay to get them back.',
+        note: fictionalize(clip(t.note, 600)) || 'Your files are encrypted. Pay to get them back.',
       });
     const parsed = AttackerTool.safeParse(candidate);
     if (parsed.success) out.push(parsed.data);
@@ -289,7 +326,7 @@ export function cleanArenaMove(raw: unknown, known: ReadonlyMap<string, KnownFla
   }
   return {
     attackType: normalizeAttackType(raw.attackType),
-    narration: nonEmpty(raw.narration) ? clip(raw.narration, 300) : null,
+    narration: nonEmpty(raw.narration) ? fictionalize(clip(raw.narration, 300)) : null,
     endRound: asBool(raw.endRound) === true,
     steps,
     flags: [...flags.values()],

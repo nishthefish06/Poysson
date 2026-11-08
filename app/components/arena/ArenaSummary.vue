@@ -47,7 +47,8 @@ const emit = defineEmits<{ again: [] }>();
             m.malicious ? 'ATTACK' : 'legit'
           }}</span>
           · {{ m.title }} ·
-          <span :class="m.handledWell ? 'text-verdict-ideal' : 'text-verdict-harmful'">{{
+          <span v-if="m.ignored" class="text-verdict-ok">ignored (safe; reporting it is better)</span>
+          <span v-else :class="m.handledWell ? 'text-verdict-ideal' : 'text-verdict-harmful'">{{
             m.handledWell ? 'handled well' : 'missed'
           }}</span>
         </p>

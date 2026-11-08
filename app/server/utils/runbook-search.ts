@@ -3,7 +3,6 @@
  * Gemini embeddings are added when GEMINI_API_KEY is set; any failure falls back to keyword
  * search, and embedding isn't retried for a few minutes so a dead key doesn't slow every request.
  */
-import { GoogleGenAI } from '@google/genai';
 import { RUNBOOKS } from '../data/runbooks';
 import type { ArenaMode, RunbookRef } from '@hackutd2026/shared/arena';
 import { RunbookIndex, cite, type EmbedFn, type SearchHit, type SearchOptions } from './retrieve';
@@ -15,11 +14,8 @@ let lastFailure = 0;
 
 function geminiEmbedder(): EmbedFn | null {
   const c = useRuntimeConfig();
-  if (!c.geminiApiKey) return null;
-  const ai = new GoogleGenAI({
-    apiKey: c.geminiApiKey,
-    httpOptions: { timeout: 8_000, ...(c.geminiBaseUrl ? { baseUrl: c.geminiBaseUrl } : {}) },
-  });
+  const ai = geminiClient(8_000);
+  if (!ai) return null;
   return async (texts, kind) => {
     const res = await ai.models.embedContent({
       model: c.geminiEmbedModel,
