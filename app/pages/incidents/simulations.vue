@@ -32,7 +32,7 @@ function launch() {
   <div class="ops">
     <header class="page-head">
       <div>
-        <NuxtLink to="/incidents" class="ops__back mono"><CyberIcon name="back" :size="14" /> {{ copy.incidents }}</NuxtLink>
+        <NuxtLink to="/incidents/practice" class="ops__back mono"><CyberIcon name="back" :size="14" /> Practice</NuxtLink>
         <div class="eyebrow eyebrow--magenta">{{ copy.sims }} · mixed-threat generator</div>
         <h1 class="page-head__title">Arm your threat mix</h1>
         <p class="page-head__sub">Real incidents don't arrive one at a time. Every vector you arm drops into a single shuffled incident — no two runs play the same.</p>

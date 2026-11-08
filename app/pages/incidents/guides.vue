@@ -6,7 +6,6 @@ import { COPY as copy } from '~/data/copy'
  */
 import { INJECTS, VECTORS, type VectorId } from '~/data/incidents'
 
-const { state } = useGame()
 const active = ref<VectorId>(VECTORS[0].id)
 const tabs = VECTORS.map(v => ({ id: v.id, label: v.name, icon: v.icon }))
 const vector = computed(() => VECTORS.find(v => v.id === active.value)!)
@@ -22,12 +21,6 @@ const guide = computed(() => {
     tips: uniq(injects.map(i => i.tip)),
   }
 })
-
-function practice() {
-  state.value.setup.mode = 'guided'
-  if (!state.value.setup.vectors.includes(active.value)) state.value.setup.vectors.push(active.value)
-  navigateTo('/incidents/simulations')
-}
 </script>
 
 <template>
@@ -50,8 +43,6 @@ function practice() {
         <h2 class="guides__name">{{ vector.name }}</h2>
         <p class="dim">{{ vector.blurb }}</p>
       </div>
-      <div class="spacer" />
-      <CyberButton variant="primary" icon="play" @click="practice">Practice guided</CyberButton>
       <SketchBox :width="2.4" />
       <Sparkles :size="16" color="var(--c)" />
     </section>
