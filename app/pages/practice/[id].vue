@@ -7,15 +7,15 @@ import type { ArenaAction } from '@hackutd2026/shared/arena';
 import { reducers, tables } from '~/module_bindings';
 
 const route = useRoute();
-const assignmentId = BigInt(route.params.id as string);
+const runId = BigInt(route.params.id as string);
 
-const [assignments, ready] = useTable(tables.myAssignments);
-const startAssignment = useReducer(reducers.startAssignment);
+const [assignments, ready] = useTable(tables.myRuns);
+const startRun = useReducer(reducers.startRun);
 const logRunEvent = useReducer(reducers.logRunEvent);
 const submitReport = useReducer(reducers.submitReport);
 const { error, busy, run } = useRunner();
 
-const a = computed(() => assignments.value.find((x) => x.id === assignmentId));
+const a = computed(() => assignments.value.find((x) => x.id === runId));
 const steps = computed(() => {
   if (!a.value) return [];
   const parsed = ScenarioContent.safeParse(JSON.parse(a.value.contentJson));
@@ -23,7 +23,7 @@ const steps = computed(() => {
 });
 const inProgress = computed(() => a.value?.status === 'in_progress');
 
-// The module doesn't expose an employee's own run events, so keep a local list for the UI.
+// Kept locally for the UI; the module also exposes them as `my_run_events`.
 const done = ref<string[]>([]);
 const summary = ref('');
 const actionsTaken = ref('');
@@ -31,13 +31,13 @@ const actionsTaken = ref('');
 watch(
   [ready, a],
   () => {
-    if (ready.value && a.value?.status === 'assigned') void run(() => startAssignment({ assignmentId }));
+    if (ready.value && a.value?.status === 'assigned') void run(() => startRun({ runId }));
   },
   { immediate: true }
 );
 
 async function act(e: ArenaAction) {
-  const ok = await run(() => logRunEvent({ assignmentId, kind: e.kind, stepId: e.stepId, detail: e.detail }));
+  const ok = await run(() => logRunEvent({ runId, kind: e.kind, stepId: e.stepId, detail: e.detail }));
   if (ok) done.value.push(`${e.kind.replaceAll('_', ' ')} (${e.stepId})`);
 }
 </script>
@@ -61,7 +61,7 @@ async function act(e: ArenaAction) {
     <form
       v-if="inProgress"
       class="mt-8 space-y-3"
-      @submit.prevent="run(() => submitReport({ assignmentId, summary, actionsTaken }))"
+      @submit.prevent="run(() => submitReport({ runId, summary, actionsTaken }))"
     >
       <h2 class="text-xl font-semibold">Incident report</h2>
       <textarea v-model="summary" rows="3" placeholder="What happened?" class="w-full rounded bg-panel p-2" />

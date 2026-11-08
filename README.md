@@ -1,53 +1,55 @@
-# hackutd2026
+# hackutd2026: Poyo
 
-Cybersecurity training for T-Mobile employees. The backend is a [SpacetimeDB](https://spacetimedb.com) module (TypeScript), self-hosted on Vultr.
+Security training for T-Mobile employees. Employees run simulated attacks (ransomware, SIM-swap fraud, smishing, phishing, insider/vendor leaks), guided with hints or unguided against a live Nemotron attacker that adapts to their replies. The backend is a [SpacetimeDB](https://spacetimedb.com) module, self-hosted on Vultr at **[poysson.fishing](https://poysson.fishing)**.
 
 ```
 app/               Nuxt front end (practice, arena, admin) + AI/arena server routes
-shared/src/        zod contracts shared by the module, the Nuxt app and AI generators
-spacetimedb/src/   the module: tables, reducers, views
+shared/src/        zod contracts shared by the module, the Nuxt app and the Nemotron agent
+spacetimedb/src/   the module
   schema.ts        tables (all private)
-  auth.ts          login, authenticator-app 2FA, account admin
-  training.ts      practice answers, simulation runs, reports, reviews, content admin
+  auth.ts          login, authenticator 2FA, account admin, demo accounts
+  training.ts      practice, scenarios, simulation runs, live chat, agent moves, scoring
+  service.ts       registration for the Nemotron agent (SERVICE_SECRET)
   views.ts         everything clients can read
-  seed.ts          init: owner + starter guides, questions, sample scenario
+  seed.ts          init: owner + starter guides, practice questions, two scenarios
   crypto.ts        PBKDF2 password hashing, TOTP (RFC 6238)
-deploy/vultr/      cloud-init for the server, deploy and admin scripts
-spacetime.json     database name (hackutd2026), local server by default
-.env.example       every environment variable name the project uses
+test-client/       bare-bones Vue page for testing the backend (not the real UI)
+deploy/vultr/      server setup (cloud-init), deploy and admin scripts
 ```
 
 ## Conventions
 
-- Node 22+ (`.nvmrc`), **npm only**. It's an npm workspace with one lockfile at the root: run `npm install` there, never inside a package.
-- TypeScript in strict mode everywhere.
-- `npm run check` runs the type checks, ESLint and the Prettier check; `npm run format` fixes formatting.
-- Copy `.env.example` to `.env` (git-ignored) for local values.
+- Node 22+ (`.nvmrc`), **npm only**. One npm workspace, one lockfile at the root: run `npm install` there.
+- TypeScript strict everywhere. `npm run check` = type checks + ESLint + Prettier check; `npm run format` fixes formatting.
+- Copy `.env.example` to `.env` (git-ignored). It lists every variable the project reads.
 
 ## Run it locally
 
-Install the CLI once: `curl -sSf https://install.spacetimedb.com | sh` (then add `~/.local/bin` to your `PATH`).
+Install the CLI once: `curl -sSf https://install.spacetimedb.com | sh`, then add `~/.local/bin` to your `PATH`.
 
 ```bash
 npm install
-spacetime start                      # leave running in its own terminal
-spacetime publish                    # publishes ./spacetimedb as "hackutd2026" on local (from spacetime.json)
+spacetime start                                              # own terminal
+SERVICE_SECRET=local-dev-secret-0123456789 spacetime publish  # publishes ./spacetimedb as hackutd2026
 spacetime call -s local hackutd2026 seed_demo_accounts '"choose-a-demo-password"'
+npm run dev                                                  # Nuxt app: http://localhost:3001
+npm run test-client                                          # bare-bones test page: http://localhost:5173
 ```
 
-`seed_demo_accounts` creates `demo.admin@example.com` and `demo.employee@example.com`, which skip 2FA so judges can log in. Create a real admin with:
+Demo accounts skip 2FA: `demo.admin@example.com` and `demo.employee@example.com`. Create a real admin (with 2FA) with:
 
 ```bash
 spacetime call -s local hackutd2026 bootstrap_admin '"you@example.com"' '"Your Name"' '"+15555550123"' '"a-long-password"'
 ```
 
-Both only work for the identity that first published the database. Other commands need `-s local` too, because the CLI's global default server is Maincloud:
+Owner-only commands (`bootstrap_admin`, `seed_demo_accounts`) work for the identity that first published. Other CLI commands need `-s local` because the CLI's default server is Maincloud: `spacetime logs -s local hackutd2026`, `spacetime sql -s local hackutd2026 "SELECT * FROM scenario"`. After a schema change: `spacetime publish --delete-data`.
 
-```bash
-spacetime logs -s local hackutd2026                       # reducer errors show up here
-spacetime sql -s local hackutd2026 "SELECT * FROM my_account"
-spacetime publish --delete-data                           # wipe and re-seed after schema changes
-```
+## How a simulation works
+
+1. A **scenario** is data: steps (each with an attack stage `before` / `during` / `after`, a channel, who it claims to be from, the message, and a hint for guided mode) plus an answer key (`rubricJson`). Ransomware scenarios can start with the employee's dashboard locked.
+2. A **run** is one attempt. Employees start one themselves (`startSimulation`), or an admin or Nemotron assigns one, which pops up on their dashboard (`startRun`).
+3. **Guided:** the employee works through the scripted steps with hints and logs actions (`logRunEvent`). **Unguided:** Nemotron plays the attacker in `sim_message`, the employee replies (`sendSimReply`), and the agent adapts: more or less pressure (`adjustDifficulty`), a new stage, locking or unlocking the dashboard.
+4. The run ends when the employee submits a report or the agent ends it. Nemotron scores it with strengths and mistakes (`scoreRun`), shown to the employee right away. Admins can score too (`reviewRun`).
 
 ## Front end (Nuxt, `app/`)
 
@@ -66,93 +68,92 @@ npm run dev            # http://localhost:3001 (SpacetimeDB already uses :3000)
 - Arena types are a separate entry point: `@hackutd2026/shared/arena` (ArenaMove, ArenaAction, Judgment, ArenaState).
 - `ScenarioStep` gained optional `links` and `form`, and `Channel` gained `social` and `web` (additive; re-publish the module).
 
-| Route | What |
-| --- | --- |
-| `POST /api/arena/start` | new arena round, attacker's first move |
-| `GET /api/arena/:id` | round state (steps + log, never the truth flags) |
-| `POST /api/arena/:id/action` | employee action -> judged (rules, then model) -> attacker reacts |
-| `POST /api/ai/generate-scenario` | AI draft of a `ScenarioDraft` for admins to review and save |
-| `POST /api/photon/send` | drill text to a consenting teammate (`DEMO_PHONE_MAP`) |
+| Route                            | What                                                             |
+| -------------------------------- | ---------------------------------------------------------------- |
+| `POST /api/arena/start`          | new arena round, attacker's first move                           |
+| `GET /api/arena/:id`             | round state (steps + log, never the truth flags)                 |
+| `POST /api/arena/:id/action`     | employee action -> judged (rules, then model) -> attacker reacts |
+| `POST /api/ai/generate-scenario` | AI draft of a `ScenarioDraft` for admins to review and save      |
+| `POST /api/photon/send`          | drill text to a consenting teammate (`DEMO_PHONE_MAP`)           |
+
+## Front end (Nuxt, `app/`)
+
+Two areas after login: **Practice** (assigned and self-started simulations, practice questions, guides; all SpacetimeDB) and **Arena** (free play against the Nemotron attacker; runs on the Nuxt server). Both render scenario steps as fake apps with `StepView` and record what the employee did as `RunEventKind`s.
+
+- Login/2FA/enroll pages are wired to the reducers; `SessionGate` routes between them.
+- `NUXT_PUBLIC_DEV_BYPASS_AUTH=1` in `.env` lets you browse pages without a running SpacetimeDB (dev only).
+- After changing the module, regenerate bindings: `npm run bindings` (needs the `spacetime` CLI).
+- Arena types are a separate entry point: `@hackutd2026/shared/arena` (ArenaMove, ArenaAction, Judgment, ArenaState).
+- `ScenarioStep` has optional `links`, `form`, `stage` and `hint`; `Channel` includes `social` and `web`.
+
+| Route                            | What                                                             |
+| -------------------------------- | ---------------------------------------------------------------- |
+| `POST /api/arena/start`          | new arena round, attacker's first move                           |
+| `GET /api/arena/:id`             | round state (steps + log, never the truth flags)                 |
+| `POST /api/arena/:id/action`     | employee action -> judged (rules, then model) -> attacker reacts |
+| `POST /api/ai/generate-scenario` | AI draft of a `ScenarioDraft` for admins to review and save      |
+| `POST /api/photon/send`          | drill text to a consenting teammate (`DEMO_PHONE_MAP`)           |
 
 ## Connecting a front end
-
-Generate typed bindings into the front-end project, then connect with the TypeScript SDK (it ships Vue and React helpers under `spacetimedb/vue` and `spacetimedb/react`):
 
 ```bash
 spacetime generate --lang typescript --out-dir <frontend>/module_bindings --module-path spacetimedb
 ```
 
-- URL: `ws://127.0.0.1:3000` locally (not `localhost`, which can resolve to IPv6 while `spacetime start` listens on IPv4 only), `wss://<server-host>` on Vultr. Database: `hackutd2026`.
-- Store the token from `onConnect` (e.g. in `localStorage`) and pass it back with `withToken` so the browser keeps its identity, and therefore its session, across reloads.
-- In Nuxt, create the connection client-side only (a `.client` plugin); websockets don't run during SSR.
+- URL `ws://127.0.0.1:3000` locally (not `localhost`: the server is IPv4-only), `wss://poysson.fishing` in production; database `hackutd2026`. The SDK ships Vue helpers (`spacetimedb/vue`); `test-client/src` has working examples of every call.
+- Store the token from `onConnect` and pass it back with `withToken`, so the browser keeps its identity and session across reloads.
+- In Nuxt, create the connection client-side only (a `.client` plugin).
+- Reducer errors (wrong password, invalid input, wrong role) reject the reducer promise with a readable message.
 
-### Login flow
-
-1. `login(email, password)`. Then subscribe to `my_login_state` and `my_account`:
-   - `my_account` has a row: signed in (demo accounts land here directly).
-   - `my_login_state.stage == 'totp'`: show the 6-digit code screen, call `verifyTotp(code)`.
-   - `my_login_state.stage == 'enroll'`: first login. In the browser, create a secret from 20 bytes of `crypto.getRandomValues`, base32-encode it (32 chars), show it as a QR code for
-     `otpauth://totp/<App>:<email>?secret=<SECRET>&issuer=<App>&period=30&digits=6&algorithm=SHA1`,
-     then call `enrollTotp(secret, code)` with the first code from the app.
-2. `logout()`; `cancelLogin()` backs out of the 2FA step.
-
-Reducer errors (wrong password, bad code) reject the reducer promise with the message.
+**Login flow:** `login(email, password)`, then watch `my_login_state` and `my_account`. Demo accounts land in `my_account` directly. Stage `totp` → `verifyTotp(code)`. Stage `enroll` (first login) → the browser makes a secret (20 random bytes, base32), shows it as a QR code for `otpauth://totp/<App>:<email>?secret=<SECRET>&issuer=<App>`, then `enrollTotp(secret, code)`.
 
 ## API
 
-All tables are private. Clients read through these views, which only return what the caller's session and role allow:
+Views:
 
-| View                                                                         | Who       | Contents                                                                                                                 |
-| ---------------------------------------------------------------------------- | --------- | ------------------------------------------------------------------------------------------------------------------------ |
-| `my_account`                                                                 | signed in | profile, role, `totpEnabled`, `isDemo`                                                                                   |
-| `my_login_state`                                                             | mid-login | `stage` (`totp`/`enroll`), `email`                                                                                       |
-| `my_stats`                                                                   | signed in | assignment counts by status, average approved score, practice totals                                                     |
-| `my_assignments`                                                             | signed in | assigned simulations with briefing, `contentJson`, admin `popupMessage`; `score`/`feedback` only after an admin approves |
-| `guides`, `practice_questions`                                               | signed in | training content (questions without answers)                                                                             |
-| `my_practice_answers`                                                        | signed in | your answers plus the correct choice and explanation                                                                     |
-| `admin_accounts`, `admin_scenarios`, `admin_assignments`, `admin_run_events` | admins    | everything, including rubrics, reports and the run event log                                                             |
+| Who                       | Views                                                                                                                                                                                                                                                                                                 |
+| ------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Anyone                    | `my_account`, `my_login_state`, `am_service`                                                                                                                                                                                                                                                          |
+| Signed-in employees       | `my_runs` (runs with scenario, mode, stage, live difficulty, `lockedOut`, and score, feedback, strengths and mistakes once scored), `my_run_messages`, `my_run_events`, `my_stats`, `my_attack_stats` (per attack type), `available_scenarios`, `guides`, `practice_questions`, `my_practice_answers` |
+| Nemotron agent and admins | `all_scenarios` (with answer keys), `all_runs`, `all_run_messages`, `all_run_events`, `employee_attack_stats`                                                                                                                                                                                         |
+| Admins                    | `admin_accounts`                                                                                                                                                                                                                                                                                      |
 
-Reducers (camelCase in generated bindings):
+Reducers (camelCase in the bindings):
 
-| Area               | Reducers                                                                                                                                                                                |
-| ------------------ | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| Auth               | `login`, `verifyTotp`, `enrollTotp`, `cancelLogin`, `logout`, `changePassword`                                                                                                          |
-| Employee           | `answerPractice`, `startAssignment`, `logRunEvent(assignmentId, kind, stepId, detail)`, `submitReport`                                                                                  |
-| Admin: people      | `adminCreateAccount`, `adminSetRole`, `adminResetTotp`                                                                                                                                  |
-| Admin: simulations | `createScenario`, `updateScenario`, `setScenarioStatus`, `deleteScenario`, `assignScenario`, `assignScenarioToAllEmployees`, `reviewAssignment(assignmentId, score, feedback, approve)` |
-| Admin: content     | `upsertGuide`, `deleteGuide`, `createPracticeQuestion`, `deletePracticeQuestion`                                                                                                        |
-| Owner (CLI)        | `bootstrapAdmin`, `seedDemoAccounts`                                                                                                                                                    |
+| Area           | Reducers                                                                                                                                                                                                                                                                                                                      |
+| -------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Auth           | `login`, `verifyTotp`, `enrollTotp`, `cancelLogin`, `logout`, `changePassword`                                                                                                                                                                                                                                                |
+| Employee       | `startSimulation(scenarioId, mode)`, `startRun(runId)`, `logRunEvent(runId, kind, stepId, detail)`, `sendSimReply(runId, body)`, `submitReport(runId, summary, actionsTaken)`, `answerPractice`                                                                                                                               |
+| Nemotron agent | `registerService(secret, label)`, `postAttackerMessage(runId, channel, from, stage, body)`, `postCoachMessage`, `adjustDifficulty(runId, 1-5)`, `setRunLockout`, `endSimulation`, `scoreRun(runId, score, feedback, strengths, mistakes)`, `proposeScenario(..., publish, assignTo, mode, popupMessage)`                      |
+| Admin          | `adminCreateAccount`, `adminSetRole`, `adminResetTotp`, `createScenario`, `updateScenario`, `setScenarioStatus`, `deleteScenario`, `assignScenario(scenarioId, accountId, mode, popupMessage)`, `assignScenarioToAllEmployees`, `reviewRun`, `upsertGuide`, `deleteGuide`, `createPracticeQuestion`, `deletePracticeQuestion` |
+| Owner (CLI)    | `bootstrapAdmin`, `seedDemoAccounts`                                                                                                                                                                                                                                                                                          |
 
-Enums, scenario JSON and run events are defined once in [`shared/src/index.ts`](shared/src/index.ts) and imported as `@hackutd2026/shared`:
+Admins can call the agent reducers too, so the test client can stand in for Nemotron.
 
-- `AttackType`, `Difficulty`, `Role`, `ScenarioStatus`, `AssignmentStatus` (`assigned` → `in_progress` → `submitted` → `reviewed`), `LoginStage`.
-- `ScenarioContent` (stored in `contentJson`, visible to the employee) and `ScenarioRubric` (stored in `rubricJson`, admin only; scoring must total 100). `ScenarioDraft` is the whole scenario; admin forms and the Gemini/Nemotron generators should validate their output against it. `createScenario`/`updateScenario` reject anything that doesn't match.
-- `RunEventKind` and `RunEventInput` for `logRunEvent`. `started` and `submitted` are recorded by the module.
-- `describeIssues(error)` turns a zod error into one readable line.
+Shapes live in `shared/src/index.ts`: `AttackType`, `AttackStage`, `SimMode`, `Channel`, `RunEventKind`, `SimSender`, `ScenarioDraft` (`ScenarioContent` + `ScenarioRubric`), `AttackerTurn` and `RunScore`. The module rejects anything that doesn't match, so validate with the same schemas before sending.
+
+## The Nemotron agent
+
+It runs in the Nuxt server and connects to SpacetimeDB directly on the box (`NUXT_SPACETIME_INTERNAL_URL`). It calls `registerService(SERVICE_SECRET, 'nemotron-agent')` once, then subscribes to `all_runs` and `all_run_messages`. When an unguided run has a new employee reply, it reads the scenario's answer key and the conversation, decides its next move, and calls `postAttackerMessage`, `adjustDifficulty` or `setRunLockout`. It ends and scores the run when it's over. It can also personalize training: read `employee_attack_stats`, then `proposeScenario` with `assignTo` set for an employee's weakest attack type.
 
 ## Deploy to Vultr
 
-The server runs SpacetimeDB on `127.0.0.1:3000` behind Caddy (automatic HTTPS). Only the two endpoints the browser SDK uses are public (`/v1/identity/websocket-token` and `/v1/database/<db>/subscribe`); publishing and admin commands go over SSH, so nobody else can push modules to the box.
+The server (Ubuntu 24.04, Atlanta) runs SpacetimeDB, the Nuxt app and the test client behind Caddy, with automatic HTTPS for `poysson.fishing` and `www.poysson.fishing`. Only the two SpacetimeDB endpoints browsers use are public; every other `/v1/` path returns 404. Publishing and admin commands go over SSH, so nobody else can push code to the server.
 
-1. Vultr → Deploy → Cloud Compute, **Ubuntu 24.04**, 2 GB RAM or more. Add your SSH key. Paste [`deploy/vultr/cloud-init.yaml`](deploy/vultr/cloud-init.yaml) into **Cloud-Init User-Data**.
-2. Wait a few minutes after it boots, then check: `curl https://<ip-with-dashes>.sslip.io/v1/identity/websocket-token` should not be a connection error (the host is printed in `/etc/caddy/Caddyfile` on the server).
-3. Set `VULTR_SSH=root@<server-ip>` in `.env`, then publish and set up accounts from the repo root:
+Set `VULTR_SSH`, `PUBLIC_HOST` and `SERVICE_SECRET` in `.env`, then from the repo root:
 
-   ```bash
-   deploy/vultr/deploy.sh
-   deploy/vultr/stdb.sh call hackutd2026 seed_demo_accounts '"choose-a-demo-password"'
-   deploy/vultr/stdb.sh call hackutd2026 bootstrap_admin '"you@example.com"' '"Your Name"' '"+15555550123"' '"a-long-password"'
-   deploy/vultr/stdb.sh logs hackutd2026
-   ```
+```bash
+deploy/vultr/deploy.sh                    # publish the module (DELETE_DATA=1 after a breaking schema change)
+deploy/vultr/stdb.sh call hackutd2026 seed_demo_accounts '"choose-a-demo-password"'
+deploy/vultr/stdb.sh logs hackutd2026
+deploy/vultr/deploy-test-client.sh        # https://poysson.fishing/test/
+deploy/vultr/deploy-web.sh                # the Nuxt app (app/) at https://poysson.fishing/
+```
 
-   Re-run `deploy.sh` after every module change.
-
-4. Front end: connect to `wss://<ip-with-dashes>.sslip.io`, database `hackutd2026`.
-
-**Custom domain:** add an A record pointing at the server IP, replace the first line of `/etc/caddy/Caddyfile` with the domain, and run `systemctl reload caddy`. The Nuxt app can be served from the same box by adding a second site block to that Caddyfile.
+A new server: create it with [`deploy/vultr/cloud-init.yaml`](deploy/vultr/cloud-init.yaml) as Cloud-Init User-Data, point the domain's A records at it, and put the domain on the first line of `/etc/caddy/Caddyfile`.
 
 ## Known limitations
 
-- No login lockout: a failed reducer rolls back, so failed attempts can't be counted in the same transaction. Password + code are both required, which limits brute force, but add rate limiting before real use.
-- The module's RNG (`ctx.random`) is deterministic, which is why the TOTP secret is generated in the browser. Password salts use it too; they only need to be unique.
-- Passkeys (WebAuthn) are not implemented; SpacetimeDB has no built-in support.
+- No login lockout after failed attempts: a failed reducer rolls back, so failures can't be counted in the same call. Password plus code are both required.
+- Passkeys (WebAuthn) are not implemented; the second factor is an authenticator code.
+- `ctx.random` is deterministic, which is why the TOTP secret is generated in the browser.

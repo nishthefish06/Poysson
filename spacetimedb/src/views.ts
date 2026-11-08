@@ -2,7 +2,8 @@
 // caller's session and role allow. Subscribe with e.g. `SELECT * FROM my_account`.
 import { t } from 'spacetimedb/server';
 import spacetimedb from './schema';
-import { currentAccount, type ReadCtx } from './access';
+import { AttackType } from '@hackutd2026/shared';
+import { currentAccount, isService, type ReadCtx } from './access';
 
 // ---------- Output types ----------
 
@@ -45,31 +46,77 @@ const AnswerInfo = t.object('AnswerInfo', {
   explanation: t.string(),
 });
 
-const AssignmentInfo = t.object('AssignmentInfo', {
+const RunInfo = t.object('RunInfo', {
   id: t.u64(),
   scenarioId: t.u64(),
   attackType: t.string(),
   title: t.string(),
-  difficulty: t.string(),
+  difficulty: t.string(), // the scenario's label
   summary: t.string(),
   briefing: t.string(),
-  contentJson: t.string(),
-  popupMessage: t.string(),
+  contentJson: t.string(), // ScenarioContent: steps with stage and hint
+  mode: t.string(), // 'guided' | 'unguided'
   status: t.string(),
+  stage: t.string(), // current AttackStage
+  liveDifficulty: t.u32(), // 1-5, moved by the agent
+  lockedOut: t.bool(), // show the locked-dashboard screen
+  selfStarted: t.bool(),
+  popupMessage: t.string(),
   assignedAt: t.timestamp(),
   startedAt: t.option(t.timestamp()),
   submittedAt: t.option(t.timestamp()),
-  // Only present once an admin approved the review.
+  // Present once the run is scored (agent) or the admin approved a score.
   score: t.option(t.u32()),
   feedback: t.option(t.string()),
+  strengths: t.option(t.array(t.string())),
+  mistakes: t.option(t.array(t.string())),
+});
+
+const MessageInfo = t.object('MessageInfo', {
+  id: t.u64(),
+  runId: t.u64(),
+  sender: t.string(),
+  channel: t.string(),
+  from: t.string(),
+  stage: t.string(),
+  body: t.string(),
+  at: t.timestamp(),
+});
+
+const RunEventInfo = t.object('RunEventInfo', {
+  id: t.u64(),
+  runId: t.u64(),
+  kind: t.string(),
+  stepId: t.string(),
+  detail: t.string(),
+  at: t.timestamp(),
+});
+
+const ScenarioCard = t.object('ScenarioCard', {
+  id: t.u64(),
+  attackType: t.string(),
+  title: t.string(),
+  difficulty: t.string(),
+  summary: t.string(),
+  source: t.string(),
 });
 
 const StatsInfo = t.object('StatsInfo', {
   assigned: t.u32(),
   inProgress: t.u32(),
   submitted: t.u32(),
-  reviewed: t.u32(), // "incidents handled"
+  reviewed: t.u32(), // simulations completed and scored
   averageScore: t.option(t.f64()),
+  practiceAnswered: t.u32(),
+  practiceCorrect: t.u32(),
+});
+
+const AttackStats = t.object('AttackStats', {
+  accountId: t.u64(),
+  attackType: t.string(),
+  runsScored: t.u32(),
+  averageScore: t.option(t.f64()),
+  bestScore: t.option(t.u32()),
   practiceAnswered: t.u32(),
   practiceCorrect: t.u32(),
 });
@@ -85,7 +132,7 @@ const AdminAccountInfo = t.object('AdminAccountInfo', {
   createdAt: t.timestamp(),
 });
 
-const AdminScenarioInfo = t.object('AdminScenarioInfo', {
+const ScenarioFull = t.object('ScenarioFull', {
   id: t.u64(),
   attackType: t.string(),
   title: t.string(),
@@ -100,13 +147,19 @@ const AdminScenarioInfo = t.object('AdminScenarioInfo', {
   createdAt: t.timestamp(),
 });
 
-const AdminAssignmentInfo = t.object('AdminAssignmentInfo', {
+const RunFull = t.object('RunFull', {
   id: t.u64(),
   scenarioId: t.u64(),
   scenarioTitle: t.string(),
+  attackType: t.string(),
   accountId: t.u64(),
   employeeName: t.string(),
+  mode: t.string(),
   status: t.string(),
+  stage: t.string(),
+  liveDifficulty: t.u32(),
+  lockedOut: t.bool(),
+  selfStarted: t.bool(),
   popupMessage: t.string(),
   assignedAt: t.timestamp(),
   startedAt: t.option(t.timestamp()),
@@ -115,21 +168,53 @@ const AdminAssignmentInfo = t.object('AdminAssignmentInfo', {
   reportActions: t.option(t.string()),
   score: t.option(t.u32()),
   feedback: t.option(t.string()),
+  reviewerKind: t.option(t.string()),
   approved: t.bool(),
-});
-
-const RunEventInfo = t.object('RunEventInfo', {
-  id: t.u64(),
-  assignmentId: t.u64(),
-  kind: t.string(),
-  stepId: t.string(),
-  detail: t.string(),
-  at: t.timestamp(),
 });
 
 function adminOrNull(ctx: ReadCtx) {
   const me = currentAccount(ctx);
   return me && me.role === 'admin' ? me : null;
+}
+
+// The Nemotron agent and admins see every run, message and answer key.
+function isAgentOrAdmin(ctx: ReadCtx) {
+  return isService(ctx) || adminOrNull(ctx) != null;
+}
+
+function visibleReview(ctx: ReadCtx, runId: bigint) {
+  const r = ctx.db.review.runId.find(runId);
+  return r && r.approved ? r : undefined;
+}
+
+function attackStats(ctx: ReadCtx, accountId: bigint) {
+  const out = [];
+  for (const attackType of AttackType.options) {
+    const scores: number[] = [];
+    for (const run of ctx.db.simRun.accountId.filter(accountId)) {
+      const s = ctx.db.scenario.id.find(run.scenarioId);
+      const r = visibleReview(ctx, run.id);
+      if (s?.attackType === attackType && r) scores.push(r.score);
+    }
+    let practiceAnswered = 0;
+    let practiceCorrect = 0;
+    for (const q of ctx.db.practiceQuestion.attackType.filter(attackType)) {
+      for (const a of ctx.db.practiceAnswer.by_account_question.filter([accountId, q.id])) {
+        practiceAnswered++;
+        if (a.correct) practiceCorrect++;
+      }
+    }
+    out.push({
+      accountId,
+      attackType,
+      runsScored: scores.length,
+      averageScore: scores.length ? scores.reduce((x, y) => x + y, 0) / scores.length : undefined,
+      bestScore: scores.length ? Math.max(...scores) : undefined,
+      practiceAnswered,
+      practiceCorrect,
+    });
+  }
+  return out;
 }
 
 // ---------- Everyone ----------
@@ -207,36 +292,82 @@ export const myPracticeAnswers = spacetimedb.view(
   }
 );
 
-export const myAssignments = spacetimedb.view(
-  { name: 'my_assignments', public: true },
-  t.array(AssignmentInfo),
+export const availableScenarios = spacetimedb.view(
+  { name: 'available_scenarios', public: true },
+  t.array(ScenarioCard),
   (ctx) => {
-    const me = currentAccount(ctx);
-    if (!me) return [];
-    const out = [];
-    for (const a of ctx.db.assignment.accountId.filter(me.id)) {
-      const s = ctx.db.scenario.id.find(a.scenarioId);
-      if (!s) continue;
-      const r = ctx.db.review.assignmentId.find(a.id);
-      const visible = r != null && r.approved;
-      out.push({
-        id: a.id,
-        scenarioId: s.id,
+    if (!currentAccount(ctx)) return [];
+    return [...ctx.db.scenario.iter()]
+      .filter((s) => s.status === 'published')
+      .map((s) => ({
+        id: s.id,
         attackType: s.attackType,
         title: s.title,
         difficulty: s.difficulty,
         summary: s.summary,
-        briefing: s.briefing,
-        contentJson: s.contentJson,
-        popupMessage: a.popupMessage,
-        status: a.status,
-        assignedAt: a.assignedAt,
-        startedAt: a.startedAt,
-        submittedAt: a.submittedAt,
-        score: visible ? r.score : undefined,
-        feedback: visible ? r.feedback : undefined,
-      });
-    }
+        source: s.source,
+      }));
+  }
+);
+
+export const myRuns = spacetimedb.view({ name: 'my_runs', public: true }, t.array(RunInfo), (ctx) => {
+  const me = currentAccount(ctx);
+  if (!me) return [];
+  const out = [];
+  for (const run of ctx.db.simRun.accountId.filter(me.id)) {
+    const s = ctx.db.scenario.id.find(run.scenarioId);
+    if (!s) continue;
+    const r = visibleReview(ctx, run.id);
+    out.push({
+      id: run.id,
+      scenarioId: s.id,
+      attackType: s.attackType,
+      title: s.title,
+      difficulty: s.difficulty,
+      summary: s.summary,
+      briefing: s.briefing,
+      contentJson: s.contentJson,
+      mode: run.mode,
+      status: run.status,
+      stage: run.stage,
+      liveDifficulty: run.difficulty,
+      lockedOut: run.lockedOut,
+      selfStarted: run.assignedBy === me.id,
+      popupMessage: run.popupMessage,
+      assignedAt: run.assignedAt,
+      startedAt: run.startedAt,
+      submittedAt: run.submittedAt,
+      score: r?.score,
+      feedback: r?.feedback,
+      strengths: r?.strengths,
+      mistakes: r?.mistakes,
+    });
+  }
+  return out;
+});
+
+export const myRunMessages = spacetimedb.view(
+  { name: 'my_run_messages', public: true },
+  t.array(MessageInfo),
+  (ctx) => {
+    const me = currentAccount(ctx);
+    if (!me) return [];
+    const out = [];
+    for (const run of ctx.db.simRun.accountId.filter(me.id))
+      out.push(...ctx.db.simMessage.runId.filter(run.id));
+    return out;
+  }
+);
+
+export const myRunEvents = spacetimedb.view(
+  { name: 'my_run_events', public: true },
+  t.array(RunEventInfo),
+  (ctx) => {
+    const me = currentAccount(ctx);
+    if (!me) return [];
+    const out = [];
+    for (const run of ctx.db.simRun.accountId.filter(me.id))
+      out.push(...ctx.db.runEvent.runId.filter(run.id));
     return out;
   }
 );
@@ -246,10 +377,10 @@ export const myStats = spacetimedb.view({ name: 'my_stats', public: true }, t.op
   if (!me) return undefined;
   const counts = { assigned: 0, in_progress: 0, submitted: 0, reviewed: 0 } as Record<string, number>;
   const scores: number[] = [];
-  for (const a of ctx.db.assignment.accountId.filter(me.id)) {
-    counts[a.status] = (counts[a.status] ?? 0) + 1;
-    const r = ctx.db.review.assignmentId.find(a.id);
-    if (r && r.approved) scores.push(r.score);
+  for (const run of ctx.db.simRun.accountId.filter(me.id)) {
+    counts[run.status] = (counts[run.status] ?? 0) + 1;
+    const r = visibleReview(ctx, run.id);
+    if (r) scores.push(r.score);
   }
   let practiceAnswered = 0;
   let practiceCorrect = 0;
@@ -270,7 +401,95 @@ export const myStats = spacetimedb.view({ name: 'my_stats', public: true }, t.op
   };
 });
 
-// ---------- Admins (empty for everyone else) ----------
+// Per attack type, for the profile's skill breakdown.
+export const myAttackStats = spacetimedb.view(
+  { name: 'my_attack_stats', public: true },
+  t.array(AttackStats),
+  (ctx) => {
+    const me = currentAccount(ctx);
+    return me ? attackStats(ctx, me.id) : [];
+  }
+);
+
+// ---------- Nemotron agent and admins (empty for everyone else) ----------
+
+export const allScenarios = spacetimedb.view(
+  { name: 'all_scenarios', public: true },
+  t.array(ScenarioFull),
+  (ctx) => (isAgentOrAdmin(ctx) ? [...ctx.db.scenario.iter()] : [])
+);
+
+export const allRuns = spacetimedb.view({ name: 'all_runs', public: true }, t.array(RunFull), (ctx) => {
+  if (!isAgentOrAdmin(ctx)) return [];
+  const out = [];
+  for (const run of ctx.db.simRun.iter()) {
+    const s = ctx.db.scenario.id.find(run.scenarioId);
+    const emp = ctx.db.account.id.find(run.accountId);
+    const rep = ctx.db.runReport.runId.find(run.id);
+    const r = ctx.db.review.runId.find(run.id);
+    out.push({
+      id: run.id,
+      scenarioId: run.scenarioId,
+      scenarioTitle: s?.title ?? '(deleted)',
+      attackType: s?.attackType ?? '',
+      accountId: run.accountId,
+      employeeName: emp?.displayName ?? '(deleted)',
+      mode: run.mode,
+      status: run.status,
+      stage: run.stage,
+      liveDifficulty: run.difficulty,
+      lockedOut: run.lockedOut,
+      selfStarted: run.assignedBy === run.accountId,
+      popupMessage: run.popupMessage,
+      assignedAt: run.assignedAt,
+      startedAt: run.startedAt,
+      submittedAt: run.submittedAt,
+      reportSummary: rep?.summary,
+      reportActions: rep?.actionsTaken,
+      score: r?.score,
+      feedback: r?.feedback,
+      reviewerKind: r?.reviewerKind,
+      approved: r?.approved ?? false,
+    });
+  }
+  return out;
+});
+
+export const allRunMessages = spacetimedb.view(
+  { name: 'all_run_messages', public: true },
+  t.array(MessageInfo),
+  (ctx) => (isAgentOrAdmin(ctx) ? [...ctx.db.simMessage.iter()] : [])
+);
+
+export const allRunEvents = spacetimedb.view(
+  { name: 'all_run_events', public: true },
+  t.array(RunEventInfo),
+  (ctx) => (isAgentOrAdmin(ctx) ? [...ctx.db.runEvent.iter()] : [])
+);
+
+// Every employee's per-attack performance, so the agent can personalize drills.
+export const employeeAttackStats = spacetimedb.view(
+  { name: 'employee_attack_stats', public: true },
+  t.array(AttackStats),
+  (ctx) => {
+    if (!isAgentOrAdmin(ctx)) return [];
+    const out = [];
+    for (const a of ctx.db.account.iter()) if (a.role === 'employee') out.push(...attackStats(ctx, a.id));
+    return out;
+  }
+);
+
+// Lets a server-side client check that registerService worked.
+export const amService = spacetimedb.view(
+  { name: 'am_service', public: true },
+  t.option(t.object('ServiceInfo', { label: t.string() })),
+  (ctx) => {
+    const s = ctx.db.serviceIdentity.identity.find(ctx.sender);
+    return s ? { label: s.label } : undefined;
+  }
+);
+
+// ---------- Admins ----------
 
 export const adminAccounts = spacetimedb.view(
   { name: 'admin_accounts', public: true },
@@ -288,49 +507,4 @@ export const adminAccounts = spacetimedb.view(
       createdAt: a.createdAt,
     }));
   }
-);
-
-export const adminScenarios = spacetimedb.view(
-  { name: 'admin_scenarios', public: true },
-  t.array(AdminScenarioInfo),
-  (ctx) => (adminOrNull(ctx) ? [...ctx.db.scenario.iter()] : [])
-);
-
-export const adminAssignments = spacetimedb.view(
-  { name: 'admin_assignments', public: true },
-  t.array(AdminAssignmentInfo),
-  (ctx) => {
-    if (!adminOrNull(ctx)) return [];
-    const out = [];
-    for (const a of ctx.db.assignment.iter()) {
-      const s = ctx.db.scenario.id.find(a.scenarioId);
-      const emp = ctx.db.account.id.find(a.accountId);
-      const rep = ctx.db.incidentReport.assignmentId.find(a.id);
-      const r = ctx.db.review.assignmentId.find(a.id);
-      out.push({
-        id: a.id,
-        scenarioId: a.scenarioId,
-        scenarioTitle: s?.title ?? '(deleted)',
-        accountId: a.accountId,
-        employeeName: emp?.displayName ?? '(deleted)',
-        status: a.status,
-        popupMessage: a.popupMessage,
-        assignedAt: a.assignedAt,
-        startedAt: a.startedAt,
-        submittedAt: a.submittedAt,
-        reportSummary: rep?.summary,
-        reportActions: rep?.actionsTaken,
-        score: r?.score,
-        feedback: r?.feedback,
-        approved: r?.approved ?? false,
-      });
-    }
-    return out;
-  }
-);
-
-export const adminRunEvents = spacetimedb.view(
-  { name: 'admin_run_events', public: true },
-  t.array(RunEventInfo),
-  (ctx) => (adminOrNull(ctx) ? [...ctx.db.runEvent.iter()] : [])
 );

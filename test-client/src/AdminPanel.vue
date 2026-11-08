@@ -1,14 +1,23 @@
 <script setup lang="ts">
 import { computed, reactive, ref } from 'vue';
 import { useReducer, useTable } from 'spacetimedb/vue';
-import { AttackType, Difficulty, Role, type ScenarioDraft } from '@hackutd2026/shared';
-import { reducers, tables } from './module_bindings';
+import {
+  AttackStage,
+  AttackType,
+  Channel,
+  Difficulty,
+  Role,
+  SimMode,
+  type ScenarioDraft,
+} from '@hackutd2026/shared';
+import { reducers, tables } from '../../app/module_bindings';
 import { fmt, useRunner } from './config';
 
 const [accounts] = useTable(tables.adminAccounts);
-const [scenarios] = useTable(tables.adminScenarios);
-const [assignments] = useTable(tables.adminAssignments);
-const [runEvents] = useTable(tables.adminRunEvents);
+const [scenarios] = useTable(tables.allScenarios);
+const [runs] = useTable(tables.allRuns);
+const [runEvents] = useTable(tables.allRunEvents);
+const [runMessages] = useTable(tables.allRunMessages);
 
 const adminCreateAccount = useReducer(reducers.adminCreateAccount);
 const adminSetRole = useReducer(reducers.adminSetRole);
@@ -18,10 +27,21 @@ const setScenarioStatus = useReducer(reducers.setScenarioStatus);
 const deleteScenario = useReducer(reducers.deleteScenario);
 const assignScenario = useReducer(reducers.assignScenario);
 const assignScenarioToAllEmployees = useReducer(reducers.assignScenarioToAllEmployees);
-const reviewAssignment = useReducer(reducers.reviewAssignment);
+const reviewRun = useReducer(reducers.reviewRun);
+const postAttackerMessage = useReducer(reducers.postAttackerMessage);
+const postCoachMessage = useReducer(reducers.postCoachMessage);
+const adjustDifficulty = useReducer(reducers.adjustDifficulty);
+const setRunLockout = useReducer(reducers.setRunLockout);
+const endSimulation = useReducer(reducers.endSimulation);
+const scoreRun = useReducer(reducers.scoreRun);
 const { error, ok, run } = useRunner();
 
 const employees = computed(() => accounts.value.filter((a) => a.role === 'employee'));
+const sortedRuns = computed(() =>
+  [...runs.value].sort((a, b) =>
+    Number(b.assignedAt.microsSinceUnixEpoch - a.assignedAt.microsSinceUnixEpoch)
+  )
+);
 
 // ---------- Accounts ----------
 const newAccount = reactive({ email: '', displayName: '', role: 'employee', phone: '', tempPassword: '' });
@@ -34,13 +54,16 @@ const example: ScenarioDraft = {
   summary: 'An "IT" email says your password expires in an hour.',
   briefing: 'Work through your inbox as you normally would.',
   content: {
+    lockout: false,
     steps: [
       {
         id: 'e1',
+        stage: 'before',
         channel: 'email',
         from: 'it-support@tmob1le-helpdesk.com',
         subject: 'Action required: password expires in 60 minutes',
         body: 'Your password expires soon. Keep it here: http://tmob1le-helpdesk.com/keep',
+        hint: 'Look closely at the sender domain.',
       },
     ],
   },
@@ -63,6 +86,7 @@ const scenarioForm = reactive({
   rubricJson: JSON.stringify(example.rubric, null, 2),
 });
 const assignTo = ref<string>('');
+const assignMode = ref<string>('guided');
 const popupMessage = ref('A new simulation is waiting in your queue.');
 
 function assign(scenarioId: bigint) {
@@ -71,24 +95,46 @@ function assign(scenarioId: bigint) {
     return;
   }
   const accountId = BigInt(assignTo.value);
-  return run('Assigned', () => assignScenario({ scenarioId, accountId, popupMessage: popupMessage.value }));
+  return run('Assigned', () =>
+    assignScenario({ scenarioId, accountId, mode: assignMode.value, popupMessage: popupMessage.value })
+  );
 }
 
-// ---------- Reviews ----------
-const reviews = reactive<Record<string, { score: number; feedback: string }>>({});
-function reviewFor(id: bigint) {
-  return (reviews[String(id)] ??= { score: 80, feedback: '' });
-}
-function eventsFor(assignmentId: bigint) {
+// ---------- Runs ----------
+function eventsFor(runId: bigint) {
   return runEvents.value
-    .filter((e) => e.assignmentId === assignmentId)
+    .filter((e) => e.runId === runId)
     .sort((a, b) => Number(a.at.microsSinceUnixEpoch - b.at.microsSinceUnixEpoch));
 }
-function review(assignmentId: bigint, approve: boolean) {
-  const r = reviewFor(assignmentId);
-  return run(approve ? 'Approved' : 'Saved as draft', () =>
-    reviewAssignment({ assignmentId, score: r.score, feedback: r.feedback, approve })
-  );
+function messagesFor(runId: bigint) {
+  return runMessages.value
+    .filter((m) => m.runId === runId)
+    .sort((a, b) => Number(a.at.microsSinceUnixEpoch - b.at.microsSinceUnixEpoch));
+}
+
+// Per-run form state for simulating the Nemotron agent and for admin scoring.
+type AgentForm = {
+  channel: string;
+  from: string;
+  stage: string;
+  body: string;
+  coach: string;
+  difficulty: number;
+  score: number;
+  feedback: string;
+};
+const forms = reactive<Record<string, AgentForm>>({});
+function formFor(id: bigint, stage: string, difficulty: number) {
+  return (forms[String(id)] ??= {
+    channel: 'chat',
+    from: 'IT Desk (Sam)',
+    stage,
+    body: '',
+    coach: '',
+    difficulty,
+    score: 80,
+    feedback: '',
+  });
 }
 </script>
 
@@ -156,7 +202,13 @@ function review(assignmentId: bigint, approve: boolean) {
           </option>
         </select>
       </label>
-      <label>Pop-up message <input v-model="popupMessage" size="50" /></label>
+      <label
+        >Mode
+        <select v-model="assignMode">
+          <option v-for="m in SimMode.options" :key="m">{{ m }}</option>
+        </select>
+      </label>
+      <label>Pop-up message <input v-model="popupMessage" size="40" /></label>
     </div>
     <table>
       <thead>
@@ -192,7 +244,7 @@ function review(assignmentId: bigint, approve: boolean) {
               :disabled="s.status !== 'published'"
               @click="
                 run('Assigned to all employees', () =>
-                  assignScenarioToAllEmployees({ scenarioId: s.id, popupMessage })
+                  assignScenarioToAllEmployees({ scenarioId: s.id, mode: assignMode, popupMessage })
                 )
               "
             >
@@ -224,28 +276,142 @@ function review(assignmentId: bigint, approve: boolean) {
       </button>
     </details>
 
-    <h3>Submissions</h3>
-    <div v-for="a in assignments" :key="String(a.id)" class="step">
-      <strong>#{{ a.id }} {{ a.scenarioTitle }}</strong> → {{ a.employeeName }} · {{ a.status }}
-      <span class="muted">· assigned {{ fmt(a.assignedAt) }}</span>
-      <span v-if="a.score !== undefined">
-        · score {{ a.score }} {{ a.approved ? '(approved)' : '(draft)' }}</span
+    <h3>Runs (and the Nemotron agent, simulated by hand)</h3>
+    <div v-for="r in sortedRuns" :key="String(r.id)" class="step">
+      <strong>#{{ r.id }} {{ r.scenarioTitle }}</strong> → {{ r.employeeName }} · {{ r.mode }} ·
+      {{ r.status }} · stage {{ r.stage }} · difficulty {{ r.liveDifficulty }}/5{{
+        r.lockedOut ? ' · LOCKED' : ''
+      }}
+      <span class="muted">· {{ r.selfStarted ? 'self-started' : 'assigned' }} {{ fmt(r.assignedAt) }}</span>
+      <span v-if="r.score !== undefined">
+        · score {{ r.score }} ({{ r.reviewerKind }}{{ r.approved ? '' : ', draft' }})</span
       >
-      <div v-if="a.reportSummary !== undefined">
-        <em>Report:</em> {{ a.reportSummary }}<br />
-        <em>Actions:</em> {{ a.reportActions }}
+      <div v-if="r.reportSummary !== undefined">
+        <em>Report:</em> {{ r.reportSummary }} · <em>Actions:</em> {{ r.reportActions }}
       </div>
       <ul>
-        <li v-for="e in eventsFor(a.id)" :key="String(e.id)">
+        <li v-for="e in eventsFor(r.id)" :key="'e' + String(e.id)">
           {{ fmt(e.at) }} · {{ e.kind }}<span v-if="e.stepId"> @{{ e.stepId }}</span
           ><span v-if="e.detail"> · {{ e.detail }}</span>
         </li>
       </ul>
-      <div v-if="a.status === 'submitted' || a.status === 'reviewed'" class="row">
-        <label>Score <input v-model.number="reviewFor(a.id).score" type="number" min="0" max="100" /></label>
-        <label>Feedback <input v-model="reviewFor(a.id).feedback" size="40" /></label>
-        <button @click="review(a.id, false)">Save draft</button>
-        <button @click="review(a.id, true)">Approve</button>
+      <div v-for="m in messagesFor(r.id)" :key="'m' + String(m.id)" class="muted">
+        {{ m.sender }} [{{ m.channel }}/{{ m.stage }}] {{ m.from ? m.from + ': ' : '' }}{{ m.body }}
+      </div>
+
+      <template v-if="r.status === 'in_progress'">
+        <div class="row">
+          <select v-model="formFor(r.id, r.stage, r.liveDifficulty).channel">
+            <option v-for="c in Channel.options" :key="c">{{ c }}</option>
+          </select>
+          <select v-model="formFor(r.id, r.stage, r.liveDifficulty).stage">
+            <option v-for="s in AttackStage.options" :key="s">{{ s }}</option>
+          </select>
+          <input v-model="formFor(r.id, r.stage, r.liveDifficulty).from" placeholder="claims to be" />
+          <input
+            v-model="formFor(r.id, r.stage, r.liveDifficulty).body"
+            placeholder="attacker message"
+            size="40"
+          />
+          <button
+            @click="
+              run('Attacker message sent', () =>
+                postAttackerMessage({
+                  runId: r.id,
+                  channel: forms[String(r.id)]!.channel,
+                  from: forms[String(r.id)]!.from,
+                  stage: forms[String(r.id)]!.stage,
+                  body: forms[String(r.id)]!.body,
+                })
+              )
+            "
+          >
+            Send as attacker
+          </button>
+        </div>
+        <div class="row">
+          <input
+            v-model="formFor(r.id, r.stage, r.liveDifficulty).coach"
+            placeholder="coach hint"
+            size="40"
+          />
+          <button
+            @click="
+              run('Hint sent', () => postCoachMessage({ runId: r.id, body: forms[String(r.id)]!.coach }))
+            "
+          >
+            Send hint
+          </button>
+          <input
+            v-model.number="formFor(r.id, r.stage, r.liveDifficulty).difficulty"
+            type="number"
+            min="1"
+            max="5"
+          />
+          <button
+            @click="
+              run('Difficulty set', () =>
+                adjustDifficulty({ runId: r.id, difficulty: forms[String(r.id)]!.difficulty })
+              )
+            "
+          >
+            Set difficulty
+          </button>
+          <button
+            @click="
+              run('Lockout toggled', () => setRunLockout({ runId: r.id, locked: !r.lockedOut, note: '' }))
+            "
+          >
+            {{ r.lockedOut ? 'Unlock' : 'Lock' }} dashboard
+          </button>
+          <button
+            @click="run('Run ended', () => endSimulation({ runId: r.id, reason: 'Ended by the agent' }))"
+          >
+            End run
+          </button>
+        </div>
+      </template>
+      <div v-if="r.status === 'submitted' || r.status === 'reviewed'" class="row">
+        <label
+          >Score
+          <input
+            v-model.number="formFor(r.id, r.stage, r.liveDifficulty).score"
+            type="number"
+            min="0"
+            max="100"
+        /></label>
+        <label
+          >Feedback <input v-model="formFor(r.id, r.stage, r.liveDifficulty).feedback" size="40"
+        /></label>
+        <button
+          @click="
+            run('Scored as agent', () =>
+              scoreRun({
+                runId: r.id,
+                score: forms[String(r.id)]!.score,
+                feedback: forms[String(r.id)]!.feedback || 'Scored by the agent.',
+                strengths: [],
+                mistakes: [],
+              })
+            )
+          "
+        >
+          Score as agent
+        </button>
+        <button
+          @click="
+            run('Approved', () =>
+              reviewRun({
+                runId: r.id,
+                score: forms[String(r.id)]!.score,
+                feedback: forms[String(r.id)]!.feedback,
+                approve: true,
+              })
+            )
+          "
+        >
+          Score as admin
+        </button>
       </div>
     </div>
   </section>

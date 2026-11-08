@@ -93,48 +93,63 @@ const practiceAnswer = table(
   }
 );
 
+// Trusted server-side clients (the Nuxt server routes that run the Nemotron agent). They register
+// with the SERVICE_SECRET set at publish time.
+const serviceIdentity = table(
+  { name: 'service_identity' },
+  {
+    identity: t.identity().primaryKey(),
+    label: t.string(),
+    registeredAt: t.timestamp(),
+  }
+);
+
 // ---------- Simulations ----------
 
 const scenario = table(
   { name: 'scenario' },
   {
     id: t.u64().primaryKey().autoInc(),
-    attackType: t.string().index('btree'),
+    attackType: t.string().index('btree'), // AttackType
     title: t.string(),
-    difficulty: t.string(), // 'easy' | 'medium' | 'hard'
+    difficulty: t.string(), // Difficulty
     summary: t.string(), // one-liner shown in lists
     briefing: t.string(), // shown to the employee when the simulation starts
     contentJson: t.string(), // ScenarioContent in shared/: what the employee sees
-    rubricJson: t.string(), // ScenarioRubric in shared/: admin-only answer key
-    source: t.string(), // 'manual' for now; 'gemini' once generation lands
+    rubricJson: t.string(), // ScenarioRubric in shared/: answer key for admins and the agent
+    source: t.string(), // ScenarioSource: 'manual' | 'nemotron'
     status: t.string(), // 'draft' | 'published'
-    createdBy: t.u64(),
+    createdBy: t.u64(), // account id; 0 for the agent
     createdAt: t.timestamp(),
   }
 );
 
-// An admin pushes a scenario to an employee; it pops up on their dashboard.
-const assignment = table(
-  { name: 'assignment' },
+// One attempt at a scenario: assigned by an admin (pops up on the dashboard) or self-started.
+const simRun = table(
+  { name: 'sim_run' },
   {
     id: t.u64().primaryKey().autoInc(),
     scenarioId: t.u64().index('btree'),
     accountId: t.u64().index('btree'),
-    assignedBy: t.u64(),
+    assignedBy: t.u64(), // admin id, or the employee's own id when self-started
+    mode: t.string(), // SimMode: 'guided' | 'unguided'
+    status: t.string(), // RunStatus
+    stage: t.string(), // AttackStage the run is in now
+    difficulty: t.u32(), // 1-5, adjusted live by the agent
+    lockedOut: t.bool(), // ransomware: the employee's simulated dashboard is locked
     popupMessage: t.string(),
-    status: t.string(), // 'assigned' | 'in_progress' | 'submitted' | 'reviewed'
     assignedAt: t.timestamp(),
     startedAt: t.option(t.timestamp()),
     submittedAt: t.option(t.timestamp()),
   }
 );
 
-// Everything the employee does inside a simulation run, for the admin's report.
+// Everything the employee does inside a run (structured actions, for scoring).
 const runEvent = table(
   { name: 'run_event' },
   {
     id: t.u64().primaryKey().autoInc(),
-    assignmentId: t.u64().index('btree'),
+    runId: t.u64().index('btree'),
     kind: t.string(), // RunEventKind in shared/
     stepId: t.string(), // '' when not tied to one scenario step
     detail: t.string(),
@@ -142,11 +157,26 @@ const runEvent = table(
   }
 );
 
-// Employee's incident action report, submitted at the end of a simulation.
-const incidentReport = table(
-  { name: 'incident_report' },
+// Live conversation in a run: the Nemotron attacker, the employee, coaching and system notes.
+const simMessage = table(
+  { name: 'sim_message' },
   {
-    assignmentId: t.u64().primaryKey(),
+    id: t.u64().primaryKey().autoInc(),
+    runId: t.u64().index('btree'),
+    sender: t.string(), // SimSender
+    channel: t.string(), // Channel the message arrives on
+    from: t.string(), // who it claims to be from ('' for employee/system)
+    stage: t.string(), // AttackStage
+    body: t.string(),
+    at: t.timestamp(),
+  }
+);
+
+// Employee's incident action report, submitted at the end of a run.
+const runReport = table(
+  { name: 'run_report' },
+  {
+    runId: t.u64().primaryKey(),
     accountId: t.u64().index('btree'),
     summary: t.string(),
     actionsTaken: t.string(),
@@ -154,31 +184,46 @@ const incidentReport = table(
   }
 );
 
-// Admin grading. The employee only sees the score once approved is true.
+// Score for a run, from the agent or an admin. The employee sees it once approved is true;
+// agent scores are approved immediately, admin scores when the admin approves.
 const review = table(
   { name: 'review' },
   {
-    assignmentId: t.u64().primaryKey(),
-    reviewerId: t.u64(),
+    runId: t.u64().primaryKey(),
+    reviewerKind: t.string(), // 'agent' | 'admin'
+    reviewerId: t.u64(), // admin id, 0 for the agent
     score: t.u32(), // 0-100
     feedback: t.string(),
+    strengths: t.array(t.string()),
+    mistakes: t.array(t.string()),
     approved: t.bool(),
     reviewedAt: t.timestamp(),
   }
 );
 
-const spacetimedb = schema({
-  account,
-  pendingLogin,
-  session,
-  moduleOwner,
-  guide,
-  practiceQuestion,
-  practiceAnswer,
-  scenario,
-  assignment,
-  runEvent,
-  incidentReport,
-  review,
-});
+const spacetimedb = schema(
+  {
+    account,
+    pendingLogin,
+    session,
+    moduleOwner,
+    serviceIdentity,
+    guide,
+    practiceQuestion,
+    practiceAnswer,
+    scenario,
+    simRun,
+    runEvent,
+    simMessage,
+    runReport,
+    review,
+  },
+  {
+    env: {
+      // Shared secret that lets a server-side client register as a service identity.
+      // Set at publish time: `SERVICE_SECRET=... spacetime publish`. Never committed.
+      SERVICE_SECRET: t.string().optional(),
+    },
+  }
+);
 export default spacetimedb;

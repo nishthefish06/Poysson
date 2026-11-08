@@ -2,7 +2,7 @@
 import { ref, watch } from 'vue';
 import QRCode from 'qrcode';
 import { useReducer } from 'spacetimedb/vue';
-import { reducers } from './module_bindings';
+import { reducers } from '../../app/module_bindings';
 import { APP_LABEL, useRunner } from './config';
 
 const props = defineProps<{ loginState?: { stage: string; email: string } }>();

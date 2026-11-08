@@ -4,7 +4,7 @@ import { useTable } from 'spacetimedb/vue';
 import { tables } from '~/module_bindings';
 
 const [statsRows] = useTable(tables.myStats);
-const [assignments] = useTable(tables.myAssignments);
+const [assignments] = useTable(tables.myRuns);
 const { account } = useSession();
 
 const stats = computed(() => statsRows.value[0]);

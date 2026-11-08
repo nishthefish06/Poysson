@@ -1,22 +1,31 @@
-// Contracts shared by the SpacetimeDB module, the Nuxt app and the Gemini/Nemotron generators.
-// The module stores scenarios as JSON strings and validates them against these schemas,
-// so anything that writes a scenario (admin UI or AI) must produce exactly these shapes.
+// Contracts shared by the SpacetimeDB module, the Nuxt app and the Nemotron agent.
+// The module validates string enums and JSON payloads against these schemas, so anything that
+// writes a scenario, a simulation turn or a score (UI or AI) must produce exactly these shapes.
 import { z } from 'zod';
 
 // ---------- Enums ----------
 
-export const AttackType = z.enum([
-  'ransomware',
-  'sim_swap',
-  'smishing',
-  'phishing',
-  'insider_leak',
-  'popup_redirect',
-]);
+export const AttackType = z.enum(['ransomware', 'sim_swap', 'smishing', 'phishing', 'insider_leak']);
 export type AttackType = z.infer<typeof AttackType>;
+
+export const ATTACK_LABELS: Record<AttackType, string> = {
+  ransomware: 'Ransomware breach',
+  sim_swap: 'SIM-swap fraud ring',
+  smishing: 'Smishing',
+  phishing: 'Phishing',
+  insider_leak: 'Insider or vendor leak',
+};
+
+// Where in the attack a step happens.
+export const AttackStage = z.enum(['before', 'during', 'after']);
+export type AttackStage = z.infer<typeof AttackStage>;
 
 export const Difficulty = z.enum(['easy', 'medium', 'hard']);
 export type Difficulty = z.infer<typeof Difficulty>;
+
+// guided = scripted steps with hints; unguided = Nemotron plays the attacker live and adapts.
+export const SimMode = z.enum(['guided', 'unguided']);
+export type SimMode = z.infer<typeof SimMode>;
 
 export const Role = z.enum(['employee', 'admin']);
 export type Role = z.infer<typeof Role>;
@@ -24,11 +33,19 @@ export type Role = z.infer<typeof Role>;
 export const ScenarioStatus = z.enum(['draft', 'published']);
 export type ScenarioStatus = z.infer<typeof ScenarioStatus>;
 
-export const AssignmentStatus = z.enum(['assigned', 'in_progress', 'submitted', 'reviewed']);
-export type AssignmentStatus = z.infer<typeof AssignmentStatus>;
+export const ScenarioSource = z.enum(['manual', 'nemotron']);
+export type ScenarioSource = z.infer<typeof ScenarioSource>;
+
+// assigned (by an admin) → in_progress → submitted (employee or agent ended it) → reviewed (scored)
+export const RunStatus = z.enum(['assigned', 'in_progress', 'submitted', 'reviewed']);
+export type RunStatus = z.infer<typeof RunStatus>;
 
 export const LoginStage = z.enum(['totp', 'enroll']);
 export type LoginStage = z.infer<typeof LoginStage>;
+
+// Live difficulty during a run, 1 (gentle) to 5 (relentless). The agent moves it.
+export const RUN_DIFFICULTY = { min: 1, max: 5 } as const;
+export const START_DIFFICULTY: Record<Difficulty, number> = { easy: 1, medium: 3, hard: 4 };
 
 // ---------- Scenario JSON ----------
 
@@ -63,6 +80,7 @@ export type StepForm = z.infer<typeof StepForm>;
 
 export const ScenarioStep = z.object({
   id: z.string().min(1).max(32),
+  stage: AttackStage.optional(), // where in the attack this happens; treated as 'during' when absent
   channel: Channel,
   from: z.string().min(1).max(200),
   subject: z.string().max(300),
@@ -70,12 +88,17 @@ export const ScenarioStep = z.object({
   // Optional, additive: existing scenarios without these stay valid.
   links: z.array(StepLink).max(5).optional(),
   form: StepForm.optional(),
+  hint: z.string().max(1000).optional(), // shown in guided mode
 });
 export type ScenarioStep = z.infer<typeof ScenarioStep>;
 
 // Stored in scenario.contentJson. Everything here is visible to the employee.
 export const ScenarioContent = z
-  .object({ steps: z.array(ScenarioStep).min(1).max(20) })
+  .object({
+    steps: z.array(ScenarioStep).min(1).max(20),
+    // Ransomware: the run starts with the employee's (simulated) T-Mobile dashboard locked.
+    lockout: z.boolean().optional(),
+  })
   .refine((c) => new Set(c.steps.map((s) => s.id)).size === c.steps.length, {
     message: 'step ids must be unique',
   });
@@ -94,7 +117,7 @@ export const ScoringCriterion = z.object({
 });
 export type ScoringCriterion = z.infer<typeof ScoringCriterion>;
 
-// Stored in scenario.rubricJson. Admin-only answer key.
+// Stored in scenario.rubricJson. Answer key for admins and the agent; never shown to employees.
 export const ScenarioRubric = z
   .object({
     stepFlags: z.array(StepFlag).max(20),
@@ -108,7 +131,7 @@ export type ScenarioRubric = z.infer<typeof ScenarioRubric>;
 
 export const SCENARIO_LIMITS = { title: 200, summary: 1000, briefing: 8000 } as const;
 
-// A complete scenario, as an admin form or an AI generator should produce it.
+// A complete scenario, as an admin form or Nemotron should produce it.
 export const ScenarioDraft = z
   .object({
     attackType: AttackType,
@@ -129,10 +152,9 @@ export const ScenarioDraft = z
   });
 export type ScenarioDraft = z.infer<typeof ScenarioDraft>;
 
-// ---------- Run events ----------
+// ---------- Run events (what the employee did) ----------
 
-// What an employee did during a simulation run. 'started' and 'submitted' are written by the
-// module itself; the rest come from the client through logRunEvent.
+// 'started' and 'submitted' are written by the module itself; the rest come from logRunEvent.
 export const RunEventKind = z.enum([
   'started',
   'opened_step',
@@ -161,6 +183,35 @@ export const RunEventInput = z.object({
   detail: z.string().max(4000),
 });
 export type RunEventInput = z.infer<typeof RunEventInput>;
+
+// ---------- Live simulation chat (unguided mode) ----------
+
+// attacker = Nemotron in character; coach = Nemotron out of character (hints, debrief);
+// employee = the trainee; system = the module (lockout, stage changes).
+export const SimSender = z.enum(['attacker', 'coach', 'employee', 'system']);
+export type SimSender = z.infer<typeof SimSender>;
+
+export const MESSAGE_MAX = 4000;
+
+// One attacker turn, as the agent submits it through postAttackerMessage.
+export const AttackerTurn = z.object({
+  channel: Channel,
+  from: z.string().min(1).max(200), // who the attacker claims to be
+  stage: AttackStage,
+  body: z.string().min(1).max(MESSAGE_MAX),
+});
+export type AttackerTurn = z.infer<typeof AttackerTurn>;
+
+// The agent's score at the end of a run (scoreRun).
+export const RunScore = z.object({
+  score: z.number().int().min(0).max(100),
+  feedback: z.string().min(1).max(4000),
+  strengths: z.array(z.string().min(1).max(300)).max(10),
+  mistakes: z.array(z.string().min(1).max(300)).max(10),
+});
+export type RunScore = z.infer<typeof RunScore>;
+
+// ---------- Helpers ----------
 
 // Format zod issues into one line for SenderError messages and form errors.
 export function describeIssues(error: z.ZodError): string {

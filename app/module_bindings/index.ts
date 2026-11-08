@@ -34,6 +34,7 @@ import {
 } from "spacetimedb";
 
 // Import all reducer arg schemas
+import AdjustDifficultyReducer from "./adjust_difficulty_reducer";
 import AdminCreateAccountReducer from "./admin_create_account_reducer";
 import AdminResetTotpReducer from "./admin_reset_totp_reducer";
 import AdminSetRoleReducer from "./admin_set_role_reducer";
@@ -48,14 +49,23 @@ import CreateScenarioReducer from "./create_scenario_reducer";
 import DeleteGuideReducer from "./delete_guide_reducer";
 import DeletePracticeQuestionReducer from "./delete_practice_question_reducer";
 import DeleteScenarioReducer from "./delete_scenario_reducer";
+import EndSimulationReducer from "./end_simulation_reducer";
 import EnrollTotpReducer from "./enroll_totp_reducer";
 import LogRunEventReducer from "./log_run_event_reducer";
 import LoginReducer from "./login_reducer";
 import LogoutReducer from "./logout_reducer";
-import ReviewAssignmentReducer from "./review_assignment_reducer";
+import PostAttackerMessageReducer from "./post_attacker_message_reducer";
+import PostCoachMessageReducer from "./post_coach_message_reducer";
+import ProposeScenarioReducer from "./propose_scenario_reducer";
+import RegisterServiceReducer from "./register_service_reducer";
+import ReviewRunReducer from "./review_run_reducer";
+import ScoreRunReducer from "./score_run_reducer";
 import SeedDemoAccountsReducer from "./seed_demo_accounts_reducer";
+import SendSimReplyReducer from "./send_sim_reply_reducer";
+import SetRunLockoutReducer from "./set_run_lockout_reducer";
 import SetScenarioStatusReducer from "./set_scenario_status_reducer";
-import StartAssignmentReducer from "./start_assignment_reducer";
+import StartRunReducer from "./start_run_reducer";
+import StartSimulationReducer from "./start_simulation_reducer";
 import SubmitReportReducer from "./submit_report_reducer";
 import UpdateScenarioReducer from "./update_scenario_reducer";
 import UpsertGuideReducer from "./upsert_guide_reducer";
@@ -65,14 +75,21 @@ import VerifyTotpReducer from "./verify_totp_reducer";
 
 // Import all table schema definitions
 import AdminAccountsRow from "./admin_accounts_table";
-import AdminAssignmentsRow from "./admin_assignments_table";
-import AdminRunEventsRow from "./admin_run_events_table";
-import AdminScenariosRow from "./admin_scenarios_table";
+import AllRunEventsRow from "./all_run_events_table";
+import AllRunMessagesRow from "./all_run_messages_table";
+import AllRunsRow from "./all_runs_table";
+import AllScenariosRow from "./all_scenarios_table";
+import AmServiceRow from "./am_service_table";
+import AvailableScenariosRow from "./available_scenarios_table";
+import EmployeeAttackStatsRow from "./employee_attack_stats_table";
 import GuidesRow from "./guides_table";
 import MyAccountRow from "./my_account_table";
-import MyAssignmentsRow from "./my_assignments_table";
+import MyAttackStatsRow from "./my_attack_stats_table";
 import MyLoginStateRow from "./my_login_state_table";
 import MyPracticeAnswersRow from "./my_practice_answers_table";
+import MyRunEventsRow from "./my_run_events_table";
+import MyRunMessagesRow from "./my_run_messages_table";
+import MyRunsRow from "./my_runs_table";
 import MyStatsRow from "./my_stats_table";
 import PracticeQuestionsRow from "./practice_questions_table";
 
@@ -87,27 +104,55 @@ const tablesSchema = __schema({
     constraints: [
     ],
   }, AdminAccountsRow),
-  adminAssignments: __table({
-    name: 'admin_assignments',
+  allRunEvents: __table({
+    name: 'all_run_events',
     indexes: [
     ],
     constraints: [
     ],
-  }, AdminAssignmentsRow),
-  adminRunEvents: __table({
-    name: 'admin_run_events',
+  }, AllRunEventsRow),
+  allRunMessages: __table({
+    name: 'all_run_messages',
     indexes: [
     ],
     constraints: [
     ],
-  }, AdminRunEventsRow),
-  adminScenarios: __table({
-    name: 'admin_scenarios',
+  }, AllRunMessagesRow),
+  allRuns: __table({
+    name: 'all_runs',
     indexes: [
     ],
     constraints: [
     ],
-  }, AdminScenariosRow),
+  }, AllRunsRow),
+  allScenarios: __table({
+    name: 'all_scenarios',
+    indexes: [
+    ],
+    constraints: [
+    ],
+  }, AllScenariosRow),
+  amService: __table({
+    name: 'am_service',
+    indexes: [
+    ],
+    constraints: [
+    ],
+  }, AmServiceRow),
+  availableScenarios: __table({
+    name: 'available_scenarios',
+    indexes: [
+    ],
+    constraints: [
+    ],
+  }, AvailableScenariosRow),
+  employeeAttackStats: __table({
+    name: 'employee_attack_stats',
+    indexes: [
+    ],
+    constraints: [
+    ],
+  }, EmployeeAttackStatsRow),
   guides: __table({
     name: 'guides',
     indexes: [
@@ -122,13 +167,13 @@ const tablesSchema = __schema({
     constraints: [
     ],
   }, MyAccountRow),
-  myAssignments: __table({
-    name: 'my_assignments',
+  myAttackStats: __table({
+    name: 'my_attack_stats',
     indexes: [
     ],
     constraints: [
     ],
-  }, MyAssignmentsRow),
+  }, MyAttackStatsRow),
   myLoginState: __table({
     name: 'my_login_state',
     indexes: [
@@ -143,6 +188,27 @@ const tablesSchema = __schema({
     constraints: [
     ],
   }, MyPracticeAnswersRow),
+  myRunEvents: __table({
+    name: 'my_run_events',
+    indexes: [
+    ],
+    constraints: [
+    ],
+  }, MyRunEventsRow),
+  myRunMessages: __table({
+    name: 'my_run_messages',
+    indexes: [
+    ],
+    constraints: [
+    ],
+  }, MyRunMessagesRow),
+  myRuns: __table({
+    name: 'my_runs',
+    indexes: [
+    ],
+    constraints: [
+    ],
+  }, MyRunsRow),
   myStats: __table({
     name: 'my_stats',
     indexes: [
@@ -161,6 +227,7 @@ const tablesSchema = __schema({
 
 /** The schema information for all reducers in this module. This is defined the same way as the reducers would have been defined in the server, except the body of the reducer is omitted in code generation. */
 const reducersSchema = __reducers(
+  __reducerSchema("adjust_difficulty", AdjustDifficultyReducer),
   __reducerSchema("admin_create_account", AdminCreateAccountReducer),
   __reducerSchema("admin_reset_totp", AdminResetTotpReducer),
   __reducerSchema("admin_set_role", AdminSetRoleReducer),
@@ -175,14 +242,23 @@ const reducersSchema = __reducers(
   __reducerSchema("delete_guide", DeleteGuideReducer),
   __reducerSchema("delete_practice_question", DeletePracticeQuestionReducer),
   __reducerSchema("delete_scenario", DeleteScenarioReducer),
+  __reducerSchema("end_simulation", EndSimulationReducer),
   __reducerSchema("enroll_totp", EnrollTotpReducer),
   __reducerSchema("log_run_event", LogRunEventReducer),
   __reducerSchema("login", LoginReducer),
   __reducerSchema("logout", LogoutReducer),
-  __reducerSchema("review_assignment", ReviewAssignmentReducer),
+  __reducerSchema("post_attacker_message", PostAttackerMessageReducer),
+  __reducerSchema("post_coach_message", PostCoachMessageReducer),
+  __reducerSchema("propose_scenario", ProposeScenarioReducer),
+  __reducerSchema("register_service", RegisterServiceReducer),
+  __reducerSchema("review_run", ReviewRunReducer),
+  __reducerSchema("score_run", ScoreRunReducer),
   __reducerSchema("seed_demo_accounts", SeedDemoAccountsReducer),
+  __reducerSchema("send_sim_reply", SendSimReplyReducer),
+  __reducerSchema("set_run_lockout", SetRunLockoutReducer),
   __reducerSchema("set_scenario_status", SetScenarioStatusReducer),
-  __reducerSchema("start_assignment", StartAssignmentReducer),
+  __reducerSchema("start_run", StartRunReducer),
+  __reducerSchema("start_simulation", StartSimulationReducer),
   __reducerSchema("submit_report", SubmitReportReducer),
   __reducerSchema("update_scenario", UpdateScenarioReducer),
   __reducerSchema("upsert_guide", UpsertGuideReducer),

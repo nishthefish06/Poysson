@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { computed } from 'vue';
 import { useSpacetimeDB, useTable, useReducer } from 'spacetimedb/vue';
-import { tables, reducers } from './module_bindings';
+import { tables, reducers } from '../../app/module_bindings';
 import { SPACETIME_DB, SPACETIME_URL, resetIdentity } from './config';
 import AuthPanel from './AuthPanel.vue';
 import EmployeePanel from './EmployeePanel.vue';

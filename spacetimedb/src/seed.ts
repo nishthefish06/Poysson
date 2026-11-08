@@ -53,16 +53,6 @@ const GUIDES: { attackType: AttackType; title: string; summary: string; body: st
 3. **Preserve evidence**: don't delete the messages; screenshot and report.
 4. If data already left, **revoke access** and list exactly what was disclosed.`,
   },
-  {
-    attackType: 'popup_redirect',
-    title: 'Pop-ups, fake alerts and redirects',
-    summary: 'Browser pop-ups claiming infection or redirecting to fake login pages.',
-    body: `1. **Don't click inside** the pop-up, not even "close" buttons drawn on the page.
-2. Close the tab or browser with the keyboard or task manager.
-3. **Never call** phone numbers shown in a pop-up.
-4. If you were redirected to a login page, **check the URL** before typing anything.
-5. Report the URL to security.`,
-  },
 ];
 
 const QUESTIONS: {
@@ -174,49 +164,44 @@ const QUESTIONS: {
     correctIndex: 2,
     explanation: 'Always verify through a channel you already trust, never one the requester supplies.',
   },
-  {
-    attackType: 'popup_redirect',
-    prompt: 'A pop-up says "VIRUS DETECTED! Call 1-800-555-0199 now". What do you do?',
-    choices: [
-      'Call the number',
-      'Click the X in the pop-up',
-      'Close the browser via keyboard/task manager and report the URL',
-      'Run whatever it offers to download',
-    ],
-    correctIndex: 2,
-    explanation: 'Fake alerts drive you to call scammers or click malware. Close it safely and report.',
-  },
 ];
 
-// One ready-made scenario so the whole flow can be tested before AI generation exists.
-// Typed against the shared schemas so it can't drift from what the module accepts.
-const SAMPLE_CONTENT: ScenarioContent = {
+// Two ready-made scenarios so the whole flow works before Nemotron generates any. Typed against
+// the shared schemas so they can't drift from what the module accepts.
+const SIM_SWAP_CONTENT: ScenarioContent = {
+  lockout: false,
   steps: [
     {
       id: 's1',
+      stage: 'during',
       channel: 'call',
       from: 'Caller claiming to be Jordan Lee',
       subject: 'Urgent SIM replacement',
       body: "I'm stuck at the airport, my phone was stolen and I need my number on this new SIM right now. I can't get texts, obviously. Please, my flight boards in 20 minutes.",
+      hint: 'A SIM change needs strong verification. Urgency and a reason to skip the check are red flags.',
     },
     {
       id: 's2',
+      stage: 'during',
       channel: 'chat',
       from: 'Customer: Priya N.',
       subject: 'No service',
       body: 'My phone suddenly says SOS only. I did not do anything.',
+      hint: 'Is this one customer, or part of a pattern with the other contacts?',
     },
     {
       id: 's3',
+      stage: 'after',
       channel: 'chat',
       from: 'Customer: Marcus T.',
       subject: 'Phone stopped working',
       body: 'Lost all service about 10 minutes ago and got an email that my SIM was changed??',
+      hint: 'Several sudden service losses point to a SIM-swap ring. Escalate and protect the affected lines.',
     },
   ],
 };
 
-const SAMPLE_RUBRIC: ScenarioRubric = {
+const SIM_SWAP_RUBRIC: ScenarioRubric = {
   stepFlags: [
     { stepId: 's1', isMalicious: true, redFlags: ['urgency', 'cannot verify', 'stolen-phone story'] },
     { stepId: 's2', isMalicious: false, redFlags: [] },
@@ -236,23 +221,86 @@ const SAMPLE_RUBRIC: ScenarioRubric = {
   ],
 };
 
+// Ransomware: the run starts with the employee's dashboard locked.
+const RANSOMWARE_CONTENT: ScenarioContent = {
+  lockout: true,
+  steps: [
+    {
+      id: 'r1',
+      stage: 'before',
+      channel: 'email',
+      from: 'IT Service Desk <it-desk@tmob1le-support.com>',
+      subject: 'Mandatory security update for your workstation',
+      body: 'Install the attached update before 5 PM to keep access to the employee portal.',
+      hint: 'Check the sender domain letter by letter before opening any attachment.',
+    },
+    {
+      id: 'r2',
+      stage: 'during',
+      channel: 'popup',
+      from: 'Unknown',
+      subject: 'YOUR FILES ARE ENCRYPTED',
+      body: 'Your dashboard and files are locked. Pay 2 BTC within 48 hours or your data will be published.',
+      hint: 'Disconnect from the network, do not pay or reply, and escalate to security right away.',
+    },
+    {
+      id: 'r3',
+      stage: 'after',
+      channel: 'chat',
+      from: 'Store manager',
+      subject: 'Can we just reboot?',
+      body: 'Customers are waiting. Can you just restart the machine and keep going?',
+      hint: 'Rebooting can destroy evidence. Keep the machine powered and wait for security.',
+    },
+  ],
+};
+
+const RANSOMWARE_RUBRIC: ScenarioRubric = {
+  stepFlags: [
+    { stepId: 'r1', isMalicious: true, redFlags: ['look-alike domain', 'urgency', 'unexpected attachment'] },
+    { stepId: 'r2', isMalicious: true, redFlags: ['ransom demand'] },
+    { stepId: 'r3', isMalicious: false, redFlags: [] },
+  ],
+  expectedActions: [
+    'Report the phishing email instead of opening the attachment',
+    'Disconnect the workstation from the network',
+    'Escalate to security without paying or replying',
+    'Keep the machine powered on to preserve evidence',
+  ],
+  scoring: [
+    { criterion: 'Spotted the phishing email before the attack', points: 30 },
+    { criterion: 'Isolated the machine and escalated', points: 40 },
+    { criterion: 'Did not pay, reply or reboot', points: 20 },
+    { criterion: 'Clear incident report', points: 10 },
+  ],
+};
+
 function seedContent(ctx: Ctx) {
   GUIDES.forEach((g, i) => ctx.db.guide.insert({ id: 0n, ...g, sortOrder: i }));
   for (const q of QUESTIONS) ctx.db.practiceQuestion.insert({ id: 0n, ...q });
+  const base = { source: 'manual', status: 'published', createdBy: 0n, createdAt: ctx.timestamp };
   ctx.db.scenario.insert({
     id: 0n,
     attackType: 'sim_swap',
     title: 'The stranded traveler',
     difficulty: 'easy',
-    summary: 'An urgent caller wants a SIM change while three other customers report lost service.',
+    summary: 'An urgent caller wants a SIM change while other customers report lost service.',
     briefing:
       'You are working the customer care queue. Handle each contact as you would on shift. When you are done, file an incident report.',
-    contentJson: JSON.stringify(SAMPLE_CONTENT),
-    rubricJson: JSON.stringify(SAMPLE_RUBRIC),
-    source: 'manual',
-    status: 'published',
-    createdBy: 0n,
-    createdAt: ctx.timestamp,
+    contentJson: JSON.stringify(SIM_SWAP_CONTENT),
+    rubricJson: JSON.stringify(SIM_SWAP_RUBRIC),
+    ...base,
+  });
+  ctx.db.scenario.insert({
+    id: 0n,
+    attackType: 'ransomware',
+    title: 'Locked out at the store',
+    difficulty: 'medium',
+    summary: 'A fake IT update turns into ransomware that locks your dashboard.',
+    briefing: 'You are working a retail shift. Handle what arrives, then file an incident report.',
+    contentJson: JSON.stringify(RANSOMWARE_CONTENT),
+    rubricJson: JSON.stringify(RANSOMWARE_RUBRIC),
+    ...base,
   });
 }
 

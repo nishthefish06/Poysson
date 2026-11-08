@@ -6,8 +6,8 @@ import { tables } from '~/module_bindings';
 
 const { isAdmin } = useSession();
 const [accounts] = useTable(tables.adminAccounts);
-const [scenarios] = useTable(tables.adminScenarios);
-const [assignments] = useTable(tables.adminAssignments);
+const [scenarios] = useTable(tables.allScenarios);
+const [assignments] = useTable(tables.allRuns);
 const toReview = computed(() => assignments.value.filter((a) => a.status === 'submitted'));
 </script>
 

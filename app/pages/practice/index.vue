@@ -3,7 +3,7 @@
 import { useTable } from 'spacetimedb/vue';
 import { tables } from '~/module_bindings';
 
-const [assignments] = useTable(tables.myAssignments);
+const [assignments] = useTable(tables.myRuns);
 </script>
 
 <template>
