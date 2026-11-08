@@ -6,6 +6,8 @@ export default defineNuxtPlugin(() => {
   try {
     const raw = localStorage.getItem(KEY)
     if (raw) state.value = { ...state.value, ...JSON.parse(raw) }
+    // Saves from before guided/unguided mode existed
+    state.value.setup.mode ??= 'guided'
   } catch { /* storage blocked: run in-memory */ }
   watch(state, (v) => {
     try { localStorage.setItem(KEY, JSON.stringify(v)) } catch { /* ignore */ }

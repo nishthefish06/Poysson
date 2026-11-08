@@ -29,7 +29,7 @@ withDefaults(defineProps<{
     class="cyber-btn"
     :class="[`cyber-btn--${variant}`, `cyber-btn--${size}`, { 'cyber-btn--block': block, 'cyber-btn--loading': loading, 'is-disabled': disabled }]"
   >
-    <span class="cyber-btn__glitch" aria-hidden="true" />
+    <SketchBox v-if="variant !== 'ghost'" :width="size === 'sm' ? 1.6 : 2" :overshoot="size === 'sm' ? 5 : 7" />
     <span v-if="loading" class="cyber-btn__spinner" aria-hidden="true" />
     <CyberIcon v-else-if="icon" :name="icon" :size="size === 'lg' ? 20 : 16" class="cyber-btn__icon" />
     <span class="cyber-btn__label"><slot /></span>
@@ -39,47 +39,35 @@ withDefaults(defineProps<{
 
 <style scoped>
 .cyber-btn {
-  --btn-fg: var(--c-text-invert);
-  --btn-bg: var(--c-cyan);
-  --btn-glow: var(--glow-cyan);
-  position: relative; overflow: hidden;
+  --btn-fg: #fff;
+  --btn-bg: var(--c-magenta);
+  --btn-shadow: var(--ink);
+  position: relative;
   display: inline-flex; align-items: center; justify-content: center; gap: var(--s-2);
-  padding: 0 var(--s-5); height: 42px;
-  font-family: var(--f-ui); font-weight: 700; font-size: var(--fs-sm);
-  letter-spacing: .14em; text-transform: uppercase;
+  padding: 0 var(--s-6); height: 44px;
+  font-family: var(--f-display); font-weight: 600; font-size: var(--fs-md);
+  letter-spacing: .02em;
   color: var(--btn-fg); background: var(--btn-bg);
-  border: 0; cursor: pointer; user-select: none; white-space: nowrap;
-  clip-path: var(--clip-chamfer-sm);
-  transition: transform var(--t-fast) var(--ease), filter var(--t-fast), box-shadow var(--t-med);
+  border: 0; border-radius: var(--r-md); user-select: none; white-space: nowrap;
+  box-shadow: 3px 4px 0 var(--btn-shadow);
+  transition: transform var(--t-fast) var(--ease-bounce), box-shadow var(--t-fast), background var(--t-fast);
   text-decoration: none;
 }
-.cyber-btn:hover:not(:disabled) { filter: brightness(1.15); box-shadow: var(--btn-glow); text-shadow: none; }
-.cyber-btn:active:not(:disabled) { transform: translateY(1px) scale(.98); }
-.cyber-btn:disabled, .cyber-btn.is-disabled { opacity: .4; cursor: not-allowed; filter: grayscale(.6); }
-
-/* hover sweep */
-.cyber-btn__glitch {
-  position: absolute; inset: 0; pointer-events: none;
-  background: linear-gradient(105deg, transparent 40%, rgba(255, 255, 255, .45) 50%, transparent 60%);
-  transform: translateX(-120%); transition: transform 500ms var(--ease);
-}
-.cyber-btn:hover:not(:disabled) .cyber-btn__glitch { transform: translateX(120%); }
+.cyber-btn:hover:not(:disabled) { transform: translate(-1px, -2px) rotate(-.6deg); box-shadow: 5px 7px 0 var(--btn-shadow); text-decoration: none; background: var(--btn-hover, var(--c-magenta-light)); }
+.cyber-btn:active:not(:disabled) { transform: translate(2px, 3px); box-shadow: 0 0 0 var(--btn-shadow); }
+.cyber-btn:disabled, .cyber-btn.is-disabled { opacity: .45; cursor: not-allowed; filter: grayscale(.5); }
 
 /* variants */
-.cyber-btn--secondary {
-  --btn-fg: var(--c-cyan); --btn-bg: transparent;
-  box-shadow: inset 0 0 0 1px var(--c-cyan);
-  background: linear-gradient(180deg, rgba(0, 240, 255, .08), rgba(0, 240, 255, .02));
-}
-.cyber-btn--secondary:hover:not(:disabled) { box-shadow: inset 0 0 0 1px var(--c-cyan), var(--glow-cyan); }
-.cyber-btn--danger { --btn-bg: var(--c-harmful); --btn-fg: #fff; --btn-glow: var(--glow-red); }
-.cyber-btn--ghost { --btn-bg: transparent; --btn-fg: var(--c-text-dim); clip-path: none; }
-.cyber-btn--ghost:hover:not(:disabled) { --btn-fg: var(--c-cyan); box-shadow: none; }
+.cyber-btn--secondary { --btn-fg: var(--ink); --btn-bg: var(--paper-2); --btn-hover: var(--c-magenta-tint); }
+.cyber-btn--danger { --btn-bg: var(--c-harmful); --btn-hover: #f2475f; }
+.cyber-btn--ghost { --btn-bg: transparent; --btn-fg: var(--c-text-dim); --btn-hover: rgba(var(--rgb-magenta), .08); box-shadow: none; font-family: var(--f-ui); font-weight: 700; }
+.cyber-btn--ghost:hover:not(:disabled) { --btn-fg: var(--c-magenta); box-shadow: none; transform: none; }
 
 /* sizes */
-.cyber-btn--sm { height: 32px; padding: 0 var(--s-3); font-size: var(--fs-xs); }
-.cyber-btn--lg { height: 54px; padding: 0 var(--s-8); font-size: var(--fs-md); }
+.cyber-btn--sm { height: 34px; padding: 0 var(--s-4); font-size: var(--fs-sm); box-shadow: 2px 3px 0 var(--btn-shadow); }
+.cyber-btn--lg { height: 56px; padding: 0 var(--s-8); font-size: var(--fs-lg); }
 .cyber-btn--block { width: 100%; }
+.cyber-btn__label, .cyber-btn__icon { position: relative; z-index: 2; }
 
 .cyber-btn__spinner {
   width: 14px; height: 14px; border: 2px solid currentColor; border-right-color: transparent;

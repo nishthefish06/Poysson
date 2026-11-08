@@ -57,7 +57,7 @@ const canReply = computed(() => ['email', 'sms', 'chat', 'social'].includes(prop
           {{ f.label }}
           <input :type="f.kind" autocomplete="off" class="mt-1 block w-full rounded bg-bg px-2 py-1" />
         </label>
-        <button :disabled="disabled" class="rounded bg-neon-cyan px-3 py-1 text-black">
+        <button :disabled="disabled" class="rounded bg-neon-cyan px-3 py-1 text-white">
           {{ step.form.submitLabel }}
         </button>
       </form>

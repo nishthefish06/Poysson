@@ -57,6 +57,8 @@ function firstSentence(t: string): string {
   return (m ? m[0] : t).trim();
 }
 
+const PER_MODEL_MS = 6_000;
+
 export async function writeDebrief(
   f: Facts,
   score: number,
@@ -67,7 +69,8 @@ export async function writeDebrief(
   for (const model of geminiModels()) {
     const left = deadline - Date.now();
     if (left < 1_500) break;
-    const ai = geminiClient(left);
+    // cap each model so a slow one (504 after ~15 s) still leaves time for the fallbacks
+    const ai = geminiClient(Math.min(left, PER_MODEL_MS));
     if (!ai) break; // no key
     try {
       const res = await ai.models.generateContent({

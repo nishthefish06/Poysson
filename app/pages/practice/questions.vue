@@ -11,7 +11,7 @@ const answerFor = (id: bigint) => answers.value.find((x) => x.questionId === id)
 </script>
 
 <template>
-  <main class="mx-auto max-w-3xl p-8">
+  <main class="mx-auto max-w-3xl rounded bg-panel p-8">
     <h1 class="text-3xl font-bold">Practice questions</h1>
     <p v-if="error" class="mt-3 text-verdict-harmful">{{ error }}</p>
     <section v-for="q in questions" :key="String(q.id)" class="mt-6 rounded bg-panel p-4">

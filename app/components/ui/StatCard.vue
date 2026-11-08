@@ -31,21 +31,22 @@ withDefaults(defineProps<{
       </span>
       <span v-if="caption" class="stat-card__caption">{{ caption }}</span>
     </div>
-    <span class="stat-card__bar" aria-hidden="true" />
+    <SketchBox />
+    <Sparkles inset :corners="['tr']" :size="11" color="var(--accent)" />
   </div>
 </template>
 
 <style scoped>
 .stat-card {
   --accent: var(--c-cyan);
-  position: relative; overflow: hidden;
+  position: relative;
   padding: var(--s-4) var(--s-5);
-  background: var(--c-bg-1); border: 1px solid var(--c-line);
-  clip-path: var(--clip-chamfer-sm);
+  background: var(--paper); box-shadow: 4px 5px 0 color-mix(in srgb, var(--accent) 55%, var(--ink));
+  border-radius: var(--r-md);
   display: flex; flex-direction: column; gap: var(--s-1);
   transition: border-color var(--t-med), transform var(--t-med) var(--ease);
 }
-.stat-card:hover { border-color: var(--accent); transform: translateY(-2px); }
+.stat-card:hover { transform: translateY(-3px) rotate(-.8deg); }
 .stat-card--magenta { --accent: var(--c-magenta); }
 .stat-card--yellow { --accent: var(--c-yellow); }
 .stat-card--green { --accent: var(--c-ideal); }
@@ -53,12 +54,11 @@ withDefaults(defineProps<{
 .stat-card__head { display: flex; justify-content: space-between; align-items: center; }
 .stat-card__label { font-family: var(--f-mono); font-size: var(--fs-xs); letter-spacing: .18em; text-transform: uppercase; color: var(--c-text-dim); }
 .stat-card__icon { color: var(--accent); }
-.stat-card__value { font-family: var(--f-display); font-size: var(--fs-2xl); font-weight: 700; color: var(--accent); text-shadow: 0 0 12px color-mix(in srgb, var(--accent) 50%, transparent); line-height: 1.1; }
+.stat-card__value { font-family: var(--f-display); font-size: var(--fs-2xl); font-weight: 700; color: var(--accent);  line-height: 1.1; }
 .stat-card__unit { font-size: var(--fs-md); margin-left: 2px; opacity: .7; }
 .stat-card__foot { display: flex; gap: var(--s-2); align-items: center; min-height: 18px; }
 .stat-card__delta { font-family: var(--f-mono); font-size: var(--fs-xs); }
 .stat-card__delta.is-up { color: var(--c-ideal); }
 .stat-card__delta.is-down { color: var(--c-harmful); }
 .stat-card__caption { font-size: var(--fs-xs); color: var(--c-text-mute); }
-.stat-card__bar { position: absolute; left: 0; top: 0; bottom: 0; width: 3px; background: var(--accent); box-shadow: 0 0 10px var(--accent); }
 </style>

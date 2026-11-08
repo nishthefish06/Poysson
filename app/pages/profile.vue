@@ -28,6 +28,8 @@ const date = (iso: string) => new Date(iso).toLocaleDateString(undefined, { mont
           <span v-if="player.passkeys.length" class="prof__tag prof__tag--gr">HARDENED</span>
         </div>
       </div>
+      <SketchBox :width="2.6" />
+      <Sparkles :size="18" color="var(--c-cyan)" />
       <div class="prof__xp"><XpBar :value="player.xp" :max="xpForLevel(player.level)" :level="player.level" /></div>
     </section>
 
@@ -77,8 +79,8 @@ const date = (iso: string) => new Date(iso).toLocaleDateString(undefined, { mont
 
 <style scoped>
 .prof { display: flex; flex-direction: column; gap: var(--s-5); }
-.prof__card { display: grid; grid-template-columns: auto 1fr 360px; gap: var(--s-6); align-items: center; padding: var(--s-6); background: linear-gradient(100deg, rgba(0, 240, 255, .1), rgba(255, 43, 214, .08)); border: 1px solid var(--c-line-strong); clip-path: var(--clip-chamfer); }
-.prof__avatar { width: 110px; height: 110px; display: grid; place-items: center; font-family: var(--f-display); font-size: 40px; font-weight: 900; color: var(--c-text-invert); background: linear-gradient(135deg, var(--c-cyan), var(--c-magenta)); clip-path: polygon(50% 0, 100% 25%, 100% 75%, 50% 100%, 0 75%, 0 25%); }
+.prof__card { position: relative;  display: grid; grid-template-columns: auto 1fr 360px; gap: var(--s-6); align-items: center; padding: var(--s-6); background: var(--paper); border: 0; border-radius: var(--r-lg); box-shadow: 5px 6px 0 rgba(18, 34, 74, .16), var(--glow-panel); }
+.prof__avatar { width: 110px; height: 110px; display: grid; place-items: center; font-family: var(--f-display); font-size: 40px; font-weight: 900; color: var(--c-text-invert); background: var(--chrome); box-shadow: var(--pop); border: 3px solid var(--ink); border-radius: var(--blob); animation: blob 10s var(--ease-soft) infinite; }
 .prof__tags { display: flex; gap: var(--s-2); margin-top: var(--s-3); }
 .prof__tag { font-family: var(--f-mono); font-size: 10px; font-weight: 700; letter-spacing: .12em; padding: 3px 8px; border: 1px solid var(--c-magenta); color: var(--c-magenta); }
 .prof__tag--cy { border-color: var(--c-cyan); color: var(--c-cyan); }

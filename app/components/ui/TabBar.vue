@@ -18,18 +18,18 @@ defineProps<{ tabs: { id: string; label: string; icon?: string; count?: number }
 </template>
 
 <style scoped>
-.tab-bar { display: flex; gap: 2px; border-bottom: 1px solid var(--c-line-strong); }
+.tab-bar { display: flex; flex-wrap: wrap; gap: 4px; padding: 4px; background: var(--paper-soft); border-radius: var(--r-md); }
 .tab-bar__tab {
   position: relative; display: inline-flex; align-items: center; gap: var(--s-2);
   height: 44px; padding: 0 var(--s-5);
   background: transparent; border: 0; cursor: pointer;
-  font-family: var(--f-ui); font-weight: 600; font-size: var(--fs-sm); letter-spacing: .14em; text-transform: uppercase;
+  font-family: var(--f-display); font-weight: 500; font-size: var(--fs-md);
   color: var(--c-text-dim);
-  clip-path: polygon(10px 0, calc(100% - 10px) 0, 100% 100%, 0 100%);
+  border-radius: var(--r-md) var(--r-md) 0 0;
   transition: color var(--t-fast), background var(--t-fast);
 }
 .tab-bar__tab:hover { color: var(--c-text); background: var(--c-bg-2); }
-.tab-bar__tab.is-active { color: var(--c-cyan); background: linear-gradient(180deg, rgba(0, 240, 255, .14), rgba(0, 240, 255, .02)); text-shadow: var(--text-glow-cyan); }
-.tab-bar__tab.is-active::after { content: ''; position: absolute; left: 10px; right: 10px; bottom: 0; height: 2px; background: var(--c-cyan); box-shadow: 0 0 10px var(--c-cyan); }
+.tab-bar__tab.is-active { color: var(--c-magenta); background: var(--paper-2); }
+.tab-bar__tab.is-active::after { content: ''; position: absolute; left: 12px; right: 12px; bottom: 3px; height: 6px; background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='6'%3E%3Cpath d='M0 3 Q4 0 8 3 T16 3' fill='none' stroke='%23e20074' stroke-width='2'/%3E%3C/svg%3E") repeat-x; }
 .tab-bar__count { font-family: var(--f-mono); font-size: 10px; padding: 0 6px; background: var(--c-bg-3); color: var(--c-text); }
 </style>

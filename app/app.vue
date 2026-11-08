@@ -4,6 +4,7 @@ import { DbConnection } from '~/module_bindings';
 import { readToken, saveToken } from '~/utils/token';
 
 const config = useRuntimeConfig().public;
+const castIntro = useState<boolean>('castIntro', () => false);
 
 const connectionBuilder = DbConnection.builder()
   .withUri(config.spacetimeUrl)
@@ -20,4 +21,6 @@ const connectionBuilder = DbConnection.builder()
       </NuxtLayout>
     </SessionGate>
   </SpacetimeDBProvider>
+  <OceanLayer />
+  <CastIntro v-if="castIntro" />
 </template>

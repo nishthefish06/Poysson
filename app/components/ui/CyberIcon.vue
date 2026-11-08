@@ -44,6 +44,14 @@ const PATHS: Record<string, string> = {
   plus: 'M12 5v14M5 12h14',
   trash: 'M4 7h16M10 11v6M14 11v6M6 7l1 13h10l1-13M9 7V4h6v3',
   shuffle: 'M3 6h4l10 12h4M3 18h4l3-3.6M14 9.6L17 6h4M18 3l3 3-3 3M18 15l3 3-3 3',
+  sidebar: 'M3 4h18v16H3zM9 4v16M5 8h2M5 11h2',
+  menu: 'M4 6h16M4 12h16M4 18h16',
+  settings: 'M12 15a3 3 0 100-6 3 3 0 000 6zM12 2v3M12 19v3M4.9 4.9l2.1 2.1M17 17l2.1 2.1M2 12h3M19 12h3M4.9 19.1L7 17M17 7l2.1-2.1',
+  chevron: 'M6 9l6 6 6-6',
+  fish: 'M6 12c2.5-3.6 6-5.5 9.5-5.5S20.5 9 22 12c-1.5 3-3.6 5.5-6.5 5.5S8.5 15.6 6 12zM6 12L2 8v8l4-4zM17.5 10.5h.01',
+  hook: 'M14 4.5a2 2 0 11-4 0 2 2 0 014 0zM12 6.5v8.5a4 4 0 01-8 0v-3l3 3',
+  anchor: 'M12 7a2 2 0 100-4 2 2 0 000 4zM12 7v14M8 10h8M4 13a8 8 0 0016 0M4 13l-1.5 1.5M20 13l1.5 1.5',
+  wave: 'M2 9c2-2 4-2 6 0s4 2 6 0 4-2 6 0M2 15c2-2 4-2 6 0s4 2 6 0 4-2 6 0',
 }
 const d = computed(() => PATHS[props.name] ?? PATHS.info)
 </script>

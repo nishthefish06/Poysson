@@ -366,12 +366,13 @@ export interface IncidentPlan {
   seed: number
   codename: string
   difficulty: Difficulty
+  mode: 'guided' | 'unguided'
   vectors: VectorId[]
   duration: number
   schedule: ScheduledInject[]
 }
 
-export function generateIncident(vectors: VectorId[], difficulty: Difficulty, seed = Date.now() % 1e9): IncidentPlan {
+export function generateIncident(vectors: VectorId[], difficulty: Difficulty, mode: IncidentPlan['mode'] = 'unguided', seed = Date.now() % 1e9): IncidentPlan {
   const r = rng(seed)
   const d = DIFFICULTY[difficulty]
   const picks = vectors.map((v) => {
@@ -394,6 +395,7 @@ export function generateIncident(vectors: VectorId[], difficulty: Difficulty, se
     seed,
     codename: CODENAMES[Math.floor(r() * CODENAMES.length)],
     difficulty,
+    mode,
     vectors,
     duration: d.seconds,
     schedule,

@@ -60,9 +60,9 @@ async function send() {
 
 <template>
   <main v-if="r" class="mx-auto max-w-4xl p-8">
-    <NuxtLink to="/practice" class="text-sm text-neutral-400 underline">← Practice</NuxtLink>
+    <NuxtLink to="/practice" class="text-sm text-neutral-600 underline">← Practice</NuxtLink>
     <h1 class="mt-2 text-3xl font-bold">{{ r.title }}</h1>
-    <p class="text-sm text-neutral-400">
+    <p class="text-sm text-neutral-600">
       {{ r.attackType }} · {{ r.difficulty }} · {{ r.mode }} · {{ r.status }}
     </p>
     <p class="mt-4 whitespace-pre-line">{{ r.briefing }}</p>
@@ -81,7 +81,7 @@ async function send() {
             ? 'ml-12 bg-line'
             : m.sender === 'attacker'
               ? 'mr-12 border border-line bg-panel'
-              : 'text-neutral-400'
+              : 'text-neutral-600'
         "
       >
         <span v-if="m.sender === 'attacker'" class="font-mono text-xs uppercase text-neutral-500"
@@ -91,7 +91,7 @@ async function send() {
       </p>
       <form v-if="!guided && inProgress" class="flex gap-2" @submit.prevent="send">
         <input v-model="reply" class="flex-1 rounded border border-line bg-bg p-2" placeholder="Reply…" />
-        <button :disabled="busy" class="rounded bg-neon-cyan px-3 font-semibold text-black">Send</button>
+        <button :disabled="busy" class="rounded bg-neon-cyan px-3 font-semibold text-white">Send</button>
       </form>
     </section>
 
@@ -105,12 +105,12 @@ async function send() {
         >
           Show hint
         </button>
-        <p v-else-if="s.hint" class="mt-1 text-sm text-neutral-400">💡 {{ s.hint }}</p>
+        <p v-else-if="s.hint" class="mt-1 text-sm text-neutral-600">💡 {{ s.hint }}</p>
       </div>
     </div>
 
-    <section v-if="done.length" class="mt-6 text-sm text-neutral-400">
-      <h2 class="font-semibold text-neutral-200">What you did</h2>
+    <section v-if="done.length" class="mt-6 text-sm text-neutral-600">
+      <h2 class="font-semibold text-neutral-800">What you did</h2>
       <p v-for="e in done" :key="String(e.id)">
         {{ e.kind.replaceAll('_', ' ') }}<span v-if="e.stepId"> ({{ e.stepId }})</span>
       </p>
@@ -131,12 +131,12 @@ async function send() {
       />
       <button
         :disabled="busy || !summary.trim()"
-        class="rounded bg-neon-cyan px-4 py-2 font-semibold text-black disabled:opacity-50"
+        class="rounded bg-neon-cyan px-4 py-2 font-semibold text-white disabled:opacity-50"
       >
         Submit report
       </button>
     </form>
-    <section v-else-if="r.status === 'submitted'" class="mt-8 text-neutral-400">
+    <section v-else-if="r.status === 'submitted'" class="mt-8 text-neutral-600">
       Submitted. Waiting for a score.
     </section>
     <section v-else-if="r.status === 'reviewed'" class="mt-8 rounded bg-panel p-4">

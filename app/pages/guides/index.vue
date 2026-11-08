@@ -8,7 +8,7 @@ const sorted = computed(() => [...guides.value].sort((a, b) => a.sortOrder - b.s
 </script>
 
 <template>
-  <main class="mx-auto max-w-4xl p-8">
+  <main class="mx-auto max-w-4xl rounded bg-panel p-8">
     <h1 class="text-3xl font-bold">Response guides</h1>
     <NuxtLink
       v-for="g in sorted"
@@ -18,7 +18,7 @@ const sorted = computed(() => [...guides.value].sort((a, b) => a.sortOrder - b.s
     >
       <p class="text-xs uppercase text-neutral-500">{{ g.attackType }}</p>
       <p class="font-semibold">{{ g.title }}</p>
-      <p class="text-sm text-neutral-400">{{ g.summary }}</p>
+      <p class="text-sm text-neutral-600">{{ g.summary }}</p>
     </NuxtLink>
   </main>
 </template>
