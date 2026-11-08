@@ -234,7 +234,7 @@ export const ArenaSummary = z.object({
     })
   ),
   debrief: z.string(),
-  debriefSource: z.enum(['gemini', 'template']),
+  debriefSource: z.enum(['gemini', 'nemotron', 'template']),
   // runbook sections the debrief is grounded in
   runbook: z.array(RunbookRef).default([]),
   // the attacker explains its own play after the round (Nemotron, or a scripted version)

@@ -110,11 +110,17 @@ function safeHost(host: string): string {
 }
 
 /**
- * Rewrites every e-mail domain and URL host in free text to a fictional one. The model sometimes
- * invents domains (attacker.ctrl) or uses real ones; the app only ever shows .example domains.
+ * Rewrites real carrier names to the fictional CorpMobile, and every e-mail domain and URL host in free
+ * text to a fictional one. The model sometimes invents domains (attacker.ctrl) or uses real ones; the app
+ * only ever shows .example domains.
  */
+// Real carriers the model likes to impersonate -> the app's fictional carrier. ("Sprint" and "Cricket"
+// are left alone: they are everyday words too.)
+const REAL_CARRIERS = /\b(?:T[-\s]?Mobile|Verizon(?:\s+Wireless)?|AT&T|Mint\s+Mobile|U\.?S\.?\s+Cellular)(?![A-Za-z])/gi;
+
 export function fictionalize(text: string): string {
   return text
+    .replace(REAL_CARRIERS, 'CorpMobile')
     .replace(
       /([A-Za-z0-9._%+-]+)@([A-Za-z0-9.-]+\.[A-Za-z]{2,})/g,
       (_m, user: string, host: string) => `${user}@${safeHost(host)}`

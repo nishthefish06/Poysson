@@ -84,7 +84,7 @@ const emit = defineEmits<{ again: [] }>();
       <NuxtLink to="/dashboard" class="rounded border border-line px-4 py-2">Back to dashboard</NuxtLink>
     </div>
     <p class="text-xs text-neutral-500">
-      Debrief written by {{ state.summary.debriefSource === 'gemini' ? 'Gemini' : 'the built-in coach' }}.
+            Debrief written by {{ state.summary.debriefSource === 'gemini' ? 'Gemini' : state.summary.debriefSource === 'nemotron' ? 'Nemotron' : 'the built-in coach' }}.
     </p>
   </section>
 </template>
