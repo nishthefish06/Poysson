@@ -29,6 +29,18 @@ const arrived = ref<{ inject: Inject; at: number; actions: IncidentAction[] }[]>
 const decisions = ref<Decision[]>([])
 const comms = ref<RunResult['comms']>([])
 const chat = ref<{ id: number; who: string; role: string; text: string; t: number; me?: boolean }[]>([])
+const draftMessage = ref('')
+const responseDraft = ref('')
+const showGuidebook = ref(false)
+const guideSearch = ref('')
+
+const GUIDEBOOK = [
+  { id: 'phish', vector: 'phish', title: 'Phishing and smishing', tip: 'Validate the sender and destination independently. Quarantine the message or campaign, preserve the original, then notify affected users.', indicators: ['Urgency or unusual pressure', 'Look-alike domains and shortened links', 'Unexpected attachments or MFA requests'] },
+  { id: 'identity', vector: 'identity', title: 'Identity compromise', tip: 'Treat successful authentication plus anomalous activity as a credential incident. Revoke sessions, rotate credentials, and verify through a trusted channel.', indicators: ['Impossible travel or unfamiliar origin', 'MFA fatigue or push storms', 'Unexpected mailbox, token, or privilege changes'] },
+  { id: 'malware', vector: 'malware', title: 'Malware and ransomware', tip: 'Contain the host through the security platform while preserving volatile evidence. Block known infrastructure and avoid destructive cleanup before collection.', indicators: ['Mass file changes or encryption', 'Suspicious parent-child process chains', 'Beaconing or connections to known-bad infrastructure'] },
+  { id: 'exfil', vector: 'exfil', title: 'Data exposure and exfiltration', tip: 'Stop the transfer or close the exposure, preserve logs, and identify the data and access path. Escalate privacy or legal impact early.', indicators: ['Large or unusual outbound transfers', 'Public storage or access-policy changes', 'Archives, staging activity, or unknown destinations'] },
+  { id: 'insider', vector: 'insider', title: 'Pretexting and insider risk', tip: 'Slow down high-pressure requests and verify out of band. Preserve the request and route sensitive changes through the approved approval path.', indicators: ['Authority, urgency, or anger used as leverage', 'Requests to bypass normal verification', 'Spoofed caller identity or unusual access behavior'] },
+] as const
 const selectedId = ref<string | null>(null)
 const flag = ref<{ text: string; consequence?: string } | null>(null)
 const lastRating = ref<Rating | null>(null)
@@ -42,6 +54,13 @@ const selected = computed(() => arrived.value.find(a => a.inject.id === selected
 const decisionFor = (id: string) => decisions.value.find(d => d.injectId === id)
 const pending = computed(() => arrived.value.filter(a => !decisionFor(a.inject.id)).length)
 const progress = computed(() => plan ? decisions.value.length / plan.schedule.length : 0)
+const guideResults = computed(() => {
+  const query = guideSearch.value.trim().toLowerCase()
+  const currentVector = selected.value?.inject.vector
+  return GUIDEBOOK
+    .filter(entry => !query || [entry.title, entry.vector, entry.tip, ...entry.indicators].join(' ').toLowerCase().includes(query))
+    .sort((a, b) => Number(b.vector === currentVector) - Number(a.vector === currentVector))
+})
 
 const push = (l: Omit<FeedLine, 'id' | 't'>) => { feed.value.unshift({ ...l, id: ++seq, t: elapsed.value }) }
 const say = (who: string, role: string, text: string, me = false) => { chat.value.push({ id: ++seq, who, role, text, t: elapsed.value, me }) }
@@ -117,6 +136,27 @@ function choose(a: IncidentAction) {
   }, 1400)
 }
 
+function submitResponse() {
+  const sel = selected.value
+  const response = responseDraft.value.trim()
+  if (!sel || !response || decisionFor(sel.inject.id) || phase.value !== 'live') return
+
+  const words = response.toLowerCase().match(/[a-z0-9]+/g) ?? []
+  const stopWords = new Set(['the', 'and', 'for', 'with', 'from', 'this', 'that', 'then', 'will', 'host', 'user'])
+  const meaningful = new Set(words.filter(word => word.length > 3 && !stopWords.has(word)))
+  const ranked = sel.actions.map(action => {
+    const actionWords = new Set(action.label.toLowerCase().match(/[a-z0-9]+/g)?.filter(word => word.length > 3 && !stopWords.has(word)) ?? [])
+    return { action, score: [...actionWords].filter(word => meaningful.has(word)).length }
+  }).sort((a, b) => b.score - a.score)
+  const fallback = sel.actions.find(action => action.rating === 'ok') ?? sel.actions.find(action => action.rating !== 'harmful') ?? sel.actions[0]
+  const judged = ranked[0]?.score ? ranked[0].action : fallback
+
+  choose(judged)
+  push({ type: 'action', src: 'ORDER', text: `Written order: ${response}`, rating: judged.rating })
+  say('You', 'Commander', response, true)
+  responseDraft.value = ''
+}
+
 function sendComms(c: typeof COMMS_ACTIONS[number]) {
   if (comms.value.some(x => x.id === c.id) || phase.value !== 'live') return
   const firedVectors = arrived.value.map(a => a.inject.vector)
@@ -127,6 +167,14 @@ function sendComms(c: typeof COMMS_ACTIONS[number]) {
     const [who, ...rest] = c.reply.split(': ')
     say(who, '', rest.join(': '))
   }, 900)
+}
+
+function sendFreeform() {
+  const message = draftMessage.value.trim()
+  if (!message || phase.value !== 'live') return
+  say('You', 'Commander', message, true)
+  push({ type: 'action', src: 'COMMS', text: `Bridge message sent: ${message}` })
+  draftMessage.value = ''
 }
 
 const result = ref<RunResult | null>(null)
@@ -286,13 +334,53 @@ const stamp = (t: number) => `T+${fmtTime(t)}`
           </div>
         </CyberPanel>
 
-        <CyberPanel title="Response" :eyebrow="selected ? 'Pick one · keys 1–4' : 'Standby'" accent="magenta" class="sim__actions">
+        <CyberPanel title="Response" :eyebrow="selected ? 'Write an order · guidebook available' : 'Standby'" accent="magenta" class="sim__actions">
           <div v-if="selected" class="sim__action-list">
-            <ActionButton
-              v-for="(a, i) in selected.actions" :key="a.id" :label="a.label" :hotkey="String(i + 1)"
-              :state="decisionFor(selected.inject.id) ? (decisionFor(selected.inject.id)!.actionId === a.id ? 'chosen' : 'locked') : phase !== 'live' ? 'disabled' : 'idle'"
-              :rating="a.rating" :points="a.points" @select="choose(a)"
-            />
+            <form class="sim__response-form" @submit.prevent="submitResponse">
+              <label class="eyebrow" for="containment-order">Your containment order</label>
+              <textarea
+                id="containment-order"
+                v-model="responseDraft"
+                class="sim__response-input"
+                rows="3"
+                maxlength="320"
+                placeholder="Describe what you do and why..."
+                :disabled="phase !== 'live' || !!decisionFor(selected.inject.id)"
+              />
+              <CyberButton variant="primary" size="sm" block icon="bolt" type="submit" :disabled="phase !== 'live' || !!decisionFor(selected.inject.id) || !responseDraft.trim()">Submit order</CyberButton>
+              <div class="sim__response-hint mono">Write what you would do. Search the guidebook for verified guidance.</div>
+            </form>
+            <button class="sim__guidebook-toggle" type="button" :aria-expanded="showGuidebook" @click="showGuidebook = !showGuidebook">
+              <CyberIcon name="list" :size="15" />
+              <span>{{ showGuidebook ? 'Close guidebook' : 'Open response guidebook' }}</span>
+              <span class="sim__guidebook-count mono">{{ selected.actions.length }} playbooks</span>
+              <CyberIcon :name="showGuidebook ? 'back' : 'arrow'" :size="14" />
+            </button>
+            <Transition name="guidebook">
+              <div v-if="showGuidebook" class="sim__guidebook">
+                <div class="sim__guidebook-head">
+                  <div>
+                    <div class="eyebrow eyebrow--magenta">Field guide · response doctrine</div>
+                    <div class="sim__guidebook-title">Search the operator handbook</div>
+                  </div>
+                  <span class="mono mute">{{ guideResults.length }} entries</span>
+                </div>
+                <input v-model="guideSearch" class="sim__guidebook-search" type="search" placeholder="Search containment, evidence, MFA..." aria-label="Search response guidebook">
+                <div class="sim__guidebook-results">
+                  <article v-for="entry in guideResults" :key="entry.id" class="sim__guide-entry">
+                    <div class="sim__guide-entry-head">
+                      <span class="sim__guide-entry-vector">{{ vectorById(entry.vector).code }}</span>
+                      <span class="sim__guide-entry-title">{{ entry.title }}</span>
+                    </div>
+                    <p class="sim__guide-entry-tip">{{ entry.tip }}</p>
+                    <div class="sim__guide-entry-flags">
+                      <span v-for="indicator in entry.indicators" :key="indicator">{{ indicator }}</span>
+                    </div>
+                  </article>
+                  <div v-if="!guideResults.length" class="sim__empty mono">// no verified guidance found</div>
+                </div>
+              </div>
+            </Transition>
             <div v-if="decisionFor(selected.inject.id)" class="sim__feedback" :class="`is-${decisionFor(selected.inject.id)!.rating}`">
               {{ selected.actions.find(a => a.id === decisionFor(selected!.inject.id)!.actionId)?.feedback }}
               <span v-if="decisionFor(selected.inject.id)!.speedBonus" class="sim__bonus mono">+10 SPEED</span>
@@ -321,6 +409,23 @@ const stamp = (t: number) => `T+${fmtTime(t)}`
               :disabled="phase !== 'live' || comms.some(x => x.id === c.id)" @click="sendComms(c)"
             >{{ c.label }}</CyberButton>
           </div>
+          <form class="sim__composer" @submit.prevent="sendFreeform">
+            <label class="eyebrow" for="bridge-message">Bridge message</label>
+            <div class="sim__composer-row">
+              <input
+                id="bridge-message"
+                v-model="draftMessage"
+                class="sim__composer-input"
+                type="text"
+                maxlength="240"
+                placeholder="Send an update to the bridge..."
+                :disabled="phase !== 'live'"
+              >
+              <button class="sim__send" type="submit" :disabled="phase !== 'live' || !draftMessage.trim()" title="Send bridge message">
+                <CyberIcon name="arrow" :size="15" />
+              </button>
+            </div>
+          </form>
         </div>
       </CyberPanel>
     </main>
@@ -330,7 +435,7 @@ const stamp = (t: number) => `T+${fmtTime(t)}`
       <div v-if="phase === 'start'" class="sim__modal">
         <div class="eyebrow eyebrow--magenta">Ready state</div>
         <h1 class="sim__modal-title">OP: {{ plan.codename }}</h1>
-        <p class="dim">{{ plan.schedule.length }} injects across {{ plan.vectors.length }} vectors · {{ fmtTime(plan.duration) }} on the clock.<br>Use keys <kbd>1</kbd>–<kbd>4</kbd> to respond fast.</p>
+        <p class="dim">{{ plan.schedule.length }} injects across {{ plan.vectors.length }} vectors · {{ fmtTime(plan.duration) }} on the clock.<br>Study the signals. Search verified intel. Issue containment orders.</p>
         <CyberButton variant="primary" size="lg" icon="play" @click="engage">Engage <kbd class="sim__kbd">↵</kbd></CyberButton>
       </div>
       <div v-else class="sim__count glitch" :data-text="countdown">{{ countdown }}</div>
@@ -449,6 +554,29 @@ const stamp = (t: number) => `T+${fmtTime(t)}`
 .sim__actions { flex: 1; min-height: 0; }
 .sim__actions :deep(.cyber-panel__body) { overflow-y: auto; }
 .sim__action-list { display: flex; flex-direction: column; gap: var(--s-2); }
+.sim__response-form { display: flex; flex-direction: column; gap: var(--s-2); padding-bottom: var(--s-3); margin-bottom: var(--s-2); border-bottom: 1px solid var(--c-line); }
+.sim__response-input { width: 100%; resize: vertical; min-height: 72px; padding: var(--s-3); color: var(--c-text); background: rgba(4, 5, 10, .7); border: 1px solid var(--c-line-strong); font: var(--fs-sm) var(--f-ui); line-height: 1.4; }
+.sim__response-input::placeholder { color: var(--c-text-mute); }
+.sim__response-input:focus { border-color: var(--c-magenta); box-shadow: 0 0 14px rgba(255, 43, 214, .12); outline: none; }
+.sim__response-hint { color: var(--c-text-mute); font-size: 9px; line-height: 1.4; }
+.sim__guidebook-toggle { display: flex; align-items: center; gap: var(--s-2); min-height: 38px; padding: 0 var(--s-3); color: var(--c-cyan); background: rgba(0, 240, 255, .05); border: 1px solid var(--c-line-strong); font: 700 var(--fs-xs) var(--f-ui); letter-spacing: .08em; text-transform: uppercase; cursor: pointer; }
+.sim__guidebook-toggle:hover { border-color: var(--c-cyan); background: rgba(0, 240, 255, .1); }
+.sim__guidebook-count { margin-left: auto; color: var(--c-text-mute); font-size: 9px; font-weight: 400; letter-spacing: .04em; text-transform: none; }
+.sim__guidebook { display: flex; flex-direction: column; gap: var(--s-2); padding: var(--s-3); background: rgba(4, 5, 10, .45); border: 1px solid var(--c-line); border-top: 0; }
+.sim__guidebook-head { display: flex; align-items: flex-end; justify-content: space-between; gap: var(--s-2); padding-bottom: var(--s-2); border-bottom: 1px solid var(--c-line); }
+.sim__guidebook-title { margin-top: 2px; color: var(--c-text); font-size: var(--fs-sm); font-weight: 700; }
+.sim__guidebook-search { width: 100%; height: 34px; padding: 0 var(--s-3); color: var(--c-text); background: var(--c-bg-2); border: 1px solid var(--c-line-strong); font: var(--fs-xs) var(--f-mono); }
+.sim__guidebook-search:focus { border-color: var(--c-magenta); outline: none; box-shadow: 0 0 12px rgba(255, 43, 214, .12); }
+.sim__guidebook-results { display: flex; flex-direction: column; gap: var(--s-2); max-height: 340px; overflow-y: auto; }
+.sim__guide-entry { padding: var(--s-3); background: rgba(15, 20, 36, .72); border-left: 2px solid var(--c-magenta); }
+.sim__guide-entry-head { display: flex; align-items: baseline; gap: var(--s-2); }
+.sim__guide-entry-vector { color: var(--c-magenta); font: 700 10px var(--f-mono); letter-spacing: .12em; }
+.sim__guide-entry-title { color: var(--c-text); font-size: var(--fs-xs); font-weight: 700; }
+.sim__guide-entry-tip { margin-top: var(--s-2); color: var(--c-ideal); font-size: var(--fs-xs); line-height: 1.45; }
+.sim__guide-entry-flags { display: flex; flex-direction: column; gap: 2px; margin-top: var(--s-2); color: var(--c-text-dim); font-size: 10px; }
+.sim__guide-entry-flags span::before { content: '•'; margin-right: 5px; color: var(--c-yellow); }
+.guidebook-enter-active, .guidebook-leave-active { transition: all .2s var(--ease); transform-origin: top; }
+.guidebook-enter-from, .guidebook-leave-to { opacity: 0; transform: scaleY(.95); }
 .sim__feedback { --c: var(--c-ideal); margin-top: var(--s-2); padding: var(--s-3); font-size: var(--fs-sm); border-left: 3px solid var(--c); background: color-mix(in srgb, var(--c) 8%, transparent); animation: slide-in .3s; }
 .sim__feedback.is-ok { --c: var(--c-ok); }
 .sim__feedback.is-harmful { --c: var(--c-harmful); }
@@ -456,7 +584,7 @@ const stamp = (t: number) => `T+${fmtTime(t)}`
 
 /* comms */
 .sim__comms :deep(.cyber-panel__body) { padding-top: var(--s-3); overflow: hidden; }
-.sim__comms-wrap { height: 100%; display: grid; grid-template-columns: 1fr auto; gap: var(--s-4); }
+.sim__comms-wrap { height: 100%; display: grid; grid-template-columns: minmax(0, 1fr) auto 300px; gap: var(--s-4); }
 .sim__chat { overflow-y: auto; display: flex; flex-direction: column; gap: 6px; }
 .sim__msg { display: grid; grid-template-columns: 160px 1fr auto; gap: var(--s-3); font-size: var(--fs-sm); animation: slide-in .3s; }
 .sim__msg-who { font-weight: 700; color: var(--c-magenta); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
@@ -464,6 +592,14 @@ const stamp = (t: number) => `T+${fmtTime(t)}`
 .sim__msg-text { color: var(--c-text-dim); }
 .sim__msg-t { font-size: 10px; }
 .sim__comms-btns { display: flex; flex-direction: column; gap: var(--s-2); justify-content: center; }
+.sim__composer { display: flex; flex-direction: column; justify-content: center; gap: var(--s-2); min-width: 0; }
+.sim__composer-row { display: flex; gap: var(--s-2); }
+.sim__composer-input { min-width: 0; width: 100%; height: 38px; padding: 0 var(--s-3); color: var(--c-text); background: var(--c-bg-2); border: 1px solid var(--c-line-strong); font: var(--fs-sm) var(--f-ui); }
+.sim__composer-input::placeholder { color: var(--c-text-mute); }
+.sim__composer-input:focus { border-color: var(--c-cyan); box-shadow: 0 0 12px rgba(0, 240, 255, .12); outline: none; }
+.sim__send { flex: 0 0 38px; display: grid; place-items: center; color: var(--c-cyan); background: rgba(0, 240, 255, .08); border: 1px solid var(--c-cyan); cursor: pointer; }
+.sim__send:hover:not(:disabled) { background: rgba(0, 240, 255, .2); box-shadow: var(--glow-cyan); }
+.sim__send:disabled { color: var(--c-text-mute); border-color: var(--c-line); cursor: not-allowed; }
 
 /* overlays */
 .sim__overlay { position: absolute; inset: 0; z-index: 50; display: grid; place-items: center; background: rgba(4, 5, 10, .78); backdrop-filter: blur(4px); }
@@ -480,4 +616,14 @@ const stamp = (t: number) => `T+${fmtTime(t)}`
 .g-B { color: var(--c-cyan); text-shadow: 0 0 30px var(--c-cyan); }
 .g-C { color: var(--c-ok); text-shadow: 0 0 30px var(--c-ok); }
 .g-D { color: var(--c-harmful); text-shadow: 0 0 30px var(--c-harmful); }
+
+@media (max-width: 1180px) {
+  .sim__comms-wrap { grid-template-columns: minmax(0, 1fr) auto 240px; }
+}
+
+@media (max-width: 900px) {
+  .sim__comms-wrap { grid-template-columns: 1fr; gap: var(--s-3); }
+  .sim__comms-btns { display: grid; grid-template-columns: repeat(2, 1fr); }
+  .sim__composer { justify-content: stretch; }
+}
 </style>
