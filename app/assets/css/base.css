@@ -1,0 +1,93 @@
+*, *::before, *::after { box-sizing: border-box; }
+html, body, #__nuxt { height: 100%; }
+body {
+  margin: 0;
+  background: var(--c-bg-0);
+  color: var(--c-text);
+  font-family: var(--f-ui);
+  font-size: var(--fs-md);
+  line-height: 1.45;
+  -webkit-font-smoothing: antialiased;
+  overflow-x: hidden;
+}
+/* Ambient grid + vignette behind everything */
+body::before {
+  content: '';
+  position: fixed; inset: 0; z-index: -2; pointer-events: none;
+  background:
+    radial-gradient(1200px 600px at 80% -10%, rgba(255, 43, 214, .10), transparent 60%),
+    radial-gradient(900px 600px at -10% 110%, rgba(0, 240, 255, .10), transparent 60%),
+    linear-gradient(rgba(30, 41, 69, .35) 1px, transparent 1px) 0 0 / 40px 40px,
+    linear-gradient(90deg, rgba(30, 41, 69, .35) 1px, transparent 1px) 0 0 / 40px 40px;
+}
+/* CRT scanlines */
+body::after {
+  content: '';
+  position: fixed; inset: 0; z-index: 9999; pointer-events: none;
+  background: repeating-linear-gradient(to bottom, rgba(255, 255, 255, .025) 0 1px, transparent 1px 3px);
+  mix-blend-mode: overlay;
+}
+
+h1, h2, h3, h4 { font-family: var(--f-display); margin: 0; letter-spacing: .04em; font-weight: 700; }
+h1 { font-size: var(--fs-2xl); }
+h2 { font-size: var(--fs-xl); }
+h3 { font-size: var(--fs-lg); }
+p { margin: 0; }
+a { color: var(--c-cyan); text-decoration: none; }
+a:hover { text-shadow: var(--text-glow-cyan); }
+code, kbd, .mono { font-family: var(--f-mono); }
+button { font-family: inherit; }
+::selection { background: var(--c-magenta); color: var(--c-text-invert); }
+
+::-webkit-scrollbar { width: 8px; height: 8px; }
+::-webkit-scrollbar-track { background: var(--c-bg-1); }
+::-webkit-scrollbar-thumb { background: var(--c-line-strong); }
+::-webkit-scrollbar-thumb:hover { background: var(--c-cyan); }
+
+:focus-visible { outline: 2px solid var(--c-cyan); outline-offset: 2px; }
+
+/* ---------- Utilities ---------- */
+.eyebrow {
+  font-family: var(--f-mono); font-size: var(--fs-xs); letter-spacing: .2em;
+  text-transform: uppercase; color: var(--c-text-dim);
+}
+.eyebrow--cyan { color: var(--c-cyan); }
+.eyebrow--magenta { color: var(--c-magenta); }
+.neon-cyan { color: var(--c-cyan); text-shadow: var(--text-glow-cyan); }
+.neon-magenta { color: var(--c-magenta); text-shadow: var(--text-glow-magenta); }
+.dim { color: var(--c-text-dim); }
+.mute { color: var(--c-text-mute); }
+.row { display: flex; align-items: center; gap: var(--s-3); }
+.stack { display: flex; flex-direction: column; gap: var(--s-3); }
+.spacer { flex: 1; }
+.sr-only { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); }
+
+/* Page header used by every in-app screen */
+.page-head { display: flex; align-items: flex-end; gap: var(--s-4); margin-bottom: var(--s-6); }
+.page-head__title { font-size: var(--fs-2xl); }
+.page-head__sub { color: var(--c-text-dim); margin-top: var(--s-1); }
+
+/* Glitch text — usage: <span class="glitch" data-text="TEXT">TEXT</span> */
+.glitch { position: relative; display: inline-block; }
+.glitch::before, .glitch::after {
+  content: attr(data-text); position: absolute; inset: 0; overflow: hidden; pointer-events: none;
+}
+.glitch::before { color: var(--c-magenta); transform: translate(2px, 0); clip-path: inset(0 0 60% 0); animation: glitch-a 3s infinite steps(1); opacity: .8; }
+.glitch::after { color: var(--c-cyan); transform: translate(-2px, 0); clip-path: inset(55% 0 0 0); animation: glitch-b 2.4s infinite steps(1); opacity: .8; }
+@keyframes glitch-a { 0%, 92%, 100% { transform: translate(0); } 93% { transform: translate(3px, -1px); } 96% { transform: translate(-2px, 1px); } }
+@keyframes glitch-b { 0%, 88%, 100% { transform: translate(0); } 89% { transform: translate(-3px, 1px); } 94% { transform: translate(2px, 0); } }
+
+@keyframes pulse-ring { 0% { transform: scale(.8); opacity: .9; } 100% { transform: scale(2.2); opacity: 0; } }
+@keyframes blink { 50% { opacity: 0; } }
+@keyframes slide-in { from { opacity: 0; transform: translateY(-6px); } to { opacity: 1; transform: none; } }
+@keyframes shake { 0%, 100% { transform: none; } 20% { transform: translateX(-4px); } 40% { transform: translateX(4px); } 60% { transform: translateX(-3px); } 80% { transform: translateX(2px); } }
+.cursor-blink::after { content: '▌'; animation: blink 1s steps(1) infinite; color: var(--c-cyan); margin-left: 2px; }
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after { animation-duration: .001ms !important; animation-iteration-count: 1 !important; transition-duration: .001ms !important; }
+}
+
+@media print {
+  body::before, body::after { display: none; }
+  body { background: #fff; color: #111; }
+}

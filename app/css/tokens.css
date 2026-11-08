@@ -1,0 +1,80 @@
+/* ==========================================================================
+   NEON//IR design tokens
+   Single source of truth for color / type / spacing / radius / effects.
+   Components only reference these variables — never raw hex values.
+   ========================================================================== */
+:root {
+  /* --- Surfaces ----------------------------------------------------------- */
+  --c-bg-0: #04050a;          /* app background */
+  --c-bg-1: #090c16;          /* panel */
+  --c-bg-2: #0f1424;          /* raised panel / input */
+  --c-bg-3: #161d33;          /* hover */
+  --c-line: #1e2945;          /* hairline borders */
+  --c-line-strong: #2c3b63;
+
+  /* --- Neon accents ------------------------------------------------------- */
+  --c-cyan: #00f0ff;
+  --c-magenta: #ff2bd6;
+  --c-yellow: #f6ff3b;
+  --c-violet: #8b5cff;
+
+  /* --- Semantic ----------------------------------------------------------- */
+  --c-ideal: #39ff88;         /* status: ideal */
+  --c-ok: #ffb020;            /* status: ok    */
+  --c-harmful: #ff3b5c;       /* status: harmful / danger */
+  --c-info: var(--c-cyan);
+
+  /* --- Text --------------------------------------------------------------- */
+  --c-text: #dce6ff;
+  --c-text-dim: #8a98c2;
+  --c-text-mute: #55628a;
+  --c-text-invert: #04050a;
+
+  /* --- Glows -------------------------------------------------------------- */
+  --glow-cyan: 0 0 0 1px rgba(0, 240, 255, .45), 0 0 18px rgba(0, 240, 255, .35);
+  --glow-magenta: 0 0 0 1px rgba(255, 43, 214, .5), 0 0 18px rgba(255, 43, 214, .35);
+  --glow-red: 0 0 0 1px rgba(255, 59, 92, .55), 0 0 18px rgba(255, 59, 92, .4);
+  --glow-green: 0 0 0 1px rgba(57, 255, 136, .5), 0 0 16px rgba(57, 255, 136, .3);
+  --text-glow-cyan: 0 0 8px rgba(0, 240, 255, .7);
+  --text-glow-magenta: 0 0 8px rgba(255, 43, 214, .7);
+
+  /* --- Typography --------------------------------------------------------- */
+  --f-display: 'Orbitron', 'Chakra Petch', sans-serif;  /* headings, numbers */
+  --f-ui: 'Chakra Petch', system-ui, sans-serif;        /* labels, buttons */
+  --f-mono: 'JetBrains Mono', ui-monospace, monospace;  /* logs, data */
+
+  --fs-xs: 11px;
+  --fs-sm: 13px;
+  --fs-md: 15px;
+  --fs-lg: 18px;
+  --fs-xl: 24px;
+  --fs-2xl: 32px;
+  --fs-3xl: 48px;
+
+  /* --- Spacing (4px grid) ------------------------------------------------- */
+  --s-1: 4px;
+  --s-2: 8px;
+  --s-3: 12px;
+  --s-4: 16px;
+  --s-5: 20px;
+  --s-6: 24px;
+  --s-8: 32px;
+  --s-10: 40px;
+  --s-12: 48px;
+
+  /* --- Shape -------------------------------------------------------------- */
+  --r-sm: 2px;
+  --r-md: 4px;
+  --cut: 10px;                /* chamfered-corner size */
+  --clip-chamfer: polygon(var(--cut) 0, 100% 0, 100% calc(100% - var(--cut)), calc(100% - var(--cut)) 100%, 0 100%, 0 var(--cut));
+  --clip-chamfer-sm: polygon(6px 0, 100% 0, 100% calc(100% - 6px), calc(100% - 6px) 100%, 0 100%, 0 6px);
+
+  /* --- Motion ------------------------------------------------------------- */
+  --t-fast: 120ms;
+  --t-med: 220ms;
+  --ease: cubic-bezier(.2, .8, .2, 1);
+
+  /* --- Layout ------------------------------------------------------------- */
+  --nav-w: 232px;
+  --top-h: 60px;
+}

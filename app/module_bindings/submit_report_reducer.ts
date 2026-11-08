@@ -11,7 +11,7 @@ import {
 } from "spacetimedb";
 
 export default {
-  assignmentId: __t.u64(),
+  runId: __t.u64(),
   summary: __t.string(),
   actionsTaken: __t.string(),
 };

@@ -1,8 +1,11 @@
 #cloud-config
 # Paste this into "Cloud-Init User-Data" when creating a Vultr Ubuntu 24.04 instance.
-# It installs SpacetimeDB as a systemd service on 127.0.0.1:3000 and puts Caddy in front
-# with automatic HTTPS. Only the endpoints browser clients need are public; publishing and
-# admin calls go over SSH (see deploy/vultr/deploy.sh and stdb.sh).
+#
+# One isolated server runs everything, behind Caddy with automatic HTTPS:
+#   - SpacetimeDB on 127.0.0.1:3000. Only the two endpoints browsers need are public;
+#     publishing and admin calls go over SSH (deploy/vultr/deploy.sh and stdb.sh).
+#   - The Nuxt app on 127.0.0.1:3001 (deploy/vultr/deploy-web.sh). It starts once deployed.
+#   - The bare-bones test client as static files under /test/ (deploy/vultr/deploy-test-client.sh).
 #
 # Hostname: defaults to <ip-with-dashes>.sslip.io so HTTPS works before a real domain exists.
 # To use a custom domain later, point an A record at the server and change the first line of
@@ -13,6 +16,7 @@ packages:
   - caddy
   - ufw
   - curl
+  - rsync
 
 write_files:
   - path: /etc/systemd/system/spacetimedb.service
@@ -33,16 +37,50 @@ write_files:
       [Install]
       WantedBy=multi-user.target
 
+  # Nuxt server (UI, Nemotron agent, Photon). Secrets come from /etc/hackutd/web.env,
+  # written by deploy-web.sh. Waits quietly until the first deploy puts the build in place.
+  - path: /etc/systemd/system/hackutd-web.service
+    content: |
+      [Unit]
+      Description=HackUTD Nuxt app
+      After=network-online.target spacetimedb.service
+      Wants=network-online.target
+      ConditionPathExists=/srv/web/.output/server/index.mjs
+
+      [Service]
+      User=webapp
+      WorkingDirectory=/srv/web
+      Environment=HOST=127.0.0.1 PORT=3001 NODE_ENV=production
+      EnvironmentFile=-/etc/hackutd/web.env
+      ExecStart=/usr/bin/node /srv/web/.output/server/index.mjs
+      Restart=always
+      RestartSec=3
+
+      [Install]
+      WantedBy=multi-user.target
+
   - path: /etc/caddy/Caddyfile
     content: |
       __SPACETIME_HOST__ {
-        # Browser clients only need identity tokens and the websocket subscription endpoint.
-        @client path_regexp ^/v1/(identity(/.*)?|database/[^/]+/subscribe)$
-        handle @client {
+        # SpacetimeDB: browser clients only need identity tokens and the websocket endpoint.
+        @stdb path_regexp ^/v1/(identity(/.*)?|database/[^/]+/subscribe)$
+        handle @stdb {
           reverse_proxy 127.0.0.1:3000
         }
-        handle {
+        # Any other SpacetimeDB path (publish, SQL, HTTP calls) stays private.
+        handle /v1/* {
           respond "Not found" 404
+        }
+        # Bare-bones test client (static build).
+        redir /test /test/
+        handle_path /test/* {
+          root * /srv/test-client
+          try_files {path} /index.html
+          file_server
+        }
+        # Everything else: the Nuxt app.
+        handle {
+          reverse_proxy 127.0.0.1:3001
         }
       }
 
@@ -61,6 +99,14 @@ runcmd:
   - [
       bash,
       -c,
+      'id webapp || useradd --system --home-dir /srv/web --create-home --shell /usr/sbin/nologin webapp',
+    ]
+  - [bash, -c, 'mkdir -p /srv/test-client /etc/hackutd && chmod 750 /etc/hackutd']
+  # Node 22 LTS for the Nuxt server.
+  - [bash, -c, 'curl -fsSL https://deb.nodesource.com/setup_22.x | bash - && apt-get install -y nodejs']
+  - [
+      bash,
+      -c,
       "sudo -u spacetimedb -H bash -c 'curl -sSf https://install.spacetimedb.com | sh -s -- --root-dir /stdb --yes'",
     ]
   # The owner CLI on this box always talks to its own server (used by deploy.sh/stdb.sh over SSH).
@@ -72,6 +118,7 @@ runcmd:
     ]
   - [systemctl, daemon-reload]
   - [systemctl, enable, --now, spacetimedb]
+  - [systemctl, enable, hackutd-web]
   - [systemctl, restart, caddy]
   - [ufw, allow, OpenSSH]
   - [ufw, allow, 80/tcp]

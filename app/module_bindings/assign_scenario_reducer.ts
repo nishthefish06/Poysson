@@ -13,5 +13,6 @@ import {
 export default {
   scenarioId: __t.u64(),
   accountId: __t.u64(),
+  mode: __t.string(),
   popupMessage: __t.string(),
 };

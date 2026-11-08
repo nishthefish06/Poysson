@@ -22,7 +22,7 @@
     "check": "npm run typecheck && npm run lint && npm run format:check",
     "build:module": "npm run build -w spacetimedb",
     "publish:local": "spacetime publish -s local",
-    "bindings": "npm run bindings -w app && npm run bindings -w test-client"
+    "bindings": "npm run bindings -w app"
   },
   "devDependencies": {
     "@eslint/js": "^10.0.0",

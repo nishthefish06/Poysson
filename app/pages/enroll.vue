@@ -5,6 +5,7 @@ import QRCode from 'qrcode';
 import { useReducer } from 'spacetimedb/vue';
 import { reducers } from '~/module_bindings';
 
+definePageMeta({ layout: 'auth', authSubtitle: 'Set up two-factor sign-in' });
 const APP_LABEL = 'poysson.fishing';
 const enrollTotp = useReducer(reducers.enrollTotp);
 const cancelLogin = useReducer(reducers.cancelLogin);
@@ -41,32 +42,44 @@ onMounted(async () => {
 </script>
 
 <template>
-  <main class="mx-auto mt-16 max-w-sm p-6">
-    <h1 class="text-2xl font-bold">Set up your authenticator app</h1>
-    <p class="mt-2 text-neutral-400">
-      Scan with Google Authenticator, Authy, 1Password or similar, then enter the code.
+  <form class="auth-form" @submit.prevent="run(() => enrollTotp({ secret, code }))">
+    <h2 class="auth-heading">Set up your authenticator</h2>
+    <p class="auth-text">
+      Scan with Google Authenticator, Authy, 1Password or similar, then enter the 6-digit code it shows.
     </p>
-    <img
-      v-if="qr"
-      :src="qr"
-      alt="Authenticator QR code"
-      width="200"
-      height="200"
-      class="mt-4 rounded bg-white p-2"
-    />
-    <p class="mt-2 text-xs text-neutral-500">
-      Can't scan? Setup key: <code>{{ secret }}</code>
-    </p>
-    <form class="mt-4 flex gap-2" @submit.prevent="run(() => enrollTotp({ secret, code }))">
+
+    <img v-if="qr" :src="qr" alt="Authenticator QR code" width="168" height="168" class="enroll-qr" />
+    <p class="auth-hint enroll-key">Can't scan? Setup key: {{ secret }}</p>
+
+    <div class="auth-field auth-field--code">
+      <CyberIcon name="key" :size="15" />
       <input
         v-model="code"
         inputmode="numeric"
         maxlength="6"
-        class="flex-1 rounded bg-panel px-3 py-2 font-mono tracking-widest"
+        autocomplete="one-time-code"
+        placeholder="000000"
+        aria-label="6-digit code"
       />
-      <button :disabled="busy" class="rounded bg-neon-cyan px-4 py-2 font-semibold text-black">Finish</button>
-    </form>
-    <button class="mt-3 text-sm text-neutral-400 underline" @click="cancelLogin()">Cancel</button>
-    <p v-if="error" class="mt-3 text-verdict-harmful">{{ error }}</p>
-  </main>
+    </div>
+    <p v-if="error" class="auth-error" role="alert">{{ error }}</p>
+
+    <button type="submit" class="auth-btn" :disabled="busy">
+      {{ busy ? 'Verifying…' : 'Finish setup' }}
+    </button>
+    <button type="button" class="auth-link" @click="cancelLogin()">Back to sign in</button>
+  </form>
 </template>
+
+<style scoped>
+.enroll-qr {
+  align-self: center;
+  background: #fff;
+  padding: 8px;
+  border-radius: 8px;
+}
+.enroll-key {
+  font-family: var(--f-mono);
+  word-break: break-all;
+}
+</style>

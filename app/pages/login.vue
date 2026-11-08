@@ -1,41 +1,71 @@
 <script setup lang="ts">
-// OWNER: Person 1 (logic, working) / UI person (styling)
+// Step 1: email + password via the `login` reducer. SessionGate then routes to /verify, /enroll
+// or (demo accounts) /dashboard once the server updates the views.
 import { useReducer } from 'spacetimedb/vue';
 import { reducers } from '~/module_bindings';
 
+definePageMeta({ layout: 'auth', authSubtitle: 'Cybersecurity & scam avoidance' });
 const login = useReducer(reducers.login);
 const { error, busy, run } = useRunner();
 const email = ref('');
 const password = ref('');
-// SessionGate moves to /verify, /enroll or /dashboard once the server updates the views.
+const showPassword = ref(false);
+const formError = ref('');
+
+function submit() {
+  formError.value = !/.+@.+\..+/.test(email.value)
+    ? 'Enter a valid email address.'
+    : !password.value
+      ? 'Enter your password.'
+      : '';
+  if (formError.value) return;
+  void run(() => login({ email: email.value, password: password.value }));
+}
 </script>
 
 <template>
-  <main class="mx-auto mt-24 max-w-sm p-6">
-    <h1 class="text-2xl font-bold">Sign in</h1>
-    <form class="mt-6 space-y-3" @submit.prevent="run(() => login({ email, password }))">
-      <input
-        v-model="email"
-        type="email"
-        autocomplete="username"
-        placeholder="Email"
-        class="w-full rounded bg-panel px-3 py-2"
-      />
-      <input
-        v-model="password"
-        type="password"
-        autocomplete="current-password"
-        placeholder="Password"
-        class="w-full rounded bg-panel px-3 py-2"
-      />
-      <button
-        :disabled="busy"
-        class="w-full rounded bg-neon-cyan px-3 py-2 font-semibold text-black disabled:opacity-50"
-      >
-        Sign in
-      </button>
-    </form>
-    <p v-if="error" class="mt-3 text-verdict-harmful">{{ error }}</p>
-    <p class="mt-6 text-sm text-neutral-500">Demo: demo.employee@example.com / demo.admin@example.com</p>
-  </main>
+  <form class="auth-form" novalidate @submit.prevent="submit">
+    <div>
+      <label class="auth-label" for="email">Email address</label>
+      <div class="auth-field">
+        <CyberIcon name="mail" :size="15" />
+        <input
+          id="email"
+          v-model="email"
+          type="email"
+          autocomplete="username"
+          placeholder="you@t-mobile.com"
+          @input="formError = ''"
+        />
+      </div>
+    </div>
+
+    <div>
+      <label class="auth-label" for="password">Password</label>
+      <div class="auth-field">
+        <CyberIcon name="lock" :size="15" />
+        <input
+          id="password"
+          v-model="password"
+          :type="showPassword ? 'text' : 'password'"
+          autocomplete="current-password"
+          placeholder="••••••••"
+          @input="formError = ''"
+        />
+        <button
+          type="button"
+          class="auth-icon-btn"
+          :aria-label="showPassword ? 'Hide password' : 'Show password'"
+          @click="showPassword = !showPassword"
+        >
+          <CyberIcon name="eye" :size="15" />
+        </button>
+      </div>
+    </div>
+
+    <p v-if="formError || error" class="auth-error" role="alert">{{ formError || error }}</p>
+
+    <button type="submit" class="auth-btn" :disabled="busy">{{ busy ? 'Signing in…' : 'Login' }}</button>
+    <p class="auth-hint">Demo: demo.employee@example.com · demo.admin@example.com</p>
+  </form>
 </template>

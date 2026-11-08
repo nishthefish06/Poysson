@@ -50,6 +50,19 @@ export function isOwner(ctx: ReadCtx) {
   return owner != null && owner.identity.isEqual(ctx.sender);
 }
 
+export function isService(ctx: ReadCtx) {
+  return ctx.db.serviceIdentity.identity.find(ctx.sender) != null;
+}
+
+// The Nemotron agent (a registered service). Admins may also play this role from the test client
+// to simulate the agent before it exists.
+export function requireServiceOrAdmin(ctx: ReadCtx) {
+  if (isService(ctx)) return { kind: 'service' as const, id: 0n };
+  const acct = currentAccount(ctx);
+  if (acct?.role === 'admin') return { kind: 'admin' as const, id: acct.id };
+  throw new SenderError('agent or admin only');
+}
+
 export function assertLength(value: string, field: string, max: number, min = 0) {
   if (value.length < min || value.length > max) {
     throw new SenderError(`${field} must be ${min}-${max} characters`);
