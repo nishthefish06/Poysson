@@ -27,6 +27,8 @@ export default defineNuxtConfig({
     head: {
       title: 'Poysson',
       link: [
+        // .ico for Windows (pinned sites, taskbar, older Edge); PNG for everything else
+        { rel: 'icon', href: '/favicon.ico', sizes: '48x48' },
         { rel: 'icon', type: 'image/png', href: '/favicon.png' },
         { rel: 'apple-touch-icon', href: '/apple-touch-icon.png' },
         { rel: 'preconnect', href: 'https://fonts.googleapis.com' },
