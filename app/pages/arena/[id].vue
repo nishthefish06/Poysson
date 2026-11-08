@@ -89,6 +89,18 @@ function open(s: ScenarioStep) {
         New round
       </button>
       <span class="rounded bg-line px-2 py-0.5 font-mono text-xs uppercase">{{ state.mode }}</span>
+      <span
+        data-testid="attacker-badge"
+        class="rounded px-2 py-0.5 text-xs"
+        :class="state.attacker.live ? 'bg-neon-pink text-white' : 'bg-line text-neutral-700'"
+        :title="
+          state.attacker.live
+            ? `Every attacker move is written live by ${state.attacker.model}`
+            : 'Nemotron is unavailable; a scripted attacker is playing'
+        "
+      >
+        {{ state.attacker.live ? 'Attacker: Nemotron · live' : 'Attacker: scripted' }}
+      </span>
       <p class="flex-1 text-neutral-700">
         <template v-if="!active">Round over. Scroll down for what really happened.</template>
         <template v-else-if="state.mode === 'breach'"

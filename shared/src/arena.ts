@@ -236,6 +236,11 @@ export const ArenaSummary = z.object({
   debriefSource: z.enum(['gemini', 'template']),
   // runbook sections the debrief is grounded in
   runbook: z.array(RunbookRef).default([]),
+  // the attacker explains its own play after the round (Nemotron, or a scripted version)
+  attackerReveal: z
+    .object({ text: z.string(), source: z.enum(['nemotron', 'template']) })
+    .nullable()
+    .default(null),
 });
 export type ArenaSummary = z.infer<typeof ArenaSummary>;
 
@@ -252,6 +257,8 @@ export const ArenaState = z.object({
   score: z.number().int(),
   accuracy: z.number().min(0).max(1),
   summary: ArenaSummary.nullable(),
+  // who played the attacker's last move: live Nemotron, or the scripted fallback
+  attacker: z.object({ live: z.boolean(), model: z.string().nullable() }),
 });
 export type ArenaState = z.infer<typeof ArenaState>;
 

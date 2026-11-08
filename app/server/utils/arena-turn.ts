@@ -10,7 +10,7 @@ export async function attackerTurn(
   lastEnvAction: string | null = null
 ) {
   for (const note of beforeAttackerTurn(r.env, elapsed(r))) r.history.push(`(${note})`);
-  const move = await nextArenaMove({
+  const { move, live } = await nextArenaMove({
     ctx: { turn: r.turn, lastAction, history: r.history.slice(-40) },
     lastEnvAction,
     mode: r.mode,
@@ -20,6 +20,7 @@ export async function attackerTurn(
     view: attackerView(r.env),
     doneTools: new Set(r.env.truth.records.map((x) => x.kind)),
   });
+  r.attackerLive = live;
   applyMove(r, move);
   if (r.status === 'finished') await finishRound(r);
 }
@@ -31,13 +32,17 @@ export async function finishRound(r: ArenaRound) {
   const facts = summaryFacts(r);
   const mistakes = r.log.filter((e) => e.verdict === 'harmful').map((e) => e.text);
   const runbook = await debriefRunbook(facts, r.mode, mistakes);
-  const { text, source } = await writeDebrief(facts, score(r), runbook);
-  r.summary = { ...facts, debrief: text, debriefSource: source, runbook };
+  // the coach's debrief and the attacker's own reveal don't depend on each other: run them together
+  const [{ text, source }, attackerReveal] = await Promise.all([
+    writeDebrief(facts, score(r), runbook),
+    writeReveal(r, facts),
+  ]);
+  r.summary = { ...facts, debrief: text, debriefSource: source, runbook, attackerReveal };
 }
 
 /** Runbook sections for what went wrong (or, if nothing did, for what went right). Never throws. */
 export async function debriefRunbook(
-  facts: Omit<ArenaSummary, 'debrief' | 'debriefSource' | 'runbook'>,
+  facts: Omit<ArenaSummary, 'debrief' | 'debriefSource' | 'runbook' | 'attackerReveal'>,
   mode: ArenaMode,
   mistakes: string[] = []
 ): Promise<RunbookRef[]> {

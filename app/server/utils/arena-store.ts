@@ -33,6 +33,7 @@ export interface ArenaRound {
   busy: boolean; // true while judging / the attacker is moving (blocks double-clicks)
   env: Env;
   summary: ArenaSummary | null;
+  attackerLive: boolean; // did live Nemotron play the last move (false = scripted fallback)
 }
 
 const rounds = new Map<string, ArenaRound>();
@@ -56,6 +57,7 @@ export function createRound(mode: ArenaMode, employeeName = 'You'): ArenaRound {
     busy: false,
     env: seedEnv(mode, employeeName),
     summary: null,
+    attackerLive: false,
   };
   rounds.set(r.id, r);
   return r;
@@ -199,7 +201,9 @@ const SAFE_KINDS = new Set([
 const DISTRUST_KINDS = new Set(['reported_suspicious', 'refused_request', 'blocked_sender']);
 
 /** Everything the summary needs except the written debrief. Reveals the truth: only call once finished. */
-export function summaryFacts(r: ArenaRound): Omit<ArenaSummary, 'debrief' | 'debriefSource' | 'runbook'> {
+export function summaryFacts(
+  r: ArenaRound
+): Omit<ArenaSummary, 'debrief' | 'debriefSource' | 'runbook' | 'attackerReveal'> {
   const result = outcome(r.env);
   const records = r.env.truth.records;
   const stillThere = records.filter((x) => !isRemediated(r.env, x)).length;
@@ -252,5 +256,9 @@ export function toArenaState(r: ArenaRound): ArenaState {
     score: score(r),
     accuracy: accuracy(r),
     summary: r.summary,
+    attacker: {
+      live: r.attackerLive,
+      model: r.attackerLive ? useRuntimeConfig().nemotronModel || null : null,
+    },
   };
 }

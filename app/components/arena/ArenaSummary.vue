@@ -6,7 +6,7 @@ const emit = defineEmits<{ again: [] }>();
 </script>
 
 <template>
-  <section v-if="state.summary" class="mx-auto max-w-3xl space-y-6">
+  <section v-if="state.summary" class="mx-auto max-w-3xl space-y-6 rounded bg-panel p-6">
     <div>
       <p class="text-sm uppercase text-neutral-500">Round over · {{ state.mode }} mode</p>
       <h2
@@ -20,6 +20,21 @@ const emit = defineEmits<{ again: [] }>();
       </p>
     </div>
     <p class="rounded bg-panel p-4 leading-relaxed">{{ state.summary.debrief }}</p>
+    <div
+      v-if="state.summary.attackerReveal"
+      data-testid="attacker-reveal"
+      class="rounded border-2 border-neon-pink p-4"
+    >
+      <p class="text-sm font-semibold uppercase text-neon-pink">🎣 The attacker's side</p>
+      <p class="mt-2 italic leading-relaxed">“{{ state.summary.attackerReveal.text }}”</p>
+      <p class="mt-2 text-xs text-neutral-600">
+        {{
+          state.summary.attackerReveal.source === 'nemotron'
+            ? 'Written by Nemotron, the model that played the attacker, from its own moves this round.'
+            : 'Reconstructed from this round’s moves.'
+        }}
+      </p>
+    </div>
     <div v-if="state.summary.attackerActions.length">
       <h3 class="mb-2 font-semibold">What the attacker did</h3>
       <p v-for="(a, i) in state.summary.attackerActions" :key="i" class="text-sm">
