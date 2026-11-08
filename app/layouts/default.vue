@@ -130,7 +130,6 @@ async function doLogout() {
         <button v-if="isMobile" class="app-shell__toggle" aria-label="Open sidebar" @click="toggleNav">
           <CyberIcon name="menu" :size="18" />
         </button>
-        <div class="app-shell__crumb mono">// {{ route.path.split('/').filter(Boolean).join(' / ').toUpperCase() || 'HOME' }}</div>
         <div class="spacer" />
         <div class="app-shell__xp">
           <XpBar
@@ -301,11 +300,6 @@ async function doLogout() {
   background: var(--paper);
   border-bottom: 4px solid var(--c-magenta);
   box-shadow: 0 4px 0 rgba(18, 34, 74, .12);
-}
-.app-shell__crumb {
-  font-size: var(--fs-xs);
-  letter-spacing: 0.2em;
-  color: var(--c-magenta);
 }
 .app-shell__xp {
   width: 220px;
