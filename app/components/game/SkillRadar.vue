@@ -36,6 +36,17 @@ const vals = computed(() => VECTORS.map(v => Math.max(8, props.skills[v.id] ?? 0
 const shape = computed(() => star(vals.value))
 const cmp = computed(() => (props.compare ? star(VECTORS.map(v => Math.max(8, props.compare![v.id] ?? 0))) : ''))
 const rings = [25, 50, 75, 100]
+// Starfish texture: a raised ridge down the middle of each arm, with a row of bumps that shrink
+// toward the tip (real starfish texture follows the arms; an even dot grid reads as polka dots).
+const BUMPS = [0.3, 0.46, 0.61, 0.75, 0.87]
+const ridges = computed(() => vals.value.map((v, i) => {
+  const [x, y] = tip(i, v * 0.94)
+  const bumps = BUMPS.map((f, k) => {
+    const [bx, by] = at(ang(i), R * (v / 100) * f)
+    return { x: bx, y: by, r: Math.max(1.2, (4.4 - k * 0.7) * Math.min(1, v / 60)) }
+  })
+  return { x, y, bumps }
+}))
 const SPARK = 'M0-7C.4-2.6 2.6-.4 7 0 2.6.4.4 2.6 0 7-.4 2.6-2.6.4-7 0-2.6-.4-.4-2.6 0-7Z'
 </script>
 
@@ -48,9 +59,6 @@ const SPARK = 'M0-7C.4-2.6 2.6-.4 7 0 2.6.4.4 2.6 0 7-.4 2.6-2.6.4-7 0-2.6-.4-.4
         <stop offset="45%" stop-color="#ff4fa8" />
         <stop offset="100%" stop-color="#e20074" />
       </radialGradient>
-      <pattern :id="`${uid}-dots`" width="9" height="9" patternUnits="userSpaceOnUse" patternTransform="rotate(30)">
-        <circle cx="4.5" cy="4.5" r="1.6" fill="#fff" opacity=".75" />
-      </pattern>
       <linearGradient :id="`${uid}-edge`" x1="0" y1="0" x2="1" y2="1">
         <stop offset="0%" stop-color="#ffffff" />
         <stop offset="35%" stop-color="var(--c-cyan)" />
@@ -70,7 +78,13 @@ const SPARK = 'M0-7C.4-2.6 2.6-.4 7 0 2.6.4.4 2.6 0 7-.4 2.6-2.6.4-7 0-2.6-.4-.4
     <polygon v-if="cmp" :points="cmp" class="skill-radar__compare" />
     <g class="skill-radar__glow">
       <polygon :points="shape" class="skill-radar__shape" :fill="`url(#${uid}-fill)`" stroke="var(--ink)" />
-      <polygon :points="shape" :fill="`url(#${uid}-dots)`" class="skill-radar__bumps" />
+      <g class="skill-radar__bumps" aria-hidden="true">
+        <line v-for="(r, i) in ridges" :key="'r' + i" :x1="cx" :y1="cy" :x2="r.x" :y2="r.y" class="skill-radar__ridge" />
+        <template v-for="(r, i) in ridges" :key="'b' + i">
+          <circle v-for="(b, k) in r.bumps" :key="k" :cx="b.x" :cy="b.y" :r="b.r" class="skill-radar__bump" />
+        </template>
+        <circle :cx="cx" :cy="cy" r="9" class="skill-radar__disc" />
+      </g>
     </g>
     <circle :cx="cx" :cy="cy" r="22" :fill="`url(#${uid}-core)`" class="skill-radar__core" />
 
@@ -94,6 +108,9 @@ const SPARK = 'M0-7C.4-2.6 2.6-.4 7 0 2.6.4.4 2.6 0 7-.4 2.6-2.6.4-7 0-2.6-.4-.4
 .skill-radar__shape { stroke-width: 2; stroke-linejoin: round; transition: all 700ms var(--ease); animation: star-breathe 5s var(--ease-soft) infinite; transform-origin: 150px 150px; }
 .skill-radar__shape { stroke-width: 3; stroke-linejoin: round; }
 .skill-radar__bumps { pointer-events: none; transition: all 700ms var(--ease); animation: star-breathe 5s var(--ease-soft) infinite; transform-origin: 150px 150px; }
+.skill-radar__ridge { stroke: #ffd1e8; stroke-width: 5; stroke-linecap: round; opacity: .45; }
+.skill-radar__bump { fill: #ffe3f1; stroke: rgba(143, 0, 77, .35); stroke-width: .8; }
+.skill-radar__disc { fill: #ffd1e8; stroke: rgba(143, 0, 77, .35); stroke-width: 1; }
 .skill-radar__compare { fill: none; stroke: var(--c-magenta); stroke-width: 1.5; stroke-dasharray: 4 4; stroke-linejoin: round; opacity: .8; }
 .skill-radar__core { opacity: .5; animation: core-pulse 3.2s var(--ease-soft) infinite; transform-origin: 150px 150px; }
 .skill-radar__spark { fill: #fff; stroke: var(--ink); stroke-width: 1.2; animation: tip-twinkle 2.6s var(--ease-soft) infinite; transform-box: fill-box; transform-origin: center; }

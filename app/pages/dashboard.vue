@@ -30,9 +30,8 @@ const rank = computed(() => {
     <!-- PLAYER HERO -->
     <section class="dash__hero">
       <div class="dash__id">
-        <div class="dash__avatar">
-          <span>{{ player.handle.slice(0, 2).toUpperCase() }}</span>
-          <span class="dash__avatar-ring" aria-hidden="true" />
+        <div class="dash__avatar" :title="player.handle">
+          <AvatarFlip :initials="player.handle.slice(0, 2).toUpperCase()" :size="84" />
         </div>
         <div class="dash__who">
           <div class="eyebrow eyebrow--magenta">Rank · {{ rank }}</div>
@@ -95,7 +94,7 @@ const rank = computed(() => {
 .dash { display: flex; flex-direction: column; gap: var(--s-6); }
 .dash__hero { display: grid; grid-template-columns: auto 1fr auto; align-items: center; gap: var(--s-8); padding: var(--s-6) var(--s-8); background: var(--paper); border: 0; border-radius: var(--r-lg); box-shadow: 5px 6px 0 rgba(18, 34, 74, .16), var(--glow-panel); position: relative; }
 .dash__id { display: flex; align-items: center; gap: var(--s-5); }
-.dash__avatar { box-shadow: var(--pop); border: 2.5px solid var(--ink);  position: relative; width: 84px; height: 84px; display: grid; place-items: center; font-family: var(--f-display); font-size: var(--fs-xl); font-weight: 900; color: var(--c-text-invert); background: var(--chrome); border-radius: var(--blob); animation: blob 10s var(--ease-soft) infinite; }
+.dash__avatar { position: relative; width: 84px; height: 84px; }
 .dash__handle { font-size: var(--fs-2xl); }
 .dash__email { font-size: var(--fs-xs); }
 .dash__xp { min-width: 0; }

@@ -134,17 +134,7 @@ async function doLogout() {
         <button v-if="isMobile" class="app-shell__toggle" aria-label="Open sidebar" @click="toggleNav">
           <CyberIcon name="menu" :size="18" />
         </button>
-        <div class="app-shell__crumb mono">// {{ route.path.split('/').filter(Boolean).join(' / ').toUpperCase() || 'HOME' }}</div>
         <div class="spacer" />
-        <div class="app-shell__xp">
-          <XpBar
-            :value="player.xp"
-            :max="xpForLevel(player.level)"
-            :level="player.level"
-            size="sm"
-            :show-label="false"
-          />
-        </div>
         <div class="app-shell__streak"><CyberIcon name="flame" :size="16" /> {{ player.streak }}</div>
 
         <div ref="menuRoot" class="app-shell__profile">
@@ -155,7 +145,8 @@ async function doLogout() {
             :aria-expanded="menuOpen"
             @click="menuOpen = !menuOpen"
           >
-            {{ player.handle.slice(0, 2).toUpperCase() }}
+            <AvatarFlip :initials="player.handle.slice(0, 2).toUpperCase()" :size="36" />
+            <span class="sr-only">Account menu for {{ player.handle }}</span>
           </button>
           <div v-if="menuOpen" class="app-shell__menu" role="menu">
             <div class="app-shell__menu-head">
@@ -326,14 +317,6 @@ async function doLogout() {
   border-bottom: 4px solid var(--c-magenta);
   box-shadow: 0 4px 0 rgba(18, 34, 74, .12);
 }
-.app-shell__crumb {
-  font-size: var(--fs-xs);
-  letter-spacing: 0.2em;
-  color: var(--c-magenta);
-}
-.app-shell__xp {
-  width: 220px;
-}
 .app-shell__streak {
   display: flex;
   align-items: center;
@@ -346,20 +329,13 @@ async function doLogout() {
   position: relative;
 }
 .app-shell__avatar {
-  width: 36px;
-  height: 36px;
   display: grid;
   place-items: center;
+  padding: 0;
   border: 0;
+  background: none;
   cursor: pointer;
-  font-family: var(--f-display);
-  font-weight: 700;
-  font-size: var(--fs-sm);
-  color: var(--c-text-invert);
-  background: var(--chrome);
-  box-shadow: var(--glow-chrome);
-  border-radius: var(--blob);
-  animation: blob 10s var(--ease-soft) infinite;
+  border-radius: 50%;
 }
 .app-shell__avatar:focus-visible {
   outline: 2px solid var(--c-cyan);
@@ -468,9 +444,6 @@ async function doLogout() {
   .app-shell__top {
     padding: 0 var(--s-4);
     gap: var(--s-3);
-  }
-  .app-shell__xp {
-    display: none;
   }
   .app-shell__content {
     padding: var(--s-4);

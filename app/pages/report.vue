@@ -19,7 +19,7 @@ function print() {
       <CyberButton variant="primary" size="sm" icon="print" @click="print">Print / Save PDF</CyberButton>
     </div>
     <ReportDocument v-if="run" :run="run" />
-    <p v-else class="mute mono" style="text-align:center">// no runs yet</p>
+    <p v-else class="mute mono" style="text-align:center">No runs yet</p>
   </div>
 </template>
 
