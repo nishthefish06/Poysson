@@ -25,9 +25,12 @@ trap 'rm -f "$ENV_FILE"' EXIT
   echo "SERVICE_SECRET=${SERVICE_SECRET:-}"
   # Nuxt only reads runtimeConfig overrides as NUXT_<KEY> at runtime.
   echo "NUXT_GEMINI_API_KEY=${GEMINI_API_KEY:-}"
+  echo "NUXT_GEMINI_MODEL=${GEMINI_MODEL:-gemini-flash-latest}"
+  echo "NUXT_GEMINI_EMBED_MODEL=${GEMINI_EMBED_MODEL:-gemini-embedding-001}"
   echo "NUXT_NVIDIA_API_KEY=${NVIDIA_API_KEY:-}"
   echo "NUXT_NVIDIA_BASE_URL=${NVIDIA_BASE_URL:-https://integrate.api.nvidia.com/v1}"
   echo "NUXT_NEMOTRON_MODEL=${NEMOTRON_MODEL:-}"
+  echo "NUXT_NEMOTRON_THINKING=${NEMOTRON_THINKING:-0}"
   echo "NUXT_PHOTON_PROJECT_ID=${PHOTON_PROJECT_ID:-}"
   echo "NUXT_PHOTON_PROJECT_SECRET=${PHOTON_PROJECT_SECRET:-}"
   echo "NUXT_DEMO_PHONE_MAP=${DEMO_PHONE_MAP:-}"
