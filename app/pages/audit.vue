@@ -1,9 +1,11 @@
 <script setup lang="ts">
 /*
- * AUDIT LOG — every security-relevant event, each anchored on Solana.
+ * CATCH LOG (audit log) as a harbor: every security-relevant event is a ship moored at the dock,
+ * each one anchored on Solana.
  * DYNAMIC: state.audit (prepended by useGame().audit()).
  */
 import type { AuditEntry } from '~/composables/useGame'
+import { COPY } from '~/data/copy'
 
 const { state } = useGame()
 const filter = ref<string>('all')
@@ -19,7 +21,16 @@ const rows = computed(() => state.value.audit.filter(a =>
   (filter.value === 'all' || a.kind === filter.value)
   && (!q.value || `${a.event} ${a.detail} ${a.tx}`.toLowerCase().includes(q.value.toLowerCase())),
 ))
-const kindIcon: Record<AuditEntry['kind'], string> = { auth: 'lock', run: 'crosshair', config: 'key', report: 'print' }
+const KIND: Record<AuditEntry['kind'], { icon: string; color: string; label: string }> = {
+  auth: { icon: 'lock', color: 'var(--c-cyan)', label: 'Auth' },
+  run: { icon: 'hook', color: 'var(--c-magenta)', label: 'Run' },
+  config: { icon: 'key', color: 'var(--c-yellow)', label: 'Config' },
+  report: { icon: 'print', color: 'var(--c-ideal)', label: 'Report' },
+}
+/** RUN_COMPLETE -> Run complete */
+const pretty = (ev: string) => ev.charAt(0) + ev.slice(1).toLowerCase().replace(/_/g, ' ')
+const time = (ts: string) => new Date(ts).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
+const day = (ts: string) => new Date(ts).toLocaleDateString([], { month: 'short', day: 'numeric' })
 const verifying = ref<string | null>(null)
 function verify(id: string) {
   verifying.value = id
@@ -31,69 +42,157 @@ function verify(id: string) {
   <div class="audit">
     <header class="page-head">
       <div>
-        <div class="eyebrow eyebrow--magenta">Tamper-evident · Solana devnet</div>
-        <h1 class="page-head__title">Audit log</h1>
-        <p class="page-head__sub">Each event's hash is written to a Solana memo transaction. If a row is edited, the on-chain hash stops matching.</p>
+        <div class="eyebrow">Tamper-evident · anchored on Solana devnet</div>
+        <h1 class="page-head__title">{{ COPY.audit }}</h1>
+        <p class="page-head__sub">Every event is a ship in the harbor. Each one's hash is written to a Solana memo transaction, so if a record is edited, its on-chain hash stops matching.</p>
       </div>
     </header>
 
     <div class="audit__chain">
-      <StatCard label="Events anchored" :value="state.audit.length" icon="chain" accent="magenta" />
+      <StatCard label="Ships in harbor" :value="state.audit.length" icon="chain" accent="magenta" />
       <StatCard label="Latest slot" :value="state.audit[0]?.slot.toLocaleString() ?? '—'" icon="chip" accent="cyan" />
       <StatCard label="Integrity" value="100" unit="%" icon="shield" accent="green" caption="all hashes match" />
     </div>
 
-    <CyberPanel :padded="false">
+    <CyberPanel :padded="false" :sparkles="false">
       <div class="audit__toolbar">
         <TabBar v-model="filter" :tabs="tabs" />
         <div class="spacer" />
         <div class="audit__search"><CyberInput v-model="q" icon="eye" placeholder="Search event / tx…" /></div>
       </div>
-      <div class="audit__table-wrap">
-        <table class="audit__table">
-          <thead>
-            <tr><th>Time</th><th>Event</th><th>Detail</th><th>Source IP</th><th>Slot</th><th>On-chain</th></tr>
-          </thead>
-          <tbody>
-            <tr v-for="a in rows" :key="a.id" class="audit__row">
-              <td class="mono mute">{{ new Date(a.ts).toLocaleString([], { month: 'short', day: '2-digit', hour: '2-digit', minute: '2-digit', second: '2-digit' }) }}</td>
-              <td><span class="audit__ev mono" :class="`k-${a.kind}`"><CyberIcon :name="kindIcon[a.kind]" :size="13" /> {{ a.event }}</span></td>
-              <td>{{ a.detail }}</td>
-              <td class="mono dim">{{ a.ip }}</td>
-              <td class="mono mute">{{ a.slot.toLocaleString() }}</td>
-              <td>
-                <div class="audit__verify">
-                  <SolanaVerified :tx="a.tx" :slot="a.slot" />
-                  <button class="audit__recheck mono" @click="verify(a.id)">{{ verifying === a.id ? 'checking…' : 're-verify' }}</button>
-                </div>
-              </td>
-            </tr>
-            <tr v-if="!rows.length"><td colspan="6" class="mute mono audit__none">// no matching events</td></tr>
-          </tbody>
-        </table>
-      </div>
     </CyberPanel>
+
+    <!-- THE HARBOR: each row of ships shares one pier -->
+    <section class="harbor" aria-label="Audit events">
+      <article
+        v-for="(a, i) in rows" :key="a.id" class="berth"
+        :style="{ '--k': KIND[a.kind].color, '--bob': `${(i * 0.53) % 3}s` }"
+      >
+        <div class="ship">
+          <div class="ship__mast">
+            <span class="ship__flag" :title="KIND[a.kind].label"><CyberIcon :name="KIND[a.kind].icon" :size="14" :stroke="2.2" /></span>
+          </div>
+          <div class="ship__cabin">
+            <span class="ship__porthole" />
+            <span class="ship__time">{{ time(a.ts) }}</span>
+            <span class="ship__porthole" />
+          </div>
+          <div class="ship__hull">
+            <svg class="ship__hull-bg" viewBox="0 0 200 90" preserveAspectRatio="none" aria-hidden="true">
+              <path d="M3 4 H197 Q193 50 172 86 H28 Q7 50 3 4Z" class="ship__hull-fill" vector-effect="non-scaling-stroke" />
+              <path d="M10 62 H190" class="ship__stripe" vector-effect="non-scaling-stroke" />
+            </svg>
+            <div class="ship__name">{{ pretty(a.event) }}</div>
+            <div class="ship__cargo">{{ a.detail }}</div>
+            <div class="ship__reg mono">{{ day(a.ts) }} · {{ a.ip }} · slot {{ a.slot.toLocaleString() }}</div>
+          </div>
+        </div>
+
+        <svg class="berth__water" viewBox="0 0 120 14" preserveAspectRatio="none" aria-hidden="true">
+          <path d="M0 7 Q15 1 30 7 T60 7 T90 7 T120 7 V14 H0Z" />
+        </svg>
+
+        <div class="berth__pier">
+          <span class="berth__bollard" aria-hidden="true" />
+          <svg class="berth__rope" viewBox="0 0 60 50" aria-hidden="true"><path d="M8 44 Q20 10 56 2" /></svg>
+          <div class="berth__sign">
+            <SolanaVerified :tx="a.tx" :slot="a.slot" compact />
+            <button class="audit__recheck" @click="verify(a.id)">{{ verifying === a.id ? 'checking…' : 're-verify' }}</button>
+          </div>
+        </div>
+      </article>
+      <div v-if="!rows.length" class="harbor__empty">
+        <CyberIcon name="anchor" :size="40" />
+        <p>No ships match. The harbor's quiet.</p>
+      </div>
+    </section>
   </div>
 </template>
 
 <style scoped>
 .audit { display: flex; flex-direction: column; gap: var(--s-5); }
 .audit .page-head { margin-bottom: 0; }
+.audit .page-head__sub { max-width: 720px; }
 .audit__chain { display: grid; grid-template-columns: repeat(3, 1fr); gap: var(--s-4); }
-.audit__toolbar { display: flex; align-items: flex-end; gap: var(--s-4); padding: var(--s-4) var(--s-5) 0; }
-.audit__search { width: 280px; padding-bottom: var(--s-2); }
-.audit__table-wrap { overflow-x: auto; }
-.audit__table { width: 100%; border-collapse: collapse; font-size: var(--fs-sm); }
-.audit__table th { text-align: left; font-family: var(--f-mono); font-size: 10px; letter-spacing: .16em; text-transform: uppercase; color: var(--c-text-mute); padding: var(--s-3) var(--s-4); border-bottom: 1px solid var(--c-line-strong); white-space: nowrap; }
-.audit__table td { padding: var(--s-3) var(--s-4); border-bottom: 1px solid var(--c-line); white-space: nowrap; }
-.audit__row:hover td { background: var(--c-bg-2); }
-.audit__ev { display: inline-flex; gap: 6px; align-items: center; font-size: 11px; font-weight: 700; }
-.k-auth { color: var(--c-cyan); }
-.k-run { color: var(--c-magenta); }
-.k-config { color: var(--c-yellow); }
-.k-report { color: var(--c-ideal); }
-.audit__verify { display: flex; gap: var(--s-3); align-items: center; }
-.audit__recheck { background: none; border: 0; color: var(--c-text-mute); font-size: 10px; cursor: pointer; text-decoration: underline dotted; }
-.audit__recheck:hover { color: var(--c-cyan); }
-.audit__none { text-align: center; padding: var(--s-8) !important; }
+.audit__toolbar { display: flex; align-items: center; flex-wrap: wrap; gap: var(--s-4); padding: var(--s-4) var(--s-5); }
+.audit__search { width: 280px; max-width: 100%; }
+
+/* ---------- harbor ---------- */
+.harbor {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+  column-gap: 0;
+  row-gap: var(--s-8);
+  padding-top: var(--s-6);
+}
+.berth { position: relative; display: flex; flex-direction: column; align-items: center; padding: 0 var(--s-3); }
+
+/* ship */
+.ship {
+  position: relative; z-index: 2; width: 100%; max-width: 230px;
+  display: flex; flex-direction: column; align-items: center;
+  animation: bob 3.4s ease-in-out var(--bob) infinite;
+  transform-origin: 50% 100%;
+  margin-bottom: -10px; /* sit in the water */
+}
+.berth:hover .ship { animation: bob 3.4s ease-in-out var(--bob) infinite, rock .7s ease-in-out 2; }
+.ship__mast { position: relative; width: 4px; height: 46px; background: var(--ink); border-radius: 2px; align-self: center; margin-left: -40px; }
+.ship__flag {
+  position: absolute; left: 4px; top: 2px; width: 46px; height: 28px;
+  display: grid; place-items: center; padding-right: 10px; color: #fff;
+  background: var(--k);
+  clip-path: polygon(0 0, 100% 50%, 0 100%);
+  transform-origin: 0 50%;
+  animation: flap 1.2s ease-in-out infinite alternate;
+}
+.ship__cabin {
+  display: flex; align-items: center; gap: 8px;
+  padding: 4px 12px; margin-bottom: -2px;
+  background: var(--paper-2); border: 2.5px solid var(--ink); border-bottom: 0;
+  border-radius: 10px 10px 0 0;
+}
+.ship__porthole { width: 12px; height: 12px; border-radius: 50%; background: #9fdcff; border: 2px solid var(--ink); }
+.ship__time { font-family: var(--f-hand); font-size: 18px; font-weight: 700; color: var(--ink); line-height: 1; }
+.ship__hull { position: relative; width: 100%; padding: 12px 26px 22px; text-align: center; min-height: 104px; }
+.ship__hull-bg { position: absolute; inset: 0; width: 100%; height: 100%; overflow: visible; filter: drop-shadow(3px 4px 0 rgba(18, 34, 74, .25)); }
+.ship__hull-fill { fill: var(--paper-2); stroke: var(--ink); stroke-width: 2.6; stroke-linejoin: round; }
+.ship__stripe { stroke: var(--k); stroke-width: 6; stroke-linecap: round; }
+.ship__name { position: relative; font-family: var(--f-display); font-weight: 600; font-size: var(--fs-md); color: var(--ink); }
+.ship__cargo { position: relative; font-size: var(--fs-sm); color: var(--c-text-dim); line-height: 1.3; margin-top: 2px; }
+.ship__reg { position: relative; font-size: 9px; color: var(--c-text-mute); margin-top: 6px; letter-spacing: .02em; }
+
+/* water + pier */
+.berth__water { position: relative; z-index: 1; width: calc(100% + var(--s-6)); height: 14px; display: block; fill: rgba(255, 255, 255, .55); }
+.berth__pier {
+  position: relative; width: calc(100% + var(--s-6)); height: 54px;
+  background:
+    linear-gradient(180deg, rgba(255, 255, 255, .25), transparent 40%),
+    repeating-linear-gradient(90deg, #c98b4f 0 36px, #b5773d 36px 38px, var(--ink) 38px 40px);
+  border-top: 3px solid var(--ink); border-bottom: 3px solid var(--ink);
+  display: flex; align-items: center; justify-content: center;
+}
+/* pier legs into the water */
+.berth__pier::after {
+  content: ''; position: absolute; left: 0; right: 0; top: 100%; height: 26px;
+  background: repeating-linear-gradient(90deg, transparent 0 28px, #8a5a2b 28px 38px, transparent 38px 84px);
+  -webkit-mask: linear-gradient(180deg, #000 40%, transparent);
+  mask: linear-gradient(180deg, #000 40%, transparent);
+}
+.berth__bollard { position: absolute; left: 22px; top: -12px; width: 16px; height: 16px; background: var(--ink); border-radius: 5px 5px 2px 2px; }
+.berth__rope { position: absolute; left: 22px; top: -54px; width: 60px; height: 50px; overflow: visible; }
+.berth__rope path { fill: none; stroke: #e8c88a; stroke-width: 3; stroke-linecap: round; stroke-dasharray: 2 3; }
+.berth__sign {
+  position: relative; display: flex; align-items: center; gap: var(--s-2);
+  padding: 4px 10px; background: var(--paper-2); border: 2px solid var(--ink); border-radius: var(--r-sm);
+  box-shadow: 2px 3px 0 rgba(18, 34, 74, .35); transform: rotate(-1.5deg);
+}
+.audit__recheck { background: none; border: 0; color: var(--c-text-dim); font-family: var(--f-hand); font-size: 16px; font-weight: 700; text-decoration: underline wavy rgba(var(--rgb-magenta), .5); text-underline-offset: 3px; }
+.audit__recheck:hover { color: var(--c-magenta); }
+.harbor__empty { grid-column: 1 / -1; display: flex; flex-direction: column; align-items: center; gap: var(--s-2); padding: var(--s-10); color: #fff; font-family: var(--f-hand); font-size: 24px; text-shadow: 0 2px 0 var(--ink); }
+
+@keyframes bob { 0%, 100% { transform: translateY(0) rotate(-1deg); } 50% { transform: translateY(-6px) rotate(1deg); } }
+@keyframes rock { 0%, 100% { rotate: 0deg; } 25% { rotate: -4deg; } 75% { rotate: 4deg; } }
+@keyframes flap { from { transform: skewY(-6deg) scaleX(.94); } to { transform: skewY(5deg) scaleX(1); } }
+
+@media (max-width: 900px) { .audit__chain { grid-template-columns: 1fr; } }
 </style>

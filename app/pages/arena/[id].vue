@@ -89,7 +89,7 @@ function open(s: ScenarioStep) {
         New round
       </button>
       <span class="rounded bg-line px-2 py-0.5 font-mono text-xs uppercase">{{ state.mode }}</span>
-      <p class="flex-1 text-neutral-300">
+      <p class="flex-1 text-neutral-700">
         <template v-if="!active">Round over. Scroll down for what really happened.</template>
         <template v-else-if="state.mode === 'breach'"
           >Someone else is in your account. Check every tab, lock them out, undo what they changed, and report
@@ -101,7 +101,7 @@ function open(s: ScenarioStep) {
         >
       </p>
       <span class="font-bold">{{ state.score }} pts</span>
-      <span class="text-neutral-400">turn {{ state.turn }}</span>
+      <span class="text-neutral-600">turn {{ state.turn }}</span>
       <button v-if="active" class="rounded border border-line px-3 py-1" :disabled="busy" @click="endRound">
         End round
       </button>
@@ -116,7 +116,7 @@ function open(s: ScenarioStep) {
             v-for="t in tabs"
             :key="t.id"
             class="rounded px-3 py-1 text-sm"
-            :class="tab === t.id ? 'bg-line font-semibold' : 'text-neutral-400 hover:bg-line/50'"
+            :class="tab === t.id ? 'bg-line font-semibold' : 'text-neutral-600 hover:bg-line/50'"
             @click="tab = t.id"
           >
             {{ t.label }}<span v-if="t.id === 'files' && encrypted" class="ml-1 text-verdict-harmful">●</span>
@@ -156,7 +156,7 @@ function open(s: ScenarioStep) {
 
       <aside class="space-y-3 text-sm">
         <div class="rounded bg-panel p-3">
-          <p class="text-neutral-400">Accuracy {{ Math.round(state.accuracy * 100) }}%</p>
+          <p class="text-neutral-600">Accuracy {{ Math.round(state.accuracy * 100) }}%</p>
           <p v-if="busy" class="mt-1 text-neon-pink">The attacker is moving…</p>
           <div v-if="last" data-testid="verdict" class="mt-2 rounded border border-line p-2">
             <p class="font-semibold" :class="`text-verdict-${last.judgment.verdict}`">
@@ -166,7 +166,7 @@ function open(s: ScenarioStep) {
             <div
               v-if="last.guidance"
               data-testid="guidance"
-              class="mt-2 border-t border-line pt-2 text-xs text-neutral-400"
+              class="mt-2 border-t border-line pt-2 text-xs text-neutral-600"
             >
               <p class="font-semibold text-neon-cyan">📘 {{ last.guidance.cite }}</p>
               <p class="mt-1">{{ last.guidance.text }}</p>
@@ -184,7 +184,7 @@ function open(s: ScenarioStep) {
           />
           <button
             :disabled="locked"
-            class="mt-1 rounded bg-neon-cyan px-3 py-1 font-semibold text-black disabled:opacity-40"
+            class="mt-1 rounded bg-neon-cyan px-3 py-1 font-semibold text-white disabled:opacity-40"
             @click="report"
           >
             Report incident
@@ -192,7 +192,7 @@ function open(s: ScenarioStep) {
         </div>
         <div class="rounded bg-panel p-3">
           <p class="mb-1 font-semibold">What's happened</p>
-          <ol class="space-y-1 text-neutral-400">
+          <ol class="space-y-1 text-neutral-600">
             <li v-for="e in [...state.log].reverse().filter((x) => x.type !== 'step')" :key="e.seq">
               {{ e.text }}<span v-if="e.verdict"> → {{ e.verdict }}</span>
             </li>

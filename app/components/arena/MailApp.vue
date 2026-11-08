@@ -9,7 +9,7 @@ const emit = defineEmits<{ respond: [EnvAction] }>();
   <div class="space-y-6">
     <section>
       <h3 class="mb-2 font-semibold">Forwarding rules</h3>
-      <p class="mb-2 text-sm text-neutral-400">
+      <p class="mb-2 text-sm text-neutral-600">
         Mail matching a rule is automatically copied to another address.
       </p>
       <div
@@ -44,7 +44,7 @@ const emit = defineEmits<{ respond: [EnvAction] }>();
         <p>
           <b>{{ m.subject }}</b>
         </p>
-        <p class="whitespace-pre-line text-neutral-300">{{ m.body }}</p>
+        <p class="whitespace-pre-line text-neutral-700">{{ m.body }}</p>
       </div>
       <p v-if="!world.sentMail.length" class="text-sm text-neutral-500">Nothing sent today.</p>
     </section>

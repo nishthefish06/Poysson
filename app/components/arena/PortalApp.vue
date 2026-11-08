@@ -11,7 +11,7 @@ const label = (f: string) => (f === 'sim' ? 'SIM card' : f === 'portFreeze' ? 'P
     <article v-for="c in world.customers" :key="c.id" class="rounded border border-line p-3 text-sm">
       <div class="flex flex-wrap items-center gap-x-4 gap-y-1">
         <b class="text-base">{{ c.name }}</b>
-        <span class="text-neutral-400">{{ c.line }}</span>
+        <span class="text-neutral-600">{{ c.line }}</span>
         <span>Email: {{ c.email }}</span>
         <span>SIM ••{{ c.simLast4 }}</span>
         <span :class="c.portFreeze ? 'text-verdict-ideal' : 'text-neutral-500'"

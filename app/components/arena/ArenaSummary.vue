@@ -15,7 +15,7 @@ const emit = defineEmits<{ again: [] }>();
       >
         {{ state.summary.headline }}
       </h2>
-      <p class="mt-1 text-neutral-400">
+      <p class="mt-1 text-neutral-600">
         Score {{ state.score }} · accuracy {{ Math.round(state.accuracy * 100) }}%
       </p>
     </div>
@@ -52,18 +52,18 @@ const emit = defineEmits<{ again: [] }>();
             m.handledWell ? 'handled well' : 'missed'
           }}</span>
         </p>
-        <p v-if="m.redFlags.length" class="text-neutral-400">Tells: {{ m.redFlags.join(' · ') }}</p>
+        <p v-if="m.redFlags.length" class="text-neutral-600">Tells: {{ m.redFlags.join(' · ') }}</p>
       </div>
     </div>
     <div v-if="state.summary.runbook.length" data-testid="summary-runbook">
       <h3 class="mb-2 font-semibold">Runbook sections to review</h3>
       <div v-for="r in state.summary.runbook" :key="r.id" class="mb-2 rounded border border-line p-2 text-sm">
         <p class="font-semibold text-neon-cyan">📘 {{ r.cite }}</p>
-        <p class="mt-1 text-neutral-300">{{ r.text }}</p>
+        <p class="mt-1 text-neutral-700">{{ r.text }}</p>
       </div>
     </div>
     <div class="flex gap-3">
-      <button class="rounded bg-neon-pink px-4 py-2 font-semibold text-black" @click="emit('again')">
+      <button class="rounded bg-neon-pink px-4 py-2 font-semibold text-white" @click="emit('again')">
         New round
       </button>
       <NuxtLink to="/dashboard" class="rounded border border-line px-4 py-2">Back to dashboard</NuxtLink>

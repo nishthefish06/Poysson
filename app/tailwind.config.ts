@@ -5,11 +5,12 @@ export default {
   theme: {
     extend: {
       colors: {
-        bg: '#07070d',
-        panel: '#11111c',
-        line: '#24243a',
-        neon: { cyan: '#00f0ff', pink: '#ff2bd6', lime: '#b6ff3b' },
-        verdict: { ideal: '#22e58b', ok: '#7dd3fc', neutral: '#a3a3a3', harmful: '#ff4d6d' },
+        // Matched to the fishing theme in assets/css/tokens.css (paper cards, ink text, sea blue, magenta).
+        bg: '#fff9ee',
+        panel: '#fff3dc',
+        line: '#c9cfdd',
+        neon: { cyan: '#0a8ad6', pink: '#e20074', lime: '#11a150' },
+        verdict: { ideal: '#11a150', ok: '#d97800', neutral: '#7a8bab', harmful: '#e0243f' },
       },
       fontFamily: { mono: ['"JetBrains Mono"', 'ui-monospace', 'monospace'] },
     },

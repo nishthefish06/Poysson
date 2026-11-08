@@ -36,7 +36,7 @@ async function start(scenarioId: bigint) {
 </script>
 
 <template>
-  <main class="mx-auto max-w-5xl p-8">
+  <main class="mx-auto max-w-5xl rounded bg-panel p-8">
     <h1 class="text-3xl font-bold">Practice</h1>
     <div class="mt-4 flex gap-4">
       <NuxtLink to="/practice/questions" class="text-neon-cyan underline">Practice questions</NuxtLink>
@@ -55,7 +55,7 @@ async function start(scenarioId: bigint) {
       class="mt-3 block rounded border border-line bg-panel p-4 hover:border-neon-cyan"
     >
       <p class="font-semibold">{{ r.title }}</p>
-      <p class="text-sm text-neutral-400">
+      <p class="text-sm text-neutral-600">
         {{ r.attackType }} · {{ r.difficulty }} · {{ r.mode }} · {{ statusLabel[r.status] ?? r.status }}
         <span v-if="r.score !== undefined"> · score {{ r.score }}</span>
       </p>
@@ -66,11 +66,11 @@ async function start(scenarioId: bigint) {
     <div class="mt-3 grid gap-3 md:grid-cols-2">
       <div v-for="s in scenarios" :key="String(s.id)" class="rounded border border-line bg-panel p-4">
         <p class="font-semibold">{{ s.title }}</p>
-        <p class="text-sm text-neutral-400">{{ s.attackType }} · {{ s.difficulty }}</p>
+        <p class="text-sm text-neutral-600">{{ s.attackType }} · {{ s.difficulty }}</p>
         <p class="mt-1 text-sm">{{ s.summary }}</p>
         <button
           :disabled="busy"
-          class="mt-3 rounded bg-neon-cyan px-3 py-1 font-semibold text-black disabled:opacity-50"
+          class="mt-3 rounded bg-neon-cyan px-3 py-1 font-semibold text-white disabled:opacity-50"
           @click="start(s.id)"
         >
           Start

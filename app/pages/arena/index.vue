@@ -12,10 +12,10 @@ async function start(mode: ArenaMode) {
 </script>
 
 <template>
-  <main class="mx-auto max-w-3xl p-8">
-    <NuxtLink to="/dashboard" class="text-sm text-neutral-400 underline">← Back to dashboard</NuxtLink>
+  <main class="mx-auto max-w-3xl rounded bg-panel p-8">
+    <NuxtLink to="/dashboard" class="text-sm text-neutral-600 underline">← Back to dashboard</NuxtLink>
     <h1 class="mt-2 text-3xl font-bold">Arena</h1>
-    <p class="mt-2 text-neutral-400">
+    <p class="mt-2 text-neutral-600">
       You get a mock work account: mail, a customer care portal, your security settings and your files. An AI
       attacker plays against you live. Some messages are real, some are attacks. If the attacker gets in, it
       really changes things in your account, and you have to find and undo the damage.
@@ -23,24 +23,24 @@ async function start(mode: ArenaMode) {
     <div class="mt-6 grid gap-4 md:grid-cols-2">
       <button
         :disabled="busy"
-        class="rounded border border-line p-4 text-left hover:border-neon-pink disabled:opacity-50"
+        class="rounded border border-line bg-panel p-4 text-left hover:border-neon-pink disabled:opacity-50"
         @click="start('bait')"
       >
         <p class="text-xs uppercase text-neutral-500">Every employee</p>
         <p class="text-lg font-semibold">🎣 Bait</p>
-        <p class="mt-1 text-sm text-neutral-400">
+        <p class="mt-1 text-sm text-neutral-600">
           Nothing has happened yet. Messages arrive; spot the attacks and don't hand over your login. Slip up
           and the attacker gets in.
         </p>
       </button>
       <button
         :disabled="busy"
-        class="rounded border border-line p-4 text-left hover:border-neon-pink disabled:opacity-50"
+        class="rounded border border-line bg-panel p-4 text-left hover:border-neon-pink disabled:opacity-50"
         @click="start('breach')"
       >
         <p class="text-xs uppercase text-neutral-500">Response team</p>
         <p class="text-lg font-semibold">🚨 Breach</p>
-        <p class="mt-1 text-sm text-neutral-400">
+        <p class="mt-1 text-sm text-neutral-600">
           Someone is already in your account. Find what they changed, lock them out, undo it and report it,
           before they do more.
         </p>

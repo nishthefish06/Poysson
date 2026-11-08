@@ -10,9 +10,9 @@ const g = computed(() => guides.value.find((x) => x.id === id));
 
 <template>
   <main v-if="g" class="mx-auto max-w-3xl p-8">
-    <NuxtLink to="/guides" class="text-sm text-neutral-400 underline">← All guides</NuxtLink>
+    <NuxtLink to="/guides" class="text-sm text-neutral-600 underline">← All guides</NuxtLink>
     <h1 class="mt-2 text-3xl font-bold">{{ g.title }}</h1>
-    <p class="mt-2 text-neutral-400">{{ g.summary }}</p>
+    <p class="mt-2 text-neutral-600">{{ g.summary }}</p>
     <div class="mt-6 whitespace-pre-line">{{ g.body }}</div>
   </main>
 </template>

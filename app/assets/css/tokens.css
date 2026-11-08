@@ -1,54 +1,86 @@
 /* ==========================================================================
-   NEON//IR design tokens
+   Poysson design tokens: a bright cartoon sea, hand-drawn ink, T-Mobile magenta.
    Single source of truth for color / type / spacing / radius / effects.
-   Components only reference these variables — never raw hex values.
+   Components only reference these variables, never raw hex values.
+   (Token names like --c-cyan are kept from earlier themes so components don't change.)
    ========================================================================== */
 :root {
-  /* --- Surfaces ----------------------------------------------------------- */
-  --c-bg-0: #04050a;          /* app background */
-  --c-bg-1: #090c16;          /* panel */
-  --c-bg-2: #0f1424;          /* raised panel / input */
-  --c-bg-3: #161d33;          /* hover */
-  --c-line: #1e2945;          /* hairline borders */
-  --c-line-strong: #2c3b63;
+  color-scheme: light;
 
-  /* --- Neon accents ------------------------------------------------------- */
-  --c-cyan: #00f0ff;
-  --c-magenta: #ff2bd6;
-  --c-yellow: #f6ff3b;
-  --c-violet: #8b5cff;
+  /* --- Surfaces: warm sand-cream paper (complements the blue sea) -------- */
+  --c-bg-0: #3fb8ff;          /* the sea (body fallback) */
+  --c-bg-1: #fff3dc;          /* card paper */
+  --c-bg-2: #fbe8c6;          /* raised / hover */
+  --c-bg-3: #f5dcae;          /* pressed */
+  --c-line: #ead0a0;          /* hairline borders */
+  --c-line-strong: #d4b175;
+  --paper: rgba(255, 243, 220, .9);     /* cards: slightly see-through so fish show behind */
+  --paper-soft: rgba(255, 243, 220, .75);
+  --paper-2: #fff9ee;                   /* inputs, light buttons */
+
+  /* --- Ink: the hand-drawn outline color ---------------------------------- */
+  --ink: #12224a;
+  --ink-soft: rgba(18, 34, 74, .55);
+
+  /* --- Brand + accents ---------------------------------------------------- */
+  --c-magenta: #e20074;       /* T-Mobile magenta: the hero color */
+  --c-magenta-light: #ff4fa8;
+  --c-magenta-tint: #ffe3f1;
+  --c-cyan: #0a8ad6;          /* sea blue */
+  --c-yellow: #c98a00;        /* sand gold (readable on white) */
+  --c-violet: #7a4fd8;
+  --rgb-magenta: 226, 0, 116;
+  --rgb-cyan: 10, 138, 214;
+  --rgb-violet: 122, 79, 216;
 
   /* --- Semantic ----------------------------------------------------------- */
-  --c-ideal: #39ff88;         /* status: ideal */
-  --c-ok: #ffb020;            /* status: ok    */
-  --c-harmful: #ff3b5c;       /* status: harmful / danger */
+  --c-ideal: #11a150;
+  --c-ok: #d97800;
+  --c-harmful: #e0243f;
   --c-info: var(--c-cyan);
+  --rgb-ideal: 17, 161, 80;
+  --rgb-ok: 217, 120, 0;
+  --rgb-harmful: 224, 36, 63;
 
   /* --- Text --------------------------------------------------------------- */
-  --c-text: #dce6ff;
-  --c-text-dim: #8a98c2;
-  --c-text-mute: #55628a;
-  --c-text-invert: #04050a;
+  --c-text: #12224a;
+  --c-text-dim: #43567f;
+  --c-text-mute: #7a8bab;
+  --c-text-invert: #ffffff;
 
-  /* --- Glows -------------------------------------------------------------- */
-  --glow-cyan: 0 0 0 1px rgba(0, 240, 255, .45), 0 0 18px rgba(0, 240, 255, .35);
-  --glow-magenta: 0 0 0 1px rgba(255, 43, 214, .5), 0 0 18px rgba(255, 43, 214, .35);
-  --glow-red: 0 0 0 1px rgba(255, 59, 92, .55), 0 0 18px rgba(255, 59, 92, .4);
-  --glow-green: 0 0 0 1px rgba(57, 255, 136, .5), 0 0 16px rgba(57, 255, 136, .3);
-  --text-glow-cyan: 0 0 8px rgba(0, 240, 255, .7);
-  --text-glow-magenta: 0 0 8px rgba(255, 43, 214, .7);
+  /* --- Fills (legacy names) ----------------------------------------------- */
+  --chrome: linear-gradient(180deg, var(--c-magenta-light), var(--c-magenta));   /* primary fill */
+  --chrome-text: none;
+  --iri: linear-gradient(120deg, var(--c-magenta), var(--c-cyan));
+  --iri-soft: var(--c-magenta-tint);
+  --sea: linear-gradient(180deg, #7fdcff 0%, #3fb8ff 22%, #1f9af0 55%, #1478d8 100%);
+
+  /* --- Shadows: cartoon offset + soft lift (light theme: no neon glow) ---- */
+  --pop: 4px 5px 0 var(--ink);
+  --pop-sm: 2px 3px 0 var(--ink);
+  --pop-magenta: 4px 5px 0 var(--c-magenta);
+  --glow-cyan: 0 0 0 3px rgba(var(--rgb-cyan), .25);
+  --glow-magenta: 0 0 0 3px rgba(var(--rgb-magenta), .25);
+  --glow-red: 0 0 0 3px rgba(var(--rgb-harmful), .25);
+  --glow-green: 0 0 0 3px rgba(var(--rgb-ideal), .25);
+  --glow-chrome: var(--pop-sm);
+  --glow-panel: 0 10px 30px rgba(10, 60, 120, .18);
+  --text-glow-cyan: none;
+  --text-glow-magenta: none;
+  --text-glow-chrome: none;
 
   /* --- Typography --------------------------------------------------------- */
-  --f-display: 'Orbitron', 'Chakra Petch', sans-serif;  /* headings, numbers */
-  --f-ui: 'Chakra Petch', system-ui, sans-serif;        /* labels, buttons */
-  --f-mono: 'JetBrains Mono', ui-monospace, monospace;  /* logs, data */
+  --f-display: 'Fredoka', 'Nunito', sans-serif;      /* headings, numbers */
+  --f-ui: 'Nunito', system-ui, sans-serif;            /* labels, buttons */
+  --f-hand: 'Caveat', 'Comic Sans MS', cursive;       /* handwritten notes */
+  --f-mono: 'JetBrains Mono', ui-monospace, monospace;
 
   --fs-xs: 11px;
   --fs-sm: 13px;
   --fs-md: 15px;
   --fs-lg: 18px;
   --fs-xl: 24px;
-  --fs-2xl: 32px;
+  --fs-2xl: 34px;
   --fs-3xl: 48px;
 
   /* --- Spacing (4px grid) ------------------------------------------------- */
@@ -62,19 +94,23 @@
   --s-10: 40px;
   --s-12: 48px;
 
-  /* --- Shape -------------------------------------------------------------- */
-  --r-sm: 2px;
-  --r-md: 4px;
-  --cut: 10px;                /* chamfered-corner size */
-  --clip-chamfer: polygon(var(--cut) 0, 100% 0, 100% calc(100% - var(--cut)), calc(100% - var(--cut)) 100%, 0 100%, 0 var(--cut));
-  --clip-chamfer-sm: polygon(6px 0, 100% 0, 100% calc(100% - 6px), calc(100% - 6px) 100%, 0 100%, 0 6px);
+  /* --- Shape: gently rounded so the sketched lines read as a box ---------- */
+  --r-sm: 6px;
+  --r-md: 8px;
+  --r-lg: 10px;
+  --r-pill: 999px;
+  --blob: 60% 40% 55% 45% / 50% 55% 45% 50%;
+  --clip-chamfer: inset(0 round var(--r-lg));
+  --clip-chamfer-sm: inset(0 round var(--r-md));
 
   /* --- Motion ------------------------------------------------------------- */
-  --t-fast: 120ms;
-  --t-med: 220ms;
+  --t-fast: 140ms;
+  --t-med: 260ms;
   --ease: cubic-bezier(.2, .8, .2, 1);
+  --ease-soft: cubic-bezier(.45, 0, .2, 1);
+  --ease-bounce: cubic-bezier(.3, 1.6, .5, 1);
 
   /* --- Layout ------------------------------------------------------------- */
   --nav-w: 232px;
-  --top-h: 60px;
+  --top-h: 64px;
 }

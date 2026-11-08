@@ -18,7 +18,7 @@ export default defineNuxtConfig({
         {
           rel: 'stylesheet',
           // The faces tokens.css names (--f-display, --f-ui, --f-mono).
-          href: 'https://fonts.googleapis.com/css2?family=Orbitron:wght@500;700;900&family=Chakra+Petch:wght@400;500;600;700&family=JetBrains+Mono:wght@400;700&display=swap',
+          href: 'https://fonts.googleapis.com/css2?family=Fredoka:wght@400;500;600;700&family=Nunito:wght@400;600;700;800&family=Caveat:wght@500;700&family=JetBrains+Mono:wght@400;700&display=swap',
         },
       ],
     },
