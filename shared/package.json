@@ -4,7 +4,8 @@
   "type": "module",
   "description": "Contracts shared by the SpacetimeDB module, the Nuxt app and the AI generators.",
   "exports": {
-    ".": "./src/index.ts"
+    ".": "./src/index.ts",
+    "./arena": "./src/arena.ts"
   },
   "dependencies": {
     "zod": "^4.6.7"

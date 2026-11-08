@@ -32,8 +32,34 @@ export type LoginStage = z.infer<typeof LoginStage>;
 
 // ---------- Scenario JSON ----------
 
-export const Channel = z.enum(['sms', 'email', 'call', 'chat', 'popup', 'system']);
+// 'social' and 'web' added for the scenario area (fake social posts, lookalike websites). Additive only.
+export const Channel = z.enum(['sms', 'email', 'call', 'chat', 'popup', 'system', 'social', 'web']);
 export type Channel = z.infer<typeof Channel>;
+
+// A link shown in a step. `label` is what the employee sees, `url` is revealed on hover
+// (a mismatch is often the tell). Use fictional domains.
+export const StepLink = z.object({
+  label: z.string().min(1).max(200),
+  url: z.string().min(1).max(500),
+});
+export type StepLink = z.infer<typeof StepLink>;
+
+// A fake login form (web/popup steps). Typed values are NEVER sent anywhere; the client only
+// logs that the form was submitted (`shared_credentials`).
+export const StepForm = z.object({
+  fields: z
+    .array(
+      z.object({
+        name: z.string().min(1).max(40),
+        label: z.string().min(1).max(80),
+        kind: z.enum(['text', 'password']),
+      })
+    )
+    .min(1)
+    .max(5),
+  submitLabel: z.string().min(1).max(40),
+});
+export type StepForm = z.infer<typeof StepForm>;
 
 export const ScenarioStep = z.object({
   id: z.string().min(1).max(32),
@@ -41,6 +67,9 @@ export const ScenarioStep = z.object({
   from: z.string().min(1).max(200),
   subject: z.string().max(300),
   body: z.string().min(1).max(4000),
+  // Optional, additive: existing scenarios without these stay valid.
+  links: z.array(StepLink).max(5).optional(),
+  form: StepForm.optional(),
 });
 export type ScenarioStep = z.infer<typeof ScenarioStep>;
 

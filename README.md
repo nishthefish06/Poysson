@@ -3,6 +3,7 @@
 Cybersecurity training for T-Mobile employees. The backend is a [SpacetimeDB](https://spacetimedb.com) module (TypeScript), self-hosted on Vultr.
 
 ```
+app/               Nuxt front end (practice, arena, admin) + AI/arena server routes
 shared/src/        zod contracts shared by the module, the Nuxt app and AI generators
 spacetimedb/src/   the module: tables, reducers, views
   schema.ts        tables (all private)
@@ -47,6 +48,31 @@ spacetime logs -s local hackutd2026                       # reducer errors show 
 spacetime sql -s local hackutd2026 "SELECT * FROM my_account"
 spacetime publish --delete-data                           # wipe and re-seed after schema changes
 ```
+
+## Front end (Nuxt, `app/`)
+
+Two areas after login: **Practice** (assigned simulations, practice questions, guides; all SpacetimeDB) and
+**Arena** (free play against the Nemotron attacker; runs on the Nuxt server). Both render scenario steps as
+fake apps with `StepView` and record what the employee did as `RunEventKind`s.
+
+```bash
+npm install
+npm run dev            # http://localhost:3001 (SpacetimeDB already uses :3000)
+```
+
+- Login/2FA/enroll pages are wired to the reducers; `SessionGate` routes between them.
+- `NUXT_PUBLIC_DEV_BYPASS_AUTH=1` in `.env` lets you browse pages without a running SpacetimeDB (dev only).
+- After changing the module, regenerate bindings: `npm run bindings` (needs the `spacetime` CLI).
+- Arena types are a separate entry point: `@hackutd2026/shared/arena` (ArenaMove, ArenaAction, Judgment, ArenaState).
+- `ScenarioStep` gained optional `links` and `form`, and `Channel` gained `social` and `web` (additive; re-publish the module).
+
+| Route | What |
+| --- | --- |
+| `POST /api/arena/start` | new arena round, attacker's first move |
+| `GET /api/arena/:id` | round state (steps + log, never the truth flags) |
+| `POST /api/arena/:id/action` | employee action -> judged (rules, then model) -> attacker reacts |
+| `POST /api/ai/generate-scenario` | AI draft of a `ScenarioDraft` for admins to review and save |
+| `POST /api/photon/send` | drill text to a consenting teammate (`DEMO_PHONE_MAP`) |
 
 ## Connecting a front end
 
