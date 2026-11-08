@@ -34,6 +34,7 @@ export interface ArenaRound {
   env: Env;
   summary: ArenaSummary | null;
   attackerLive: boolean; // did live Nemotron play the last move (false = scripted fallback)
+  incidents: string[]; // real-world incidents this round is modeled on (incident-playbook.ts)
   // --- live mirror in SpacetimeDB (arena-sync.ts) ---
   claimCode: string; // returned only to the browser that started the round
   rev: number; // bumps on every sync; the page ignores snapshots older than what it has
@@ -64,6 +65,7 @@ export function createRound(mode: ArenaMode, employeeName = 'You'): ArenaRound {
     env: seedEnv(mode, employeeName),
     summary: null,
     attackerLive: false,
+    incidents: pickIncidents(mode),
     claimCode: randomUUID(),
     rev: 0,
     syncedSeq: 0,

@@ -19,13 +19,16 @@ The round is over. Speak to the employee as the attacker, in the first person, i
 4. the one habit that would have stopped you.
 Refer to messages by their subject, never by an id. Describe what the employee did ONLY from the
 "What the employee actually did" list; never invent a refusal or a mistake that isn't there.
+If a real-world pattern is listed, end with one sentence saying which real pattern you copied, naming the
+source and year exactly as given; never invent a source.
 Describe how it ended ONLY from "How the round ended": if it says you still have access or something
 is STILL IN PLACE, you were NOT stopped or cut off. Reporting alone does not remove your access.
-Stay inside the fiction: fictional company, ".example" domains only, no real brands or people, and no
-step-by-step technique a real attacker could reuse. Plain text, no markdown.
+Stay inside the fiction: fictional company, ".example" domains only, no real brands or people (the one
+exception: the source of the real-world pattern, named exactly as given), and no step-by-step technique a
+real attacker could reuse. Plain text, no markdown.
 Reply with ONLY JSON: {"reveal": string}`;
 
-export function templateReveal(f: Facts, mode: 'bait' | 'breach' = 'bait'): string {
+export function templateReveal(f: Facts, mode: 'bait' | 'breach' = 'bait', basedOn: string[] = []): string {
   const first = f.messages.find((m) => m.malicious);
   const fell = f.messages.find((m) => m.malicious && !m.handledWell && !m.ignored);
   // the action log is written about the attacker ("Added their own sign-in device"): make it first person
@@ -53,6 +56,7 @@ export function templateReveal(f: Facts, mode: 'bait' | 'breach' = 'bait'): stri
       ? 'Some of that is still in place, so I can come back.'
       : 'Verify through an official channel and report early: that is what shuts me out.'
   );
+  if (basedOn.length) parts.push(`I copied a real pattern: ${basedOn[0]}.`);
   return parts.join(' ');
 }
 
@@ -82,6 +86,7 @@ export async function writeReveal(r: ArenaRound, f: Facts): Promise<Reveal> {
           .map((h) => `- ${byTitle(h)}`)
           .join('\n')}`,
         `What the employee actually did, in order (the only facts about them you may use):\n${did.join('\n') || '- nothing: they never acted on any message'}`,
+        `Real-world pattern you were copying: ${basedOnLines(r.incidents).join('; ') || '(none)'}`,
         `How the round ended: ${f.headline}\n${
           f.attackerActions
             .map((a) => `- ${a.text}: ${a.remediated ? 'undone or reported by the employee' : 'STILL IN PLACE'}`)
@@ -96,5 +101,5 @@ export async function writeReveal(r: ArenaRound, f: Facts): Promise<Reveal> {
       console.warn('[reveal] Nemotron failed, using template:', e instanceof Error ? e.message : e);
     }
   }
-  return { text: templateReveal(f, r.mode), source: 'template' };
+  return { text: templateReveal(f, r.mode, basedOnLines(r.incidents)), source: 'template' };
 }

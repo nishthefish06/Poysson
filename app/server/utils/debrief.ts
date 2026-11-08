@@ -17,7 +17,13 @@ and one habit to take back to work. Plain text only: no markdown, no headings, n
 Base your advice on the company runbook sections given below and cite the one you use by name and section
 in parentheses, e.g. (Compromised account §2). Do not invent runbook sections or procedures.
 Messages with "ignored": true were attacks the employee never acted on: that is safe, not a failure, but
-reporting them would have helped Security warn others.`;
+reporting them would have helped Security warn others.
+Only praise what the facts show they did well (a message they "handled it well", an action undone or reported);
+if nothing qualifies, say so kindly instead of inventing praise.
+Priorities: if any message is MISSED or anything the attacker did is STILL IN PLACE, that is the most
+important thing they missed; never call an ignored message the most important miss when one was MISSED.
+If a real-world pattern is listed, add one sentence saying this round mirrored it, naming the source and year
+exactly as given (e.g. "This round mirrored ... (FBI IC3 PSA I-020822, 2022)."). Never invent a source.`;
 
 export function templateDebrief(f: Facts, score: number, runbook: RunbookRef[] = []): string {
   const missed = f.messages.filter((m) => m.malicious && !m.handledWell && !m.ignored);
@@ -84,10 +90,11 @@ function whatHappened(f: Facts): string {
 export async function writeDebrief(
   f: Facts,
   score: number,
-  runbook: RunbookRef[] = []
+  runbook: RunbookRef[] = [],
+  basedOn: string[] = [] // real-world patterns this round mirrored (incident-playbook.ts basedOnLines)
 ): Promise<{ text: string; source: 'gemini' | 'nemotron' | 'template' }> {
   const deadline = Date.now() + GEMINI_BUDGET_MS; // whole Gemini budget, across fallback models
-  const contents = `${PROMPT}\n\nWhat actually happened (use only this; never say the employee spotted or handled a message marked MISSED):\n${whatHappened(f)}\n\nRunbook sections:\n${runbook.map((r) => `- ${r.cite}: ${r.text}`).join('\n') || '(none)'}\n\nFacts (JSON):\n${JSON.stringify({ ...f, score })}`;
+  const contents = `${PROMPT}\n\nWhat actually happened (use only this; never say the employee spotted or handled a message marked MISSED):\n${whatHappened(f)}\n\nReal-world pattern this round mirrored:\n${basedOn.map((b) => `- ${b}`).join('\n') || '(none)'}\n\nRunbook sections:\n${runbook.map((r) => `- ${r.cite}: ${r.text}`).join('\n') || '(none)'}\n\nFacts (JSON):\n${JSON.stringify({ ...f, score })}`;
   for (const model of geminiModels()) {
     const left = deadline - Date.now();
     if (left < PER_MODEL_MS) break;
@@ -129,5 +136,6 @@ export async function writeDebrief(
       clearTimeout(timer);
     }
   }
-  return { text: templateDebrief(f, score, runbook), source: 'template' };
+  const mirrored = basedOn.length ? ` This round mirrored a real pattern: ${basedOn[0]}.` : '';
+  return { text: templateDebrief(f, score, runbook) + mirrored, source: 'template' };
 }
