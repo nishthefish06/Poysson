@@ -51,49 +51,20 @@ export type AdminAccountInfo = __Infer<typeof AdminAccountInfo>;
 export const AdminAccounts = __t.object("AdminAccounts", {});
 export type AdminAccounts = __Infer<typeof AdminAccounts>;
 
-export const AdminAssignmentInfo = __t.object("AdminAssignmentInfo", {
-  id: __t.u64(),
-  scenarioId: __t.u64(),
-  scenarioTitle: __t.string(),
-  accountId: __t.u64(),
-  employeeName: __t.string(),
-  status: __t.string(),
-  popupMessage: __t.string(),
-  assignedAt: __t.timestamp(),
-  startedAt: __t.option(__t.timestamp()),
-  submittedAt: __t.option(__t.timestamp()),
-  reportSummary: __t.option(__t.string()),
-  reportActions: __t.option(__t.string()),
-  score: __t.option(__t.u32()),
-  feedback: __t.option(__t.string()),
-  approved: __t.bool(),
-});
-export type AdminAssignmentInfo = __Infer<typeof AdminAssignmentInfo>;
+export const AllRunEvents = __t.object("AllRunEvents", {});
+export type AllRunEvents = __Infer<typeof AllRunEvents>;
 
-export const AdminAssignments = __t.object("AdminAssignments", {});
-export type AdminAssignments = __Infer<typeof AdminAssignments>;
+export const AllRunMessages = __t.object("AllRunMessages", {});
+export type AllRunMessages = __Infer<typeof AllRunMessages>;
 
-export const AdminRunEvents = __t.object("AdminRunEvents", {});
-export type AdminRunEvents = __Infer<typeof AdminRunEvents>;
+export const AllRuns = __t.object("AllRuns", {});
+export type AllRuns = __Infer<typeof AllRuns>;
 
-export const AdminScenarioInfo = __t.object("AdminScenarioInfo", {
-  id: __t.u64(),
-  attackType: __t.string(),
-  title: __t.string(),
-  difficulty: __t.string(),
-  summary: __t.string(),
-  briefing: __t.string(),
-  contentJson: __t.string(),
-  rubricJson: __t.string(),
-  source: __t.string(),
-  status: __t.string(),
-  createdBy: __t.u64(),
-  createdAt: __t.timestamp(),
-});
-export type AdminScenarioInfo = __Infer<typeof AdminScenarioInfo>;
+export const AllScenarios = __t.object("AllScenarios", {});
+export type AllScenarios = __Infer<typeof AllScenarios>;
 
-export const AdminScenarios = __t.object("AdminScenarios", {});
-export type AdminScenarios = __Infer<typeof AdminScenarios>;
+export const AmService = __t.object("AmService", {});
+export type AmService = __Infer<typeof AmService>;
 
 export const AnswerInfo = __t.object("AnswerInfo", {
   questionId: __t.u64(),
@@ -104,37 +75,22 @@ export const AnswerInfo = __t.object("AnswerInfo", {
 });
 export type AnswerInfo = __Infer<typeof AnswerInfo>;
 
-export const Assignment = __t.object("Assignment", {
-  id: __t.u64(),
-  scenarioId: __t.u64(),
+export const AttackStats = __t.object("AttackStats", {
   accountId: __t.u64(),
-  assignedBy: __t.u64(),
-  popupMessage: __t.string(),
-  status: __t.string(),
-  assignedAt: __t.timestamp(),
-  startedAt: __t.option(__t.timestamp()),
-  submittedAt: __t.option(__t.timestamp()),
-});
-export type Assignment = __Infer<typeof Assignment>;
-
-export const AssignmentInfo = __t.object("AssignmentInfo", {
-  id: __t.u64(),
-  scenarioId: __t.u64(),
   attackType: __t.string(),
-  title: __t.string(),
-  difficulty: __t.string(),
-  summary: __t.string(),
-  briefing: __t.string(),
-  contentJson: __t.string(),
-  popupMessage: __t.string(),
-  status: __t.string(),
-  assignedAt: __t.timestamp(),
-  startedAt: __t.option(__t.timestamp()),
-  submittedAt: __t.option(__t.timestamp()),
-  score: __t.option(__t.u32()),
-  feedback: __t.option(__t.string()),
+  runsScored: __t.u32(),
+  averageScore: __t.option(__t.f64()),
+  bestScore: __t.option(__t.u32()),
+  practiceAnswered: __t.u32(),
+  practiceCorrect: __t.u32(),
 });
-export type AssignmentInfo = __Infer<typeof AssignmentInfo>;
+export type AttackStats = __Infer<typeof AttackStats>;
+
+export const AvailableScenarios = __t.object("AvailableScenarios", {});
+export type AvailableScenarios = __Infer<typeof AvailableScenarios>;
+
+export const EmployeeAttackStats = __t.object("EmployeeAttackStats", {});
+export type EmployeeAttackStats = __Infer<typeof EmployeeAttackStats>;
 
 export const Guide = __t.object("Guide", {
   id: __t.u64(),
@@ -159,20 +115,23 @@ export type GuideInfo = __Infer<typeof GuideInfo>;
 export const Guides = __t.object("Guides", {});
 export type Guides = __Infer<typeof Guides>;
 
-export const IncidentReport = __t.object("IncidentReport", {
-  assignmentId: __t.u64(),
-  accountId: __t.u64(),
-  summary: __t.string(),
-  actionsTaken: __t.string(),
-  submittedAt: __t.timestamp(),
-});
-export type IncidentReport = __Infer<typeof IncidentReport>;
-
 export const LoginState = __t.object("LoginState", {
   stage: __t.string(),
   email: __t.string(),
 });
 export type LoginState = __Infer<typeof LoginState>;
+
+export const MessageInfo = __t.object("MessageInfo", {
+  id: __t.u64(),
+  runId: __t.u64(),
+  sender: __t.string(),
+  channel: __t.string(),
+  from: __t.string(),
+  stage: __t.string(),
+  body: __t.string(),
+  at: __t.timestamp(),
+});
+export type MessageInfo = __Infer<typeof MessageInfo>;
 
 export const ModuleOwner = __t.object("ModuleOwner", {
   id: __t.u32(),
@@ -183,14 +142,23 @@ export type ModuleOwner = __Infer<typeof ModuleOwner>;
 export const MyAccount = __t.object("MyAccount", {});
 export type MyAccount = __Infer<typeof MyAccount>;
 
-export const MyAssignments = __t.object("MyAssignments", {});
-export type MyAssignments = __Infer<typeof MyAssignments>;
+export const MyAttackStats = __t.object("MyAttackStats", {});
+export type MyAttackStats = __Infer<typeof MyAttackStats>;
 
 export const MyLoginState = __t.object("MyLoginState", {});
 export type MyLoginState = __Infer<typeof MyLoginState>;
 
 export const MyPracticeAnswers = __t.object("MyPracticeAnswers", {});
 export type MyPracticeAnswers = __Infer<typeof MyPracticeAnswers>;
+
+export const MyRunEvents = __t.object("MyRunEvents", {});
+export type MyRunEvents = __Infer<typeof MyRunEvents>;
+
+export const MyRunMessages = __t.object("MyRunMessages", {});
+export type MyRunMessages = __Infer<typeof MyRunMessages>;
+
+export const MyRuns = __t.object("MyRuns", {});
+export type MyRuns = __Infer<typeof MyRuns>;
 
 export const MyStats = __t.object("MyStats", {});
 export type MyStats = __Infer<typeof MyStats>;
@@ -235,10 +203,13 @@ export const QuestionInfo = __t.object("QuestionInfo", {
 export type QuestionInfo = __Infer<typeof QuestionInfo>;
 
 export const Review = __t.object("Review", {
-  assignmentId: __t.u64(),
+  runId: __t.u64(),
+  reviewerKind: __t.string(),
   reviewerId: __t.u64(),
   score: __t.u32(),
   feedback: __t.string(),
+  strengths: __t.array(__t.string()),
+  mistakes: __t.array(__t.string()),
   approved: __t.bool(),
   reviewedAt: __t.timestamp(),
 });
@@ -246,7 +217,7 @@ export type Review = __Infer<typeof Review>;
 
 export const RunEvent = __t.object("RunEvent", {
   id: __t.u64(),
-  assignmentId: __t.u64(),
+  runId: __t.u64(),
   kind: __t.string(),
   stepId: __t.string(),
   detail: __t.string(),
@@ -256,13 +227,74 @@ export type RunEvent = __Infer<typeof RunEvent>;
 
 export const RunEventInfo = __t.object("RunEventInfo", {
   id: __t.u64(),
-  assignmentId: __t.u64(),
+  runId: __t.u64(),
   kind: __t.string(),
   stepId: __t.string(),
   detail: __t.string(),
   at: __t.timestamp(),
 });
 export type RunEventInfo = __Infer<typeof RunEventInfo>;
+
+export const RunFull = __t.object("RunFull", {
+  id: __t.u64(),
+  scenarioId: __t.u64(),
+  scenarioTitle: __t.string(),
+  attackType: __t.string(),
+  accountId: __t.u64(),
+  employeeName: __t.string(),
+  mode: __t.string(),
+  status: __t.string(),
+  stage: __t.string(),
+  liveDifficulty: __t.u32(),
+  lockedOut: __t.bool(),
+  selfStarted: __t.bool(),
+  popupMessage: __t.string(),
+  assignedAt: __t.timestamp(),
+  startedAt: __t.option(__t.timestamp()),
+  submittedAt: __t.option(__t.timestamp()),
+  reportSummary: __t.option(__t.string()),
+  reportActions: __t.option(__t.string()),
+  score: __t.option(__t.u32()),
+  feedback: __t.option(__t.string()),
+  reviewerKind: __t.option(__t.string()),
+  approved: __t.bool(),
+});
+export type RunFull = __Infer<typeof RunFull>;
+
+export const RunInfo = __t.object("RunInfo", {
+  id: __t.u64(),
+  scenarioId: __t.u64(),
+  attackType: __t.string(),
+  title: __t.string(),
+  difficulty: __t.string(),
+  summary: __t.string(),
+  briefing: __t.string(),
+  contentJson: __t.string(),
+  mode: __t.string(),
+  status: __t.string(),
+  stage: __t.string(),
+  liveDifficulty: __t.u32(),
+  lockedOut: __t.bool(),
+  selfStarted: __t.bool(),
+  popupMessage: __t.string(),
+  assignedAt: __t.timestamp(),
+  startedAt: __t.option(__t.timestamp()),
+  submittedAt: __t.option(__t.timestamp()),
+  score: __t.option(__t.u32()),
+  feedback: __t.option(__t.string()),
+  strengths: __t.option(__t.array(__t.string())),
+  mistakes: __t.option(__t.array(__t.string())),
+});
+export type RunInfo = __Infer<typeof RunInfo>;
+
+export const RunReport = __t.object("RunReport", {
+  runId: __t.u64(),
+  accountId: __t.u64(),
+  summary: __t.string(),
+  actionsTaken: __t.string(),
+  submittedAt: __t.timestamp(),
+});
+export type RunReport = __Infer<typeof RunReport>;
 
 export const Scenario = __t.object("Scenario", {
   id: __t.u64(),
@@ -280,12 +312,79 @@ export const Scenario = __t.object("Scenario", {
 });
 export type Scenario = __Infer<typeof Scenario>;
 
+export const ScenarioCard = __t.object("ScenarioCard", {
+  id: __t.u64(),
+  attackType: __t.string(),
+  title: __t.string(),
+  difficulty: __t.string(),
+  summary: __t.string(),
+  source: __t.string(),
+});
+export type ScenarioCard = __Infer<typeof ScenarioCard>;
+
+export const ScenarioFull = __t.object("ScenarioFull", {
+  id: __t.u64(),
+  attackType: __t.string(),
+  title: __t.string(),
+  difficulty: __t.string(),
+  summary: __t.string(),
+  briefing: __t.string(),
+  contentJson: __t.string(),
+  rubricJson: __t.string(),
+  source: __t.string(),
+  status: __t.string(),
+  createdBy: __t.u64(),
+  createdAt: __t.timestamp(),
+});
+export type ScenarioFull = __Infer<typeof ScenarioFull>;
+
+export const ServiceIdentity = __t.object("ServiceIdentity", {
+  identity: __t.identity(),
+  label: __t.string(),
+  registeredAt: __t.timestamp(),
+});
+export type ServiceIdentity = __Infer<typeof ServiceIdentity>;
+
+export const ServiceInfo = __t.object("ServiceInfo", {
+  label: __t.string(),
+});
+export type ServiceInfo = __Infer<typeof ServiceInfo>;
+
 export const Session = __t.object("Session", {
   identity: __t.identity(),
   accountId: __t.u64(),
   createdAt: __t.timestamp(),
 });
 export type Session = __Infer<typeof Session>;
+
+export const SimMessage = __t.object("SimMessage", {
+  id: __t.u64(),
+  runId: __t.u64(),
+  sender: __t.string(),
+  channel: __t.string(),
+  from: __t.string(),
+  stage: __t.string(),
+  body: __t.string(),
+  at: __t.timestamp(),
+});
+export type SimMessage = __Infer<typeof SimMessage>;
+
+export const SimRun = __t.object("SimRun", {
+  id: __t.u64(),
+  scenarioId: __t.u64(),
+  accountId: __t.u64(),
+  assignedBy: __t.u64(),
+  mode: __t.string(),
+  status: __t.string(),
+  stage: __t.string(),
+  difficulty: __t.u32(),
+  lockedOut: __t.bool(),
+  popupMessage: __t.string(),
+  assignedAt: __t.timestamp(),
+  startedAt: __t.option(__t.timestamp()),
+  submittedAt: __t.option(__t.timestamp()),
+});
+export type SimRun = __Infer<typeof SimRun>;
 
 export const StatsInfo = __t.object("StatsInfo", {
   assigned: __t.u32(),

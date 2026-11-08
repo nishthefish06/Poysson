@@ -3,4 +3,6 @@ export { default } from './schema';
 export * from './seed';
 export * from './auth';
 export * from './training';
+export * from './service';
+export * from './demo';
 export * from './views';

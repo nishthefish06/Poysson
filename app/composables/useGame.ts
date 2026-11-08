@@ -115,14 +115,14 @@ export function seedState(): GameState {
     seedRun(4, 'CHROME VIPER', 'operator', ['identity', 'malware', 'insider', 'exfil', 'phish'], 398, 650, 60),
     seedRun(6, 'GHOST LEDGER', 'recruit', ['malware', 'exfil'], 190, 260, 50),
   ]
-  const audit: AuditEntry[] = [
+  const audit: AuditEntry[] = ([
     { id: 'a1', ts: ago(1500), event: 'RUN_COMPLETE', detail: 'NEON TIDE · Operator · A', kind: 'run', ip: '10.24.8.17', tx: runs[0].tx, slot: nextSlot() },
     { id: 'a2', ts: ago(1510), event: 'MFA_APPROVED', detail: 'Duo push · iPhone 15', kind: 'auth', ip: '10.24.8.17', tx: fakeTx(), slot: nextSlot() },
     { id: 'a3', ts: ago(2900), event: 'REPORT_EXPORTED', detail: 'SILENT RELAY · PDF', kind: 'report', ip: '10.24.8.17', tx: fakeTx(), slot: nextSlot() },
     { id: 'a4', ts: ago(2920), event: 'RUN_COMPLETE', detail: 'SILENT RELAY · Recruit · S', kind: 'run', ip: '10.24.8.17', tx: runs[1].tx, slot: nextSlot() },
     { id: 'a5', ts: ago(5800), event: 'PASSKEY_REGISTERED', detail: 'YubiKey 5C NFC', kind: 'config', ip: '10.31.2.200', tx: fakeTx(), slot: nextSlot() },
     { id: 'a6', ts: ago(5810), event: 'LOGIN_SUCCESS', detail: 'Password + Duo', kind: 'auth', ip: '10.31.2.200', tx: fakeTx(), slot: nextSlot() },
-  ].map((a, i) => ({ ...a, slot: slotBase - i * 1700 })) // newest first, slots descend with age
+  ] satisfies AuditEntry[]).map((a, i) => ({ ...a, slot: slotBase - i * 1700 })) // newest first, slots descend with age
   return {
     auth: { email: '', stage: 'none' },
     player: {

@@ -1,6 +1,6 @@
 import { createApp, h } from 'vue';
 import { SpacetimeDBProvider } from 'spacetimedb/vue';
-import { DbConnection } from './module_bindings';
+import { DbConnection } from '../../app/module_bindings';
 import { SPACETIME_DB, SPACETIME_URL, readToken, saveToken } from './config';
 import App from './App.vue';
 import './style.css';
