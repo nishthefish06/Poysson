@@ -179,6 +179,7 @@ async function doLogout() {
         <slot />
       </main>
     </div>
+    <AssignmentPopup />
   </div>
 </template>
 
