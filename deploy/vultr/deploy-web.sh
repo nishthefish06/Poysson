@@ -34,6 +34,10 @@ trap 'rm -f "$ENV_FILE"' EXIT
   echo "NUXT_PHOTON_PROJECT_ID=${PHOTON_PROJECT_ID:-}"
   echo "NUXT_PHOTON_PROJECT_SECRET=${PHOTON_PROJECT_SECRET:-}"
   echo "NUXT_DEMO_PHONE_MAP=${DEMO_PHONE_MAP:-}"
+  # Solana devnet wallet for audit anchoring + badges (server-only)
+  echo "NUXT_SOLANA_RPC_URL=${SOLANA_RPC_URL:-https://api.devnet.solana.com}"
+  echo "NUXT_SOLANA_SECRET_KEY=${SOLANA_SECRET_KEY:-}"
+  echo "NUXT_SOLANA_METADATA_BASE_URL=${SOLANA_METADATA_BASE_URL:-https://$HOST}"
 } >"$ENV_FILE"
 
 rsync -az --delete "$ROOT/$WEB_DIR/.output/" "$TARGET:/srv/web/.output/"

@@ -11,6 +11,12 @@ const email = ref('');
 const password = ref('');
 const showPassword = ref(false);
 const formError = ref('');
+const emailEl = ref<HTMLInputElement>();
+
+// The landing intro carries the card in; focus the email field once it has landed.
+const introOn = useState<boolean>('castIntro', () => false);
+onMounted(() => { if (!introOn.value) emailEl.value?.focus(); });
+watch(introOn, (on) => { if (!on) nextTick(() => emailEl.value?.focus()); });
 
 function submit() {
   formError.value = !/.+@.+\..+/.test(email.value)
@@ -31,6 +37,7 @@ function submit() {
         <CyberIcon name="mail" :size="15" />
         <input
           id="email"
+          ref="emailEl"
           v-model="email"
           type="email"
           autocomplete="username"

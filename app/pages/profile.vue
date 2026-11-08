@@ -45,11 +45,16 @@ const date = (iso: string) => new Date(iso).toLocaleDateString(undefined, { mont
     <div class="prof__grid">
       <CyberPanel title="Badge case" :eyebrow="`${player.badges.length} / ${BADGES.length}`" accent="magenta">
         <div class="prof__badges">
-          <CyberBadge v-for="b in BADGES" :key="b.id" :name="b.name" :icon="b.icon" :tier="b.tier" :desc="b.desc" :locked="!player.badges.includes(b.id)" />
+          <div v-for="b in BADGES" :key="b.id" class="prof__badge">
+            <CyberBadge :name="b.name" :icon="b.icon" :tier="b.tier" :desc="b.desc" :locked="!player.badges.includes(b.id)" />
+            <CredentialChip :badge="b.id" />
+          </div>
         </div>
       </CyberPanel>
 
       <div class="prof__side">
+        <BadgeCredentials />
+
         <CyberPanel title="Skill matrix" eyebrow="Mastery">
           <div class="prof__radar"><SkillRadar :skills="player.skills" :size="260" /></div>
         </CyberPanel>
@@ -88,6 +93,7 @@ const date = (iso: string) => new Date(iso).toLocaleDateString(undefined, { mont
 .prof__stats { display: grid; grid-template-columns: repeat(6, 1fr); gap: var(--s-3); }
 .prof__grid { display: grid; grid-template-columns: 1.4fr 1fr; gap: var(--s-5); align-items: start; }
 .prof__badges { display: grid; grid-template-columns: repeat(auto-fill, minmax(130px, 1fr)); gap: var(--s-6) var(--s-3); justify-items: center; }
+.prof__badge { display: flex; flex-direction: column; align-items: center; }
 .prof__side { display: flex; flex-direction: column; gap: var(--s-4); }
 .prof__radar { display: grid; place-items: center; }
 .prof__keys { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: var(--s-2); }

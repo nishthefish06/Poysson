@@ -131,7 +131,10 @@ const ratingColor = (r: Rating) => `var(--c-${r})`
       </CyberPanel>
       <CyberPanel v-if="run.newBadges.length" title="Unlocked" eyebrow="New badges" accent="magenta">
         <div class="row" style="gap: var(--s-5)">
-          <CyberBadge v-for="b in run.newBadges.map(badgeById).filter(Boolean)" :key="b!.id" :name="b!.name" :icon="b!.icon" :tier="b!.tier" :desc="b!.desc" fresh />
+          <div v-for="b in run.newBadges.map(badgeById).filter(Boolean)" :key="b!.id" class="res__newbadge">
+            <CyberBadge :name="b!.name" :icon="b!.icon" :tier="b!.tier" :desc="b!.desc" fresh />
+            <CredentialChip :badge="b!.id" />
+          </div>
         </div>
       </CyberPanel>
     </section>
@@ -220,7 +223,7 @@ const ratingColor = (r: Rating) => `var(--c-${r})`
         <CyberPanel title="Export" eyebrow="Official record">
           <div class="stack">
             <p class="dim">A printable, signed after-action report. The report hash is anchored to Solana so auditors can prove it wasn't edited.</p>
-            <SolanaVerified :tx="run.tx" />
+            <SolanaVerified :tx="run.tx" :status="anchorOf(run)" />
             <CyberButton variant="primary" icon="print" block to="/report">Open printable report</CyberButton>
           </div>
         </CyberPanel>
@@ -291,4 +294,5 @@ const ratingColor = (r: Rating) => `var(--c-${r})`
 .res__report-preview { max-height: 72vh; overflow: auto; padding: var(--s-6); background: #1b1f2b; border: 1px solid var(--c-line); }
 .res__report-preview :deep(.report-doc) { transform-origin: top center; box-shadow: 0 10px 40px rgba(0, 0, 0, .6); }
 @media (max-width: 1100px) { .res__score, .res__report, .res__compare { grid-template-columns: 1fr; } }
+.res__newbadge { display: flex; flex-direction: column; align-items: center; }
 </style>
