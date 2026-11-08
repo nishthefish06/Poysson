@@ -61,6 +61,8 @@ Field notes (do NOT put comments in your reply):
   "form" is a fake login page; if the employee submits it, you get their password and access to their account.
 - "flags": exactly one per step, including continued threads. Benign steps: isMalicious=false, redFlags=[].
 - "tools" only work while you have access; use real customer ids from the environment description.
+- "narration": one short line the EMPLOYEE sees, from their point of view ("Your work phone buzzes."), or null.
+  Never describe what you did, what you know or what you can access; the employee must find that out.
 
 Rules:
 - FICTIONAL ONLY: invented brands, domains ending in ".example", phone numbers like +1 (555) 01xx-xxxx.
@@ -102,10 +104,28 @@ async function nemotronMove(input: AttackerInput): Promise<ArenaMove> {
   return chatJson(modelMove(input.known), SYSTEM_PROMPT, user, { temperature: 0.8, maxTokens: 2000 });
 }
 
+// Narration is shown to the employee. The model sometimes narrates as the attacker ("You're in the
+// employee's account..."), which gives the exercise away; drop anything that reads like that.
+const SPOILER =
+  /\b(attacker|intruder|access|forward|rule|compromis|breach|hack|stolen|password|exfil|persist|backdoor|i|i'm|we|we're|you're in)\b/i;
+export function safeNarration(n: string | null): string | null {
+  if (!n) return null;
+  return n.length <= 140 && !SPOILER.test(n) ? n : null;
+}
+
 export async function nextArenaMove(input: AttackerInput): Promise<ArenaMove> {
   if (nemotronEnabled()) {
     try {
-      return await nemotronMove(input);
+      const move = await nemotronMove(input);
+      move.narration = safeNarration(move.narration);
+      // The first turn must give the employee something to start from (the lure, or the security alert).
+      if (input.ctx.turn === 0 && !move.steps.length) {
+        const opening = stubMove(input);
+        move.steps = opening.steps;
+        move.flags = opening.flags;
+        move.narration ??= opening.narration;
+      }
+      return move;
     } catch (e) {
       console.warn('[arena] Nemotron failed, using scripted move:', e instanceof Error ? e.message : e);
     }
