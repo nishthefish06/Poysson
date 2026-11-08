@@ -30,11 +30,18 @@ function ago(ms: number) {
   return `${Math.floor(s / 86_400)}d ago`;
 }
 
-// Arena rounds: in progress first, then the most recently finished.
+// Arena rounds: in progress with the tab open, then left mid-round (tab closed, never ended),
+// then the most recently finished. `online` comes from SpacetimeDB's connection tracking.
 const playing = computed(() =>
   arenaRounds.value
-    .filter((r) => r.status === 'active')
+    .filter((r) => r.status === 'active' && r.online)
     .sort((a, b) => micros(b.updatedAt) - micros(a.updatedAt))
+);
+const left = computed(() =>
+  arenaRounds.value
+    .filter((r) => r.status === 'active' && !r.online)
+    .sort((a, b) => micros(b.updatedAt) - micros(a.updatedAt))
+    .slice(0, 3)
 );
 const finished = computed(() =>
   arenaRounds.value
@@ -144,6 +151,20 @@ const OUTCOME: Record<string, string> = {
             </div>
           </li>
         </ul>
+        <template v-if="left.length">
+          <h3 class="feed__h feed__h--sub">Left mid-round</h3>
+          <ul class="rounds">
+            <li v-for="r in left" :key="String(r.id)" class="round round--done round--left">
+              <div class="round__top">
+                <strong>{{ r.displayName }}</strong>
+                <span class="round__mode">{{ r.mode }}</span>
+                <span class="spacer" />
+                <span class="round__score">{{ r.score }} pts</span>
+              </div>
+              <div class="round__meta">Closed the tab · last move {{ ago(micros(r.updatedAt)) }}</div>
+            </li>
+          </ul>
+        </template>
         <template v-if="finished.length">
           <h3 class="feed__h feed__h--sub">Recently finished</h3>
           <ul class="rounds">
@@ -245,6 +266,10 @@ const OUTCOME: Record<string, string> = {
 .round--done {
   border-width: 1px;
   border-color: var(--c-line-strong);
+}
+.round--left {
+  opacity: 0.7;
+  border-style: dashed;
 }
 .round__top,
 .round__meta {

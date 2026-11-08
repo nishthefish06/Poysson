@@ -6,4 +6,5 @@ export * from './training';
 export * from './service';
 export * from './demo';
 export * from './arena';
+export * from './presence';
 export * from './views';

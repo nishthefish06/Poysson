@@ -27,4 +27,5 @@ export default __t.row({
   stateJson: __t.string().name("state_json"),
   startedAt: __t.timestamp().name("started_at"),
   updatedAt: __t.timestamp().name("updated_at"),
+  online: __t.bool(),
 });

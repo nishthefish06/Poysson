@@ -154,6 +154,7 @@ export const ArenaRoundInfo = __t.object("ArenaRoundInfo", {
   stateJson: __t.string(),
   startedAt: __t.timestamp(),
   updatedAt: __t.timestamp(),
+  online: __t.bool(),
 });
 export type ArenaRoundInfo = __Infer<typeof ArenaRoundInfo>;
 
@@ -252,6 +253,13 @@ export type MyRuns = __Infer<typeof MyRuns>;
 
 export const MyStats = __t.object("MyStats", {});
 export type MyStats = __Infer<typeof MyStats>;
+
+export const OnlineConnection = __t.object("OnlineConnection", {
+  connectionId: __t.connectionId(),
+  identity: __t.identity(),
+  connectedAt: __t.timestamp(),
+});
+export type OnlineConnection = __Infer<typeof OnlineConnection>;
 
 export const PendingLogin = __t.object("PendingLogin", {
   identity: __t.identity(),

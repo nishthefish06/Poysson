@@ -529,6 +529,7 @@ const ArenaRoundInfo = t.object('ArenaRoundInfo', {
   stateJson: t.string(),
   startedAt: t.timestamp(),
   updatedAt: t.timestamp(),
+  online: t.bool(), // the player still has the app open (any signed-in connection)
 });
 
 const ArenaLogInfo = t.object('ArenaLogInfo', {
@@ -543,10 +544,21 @@ const ArenaLogInfo = t.object('ArenaLogInfo', {
   at: t.timestamp(),
 });
 
+function isOnline(ctx: ReadCtx, accountId: bigint) {
+  for (const s of ctx.db.session.accountId.filter(accountId)) {
+    for (const _ of ctx.db.onlineConnection.identity.filter(s.identity)) return true;
+  }
+  return false;
+}
+
 type ArenaRoundRow = ReturnType<ReadCtx['db']['arenaRound']['id']['find']> & {};
 function arenaRoundInfo(ctx: ReadCtx, r: ArenaRoundRow) {
   const { claimCode: _secret, ...rest } = r;
-  return { ...rest, displayName: ctx.db.account.id.find(r.accountId)?.displayName ?? '' };
+  return {
+    ...rest,
+    displayName: ctx.db.account.id.find(r.accountId)?.displayName ?? '',
+    online: isOnline(ctx, r.accountId),
+  };
 }
 
 export const myArenaRounds = spacetimedb.view(

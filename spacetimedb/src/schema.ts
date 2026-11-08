@@ -43,6 +43,17 @@ const session = table(
   }
 );
 
+// Open browser connections, kept by the clientConnected / clientDisconnected hooks. Lets admins
+// see who is still on the page (e.g. an arena round whose tab was closed).
+const onlineConnection = table(
+  { name: 'online_connection' },
+  {
+    connectionId: t.connectionId().primaryKey(),
+    identity: t.identity().index('btree'),
+    connectedAt: t.timestamp(),
+  }
+);
+
 // Identity that published the module; allowed to bootstrap the first admin.
 const moduleOwner = table(
   { name: 'module_owner' },
@@ -249,6 +260,7 @@ const spacetimedb = schema(
     account,
     pendingLogin,
     session,
+    onlineConnection,
     moduleOwner,
     serviceIdentity,
     guide,
