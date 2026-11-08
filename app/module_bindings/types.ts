@@ -99,6 +99,7 @@ export const Guide = __t.object("Guide", {
   summary: __t.string(),
   body: __t.string(),
   sortOrder: __t.u32(),
+  audience: __t.string(),
 });
 export type Guide = __Infer<typeof Guide>;
 
@@ -109,6 +110,7 @@ export const GuideInfo = __t.object("GuideInfo", {
   summary: __t.string(),
   body: __t.string(),
   sortOrder: __t.u32(),
+  audience: __t.string(),
 });
 export type GuideInfo = __Infer<typeof GuideInfo>;
 

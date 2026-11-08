@@ -17,4 +17,5 @@ export default {
   summary: __t.string(),
   body: __t.string(),
   sortOrder: __t.u32(),
+  audience: __t.string(),
 };

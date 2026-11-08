@@ -5,6 +5,7 @@ import { SenderError, t } from 'spacetimedb/server';
 import {
   AttackType,
   AttackerTurn,
+  GuideAudience,
   MESSAGE_MAX,
   RUN_DIFFICULTY,
   RunEventInput,
@@ -517,10 +518,12 @@ export const upsertGuide = spacetimedb.reducer(
     summary: t.string(),
     body: t.string(),
     sortOrder: t.u32(),
+    audience: t.string(), // 'employee' | 'responder'
   },
   (ctx, { guideId, ...fields }) => {
     requireAdmin(ctx);
     parseOrThrow(AttackType, fields.attackType, 'attackType');
+    parseOrThrow(GuideAudience, fields.audience, 'audience');
     assertLength(fields.title, 'title', 200, 1);
     assertLength(fields.body, 'body', 50_000);
     if (guideId === 0n) {

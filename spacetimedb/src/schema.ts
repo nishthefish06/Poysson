@@ -63,6 +63,8 @@ const guide = table(
     summary: t.string(),
     body: t.string(), // markdown
     sortOrder: t.u32(),
+    // GuideAudience. Appended with a default so existing databases migrate without --delete-data.
+    audience: t.string().default('employee'),
   }
 );
 

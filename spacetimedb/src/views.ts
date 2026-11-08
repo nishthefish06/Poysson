@@ -29,6 +29,7 @@ const GuideInfo = t.object('GuideInfo', {
   summary: t.string(),
   body: t.string(),
   sortOrder: t.u32(),
+  audience: t.string(), // 'employee' | 'responder'
 });
 
 const QuestionInfo = t.object('QuestionInfo', {

@@ -36,6 +36,10 @@ export type ScenarioStatus = z.infer<typeof ScenarioStatus>;
 export const ScenarioSource = z.enum(['manual', 'nemotron']);
 export type ScenarioSource = z.infer<typeof ScenarioSource>;
 
+// Who a guide (runbook) is written for: frontline staff, or the people handling the incident.
+export const GuideAudience = z.enum(['employee', 'responder']);
+export type GuideAudience = z.infer<typeof GuideAudience>;
+
 // assigned (by an admin) → in_progress → submitted (employee or agent ended it) → reviewed (scored)
 export const RunStatus = z.enum(['assigned', 'in_progress', 'submitted', 'reviewed']);
 export type RunStatus = z.infer<typeof RunStatus>;

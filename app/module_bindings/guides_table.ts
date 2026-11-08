@@ -17,4 +17,5 @@ export default __t.row({
   summary: __t.string(),
   body: __t.string(),
   sortOrder: __t.u32().name("sort_order"),
+  audience: __t.string(),
 });

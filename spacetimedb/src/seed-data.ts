@@ -1,9 +1,22 @@
 // Starter content for a fresh database: guides, practice questions and scenarios for every
 // attack type, plus a demo roster. Everything is fictional; look-alike domains are made up.
 // Typed against the shared schemas so content can't drift from what the module accepts.
-import type { AttackType, Difficulty, ScenarioContent, ScenarioRubric } from '@hackutd2026/shared';
+import type {
+  AttackType,
+  Difficulty,
+  GuideAudience,
+  ScenarioContent,
+  ScenarioRubric,
+} from '@hackutd2026/shared';
 
-export const GUIDES: { attackType: AttackType; title: string; summary: string; body: string }[] = [
+// Every starter guide is for frontline employees; responder runbooks set audience: 'responder'.
+export const GUIDES: {
+  attackType: AttackType;
+  title: string;
+  summary: string;
+  body: string;
+  audience?: GuideAudience;
+}[] = [
   // ---------- Ransomware ----------
   {
     attackType: 'ransomware',

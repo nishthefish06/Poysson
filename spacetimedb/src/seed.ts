@@ -5,7 +5,9 @@ import type { Ctx } from './access';
 import { GUIDES, QUESTIONS, SCENARIOS } from './seed-data';
 
 function seedContent(ctx: Ctx) {
-  GUIDES.forEach((g, i) => ctx.db.guide.insert({ id: 0n, ...g, sortOrder: i }));
+  GUIDES.forEach((g, i) =>
+    ctx.db.guide.insert({ id: 0n, ...g, audience: g.audience ?? 'employee', sortOrder: i })
+  );
   for (const q of QUESTIONS) ctx.db.practiceQuestion.insert({ id: 0n, ...q });
   for (const s of SCENARIOS) {
     ctx.db.scenario.insert({
