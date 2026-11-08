@@ -37,14 +37,23 @@ let cached: { key: string; url: string; conn: Connection; payer: Keypair } | nul
 
 /** Connection + app wallet (cached). Shared by audit anchoring and badge credentials. */
 export function solanaClient() {
-  const { solanaRpcUrl, solanaSecretKey } = useRuntimeConfig();
-  if (!solanaSecretKey) {
+  const { solanaRpcUrl, solanaSecretKey: rawKey } = useRuntimeConfig();
+  // In production the key arrives as NUXT_SOLANA_SECRET_KEY, and Nuxt parses JSON-looking env
+  // values, so it's already an array there; in dev it's the raw string from .env.
+  if (!rawKey || (Array.isArray(rawKey) && !rawKey.length)) {
     throw createError({ statusCode: 503, statusMessage: 'Solana is not configured (SOLANA_SECRET_KEY)' });
   }
+  let keyBytes: unknown;
+  try {
+    keyBytes = Array.isArray(rawKey) ? rawKey : JSON.parse(String(rawKey));
+  } catch {
+    throw createError({ statusCode: 500, statusMessage: 'SOLANA_SECRET_KEY must be a JSON array of 64 numbers' });
+  }
+  const solanaSecretKey = JSON.stringify(keyBytes);
   if (!cached || cached.key !== solanaSecretKey || cached.url !== solanaRpcUrl) {
     let payer: Keypair;
     try {
-      payer = Keypair.fromSecretKey(Uint8Array.from(JSON.parse(solanaSecretKey) as number[]));
+      payer = Keypair.fromSecretKey(Uint8Array.from(keyBytes as number[]));
     } catch {
       throw createError({ statusCode: 500, statusMessage: 'SOLANA_SECRET_KEY must be a JSON array of 64 numbers' });
     }

@@ -6,6 +6,20 @@ export default defineNuxtConfig({
   ssr: false,
   // SpacetimeDB's local server already uses :3000
   devServer: { port: 3001 },
+  // Bundle the Solana SDK into the server build. Left external, Nitro copies only the hoisted
+  // @noble/hashes v2 (from the SpacetimeDB module), but @solana/web3.js needs its nested v1.
+  nitro: {
+    externals: {
+      inline: [
+        '@solana/web3.js',
+        '@solana/spl-token',
+        '@solana/spl-token-metadata',
+        '@noble/hashes',
+        '@noble/curves',
+        'jayson',
+      ],
+    },
+  },
   modules: ['@nuxtjs/tailwindcss'],
   // Pages use <CyberInput>, not <UiCyberInput>: register components by file name only.
   components: [{ path: '~/components', pathPrefix: false }],
