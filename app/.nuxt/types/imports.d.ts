@@ -25,12 +25,14 @@ declare global {
   const definePayloadReviver: typeof import('../../../node_modules/nuxt/dist/app/composables/payload').definePayloadReviver
   const effect: typeof import('vue').effect
   const effectScope: typeof import('vue').effectScope
+  const fakeTx: typeof import('../../composables/useGame').fakeTx
   const fmtTime: typeof import('../../utils/token').fmtTime
   const forgetToken: typeof import('../../utils/token').forgetToken
   const getAppManifest: typeof import('../../../node_modules/nuxt/dist/app/composables/manifest').getAppManifest
   const getCurrentInstance: typeof import('vue').getCurrentInstance
   const getCurrentScope: typeof import('vue').getCurrentScope
   const getRouteRules: typeof import('../../../node_modules/nuxt/dist/app/composables/manifest').getRouteRules
+  const gradeFor: typeof import('../../composables/useGame').gradeFor
   const h: typeof import('vue').h
   const hasInjectionContext: typeof import('vue').hasInjectionContext
   const inject: typeof import('vue').inject
@@ -83,12 +85,14 @@ declare global {
   const requestIdleCallback: typeof import('../../../node_modules/nuxt/dist/app/compat/idle-callback').requestIdleCallback
   const resolveComponent: typeof import('vue').resolveComponent
   const saveToken: typeof import('../../utils/token').saveToken
+  const seedState: typeof import('../../composables/useGame').seedState
   const setInterval: typeof import('../../../node_modules/nuxt/dist/app/compat/interval').setInterval
   const setPageLayout: typeof import('../../../node_modules/nuxt/dist/app/composables/router').setPageLayout
   const setResponseStatus: typeof import('../../../node_modules/nuxt/dist/app/composables/ssr').setResponseStatus
   const shallowReactive: typeof import('vue').shallowReactive
   const shallowReadonly: typeof import('vue').shallowReadonly
   const shallowRef: typeof import('vue').shallowRef
+  const shortTx: typeof import('../../composables/useGame').shortTx
   const showError: typeof import('../../../node_modules/nuxt/dist/app/composables/error').showError
   const toRaw: typeof import('vue').toRaw
   const toRef: typeof import('vue').toRef
@@ -106,6 +110,7 @@ declare global {
   const useCssVars: typeof import('vue').useCssVars
   const useError: typeof import('../../../node_modules/nuxt/dist/app/composables/error').useError
   const useFetch: typeof import('../../../node_modules/nuxt/dist/app/composables/fetch').useFetch
+  const useGame: typeof import('../../composables/useGame').useGame
   const useHead: typeof import('../../../node_modules/nuxt/dist/app/composables/head').useHead
   const useHeadSafe: typeof import('../../../node_modules/nuxt/dist/app/composables/head').useHeadSafe
   const useHydration: typeof import('../../../node_modules/nuxt/dist/app/composables/hydrate').useHydration
@@ -128,7 +133,6 @@ declare global {
   const useRoute: typeof import('../../../node_modules/nuxt/dist/app/composables/router').useRoute
   const useRouteAnnouncer: typeof import('../../../node_modules/nuxt/dist/app/composables/route-announcer').useRouteAnnouncer
   const useRouter: typeof import('../../../node_modules/nuxt/dist/app/composables/router').useRouter
-  const useRunner: typeof import('../../composables/useRunner').useRunner
   const useRuntimeConfig: typeof import('../../../node_modules/nuxt/dist/app/nuxt').useRuntimeConfig
   const useRuntimeHook: typeof import('../../../node_modules/nuxt/dist/app/composables/runtime-hook').useRuntimeHook
   const useScript: typeof import('../../../node_modules/nuxt/dist/app/composables/script-stubs').useScript
@@ -178,7 +182,6 @@ declare global {
   const useServerHead: typeof import('../../../node_modules/nuxt/dist/app/composables/head').useServerHead
   const useServerHeadSafe: typeof import('../../../node_modules/nuxt/dist/app/composables/head').useServerHeadSafe
   const useServerSeoMeta: typeof import('../../../node_modules/nuxt/dist/app/composables/head').useServerSeoMeta
-  const useSession: typeof import('../../composables/useSession').useSession
   const useShadowRoot: typeof import('vue').useShadowRoot
   const useSlots: typeof import('vue').useSlots
   const useState: typeof import('../../../node_modules/nuxt/dist/app/composables/state').useState
@@ -194,6 +197,7 @@ declare global {
   const withMemo: typeof import('vue').withMemo
   const withModifiers: typeof import('vue').withModifiers
   const withScopeId: typeof import('vue').withScopeId
+  const xpForLevel: typeof import('../../composables/useGame').xpForLevel
 }
 // for type re-export
 declare global {
@@ -201,8 +205,8 @@ declare global {
   export type { Component, ComponentPublicInstance, ComputedRef, DirectiveBinding, ExtractDefaultPropTypes, ExtractPropTypes, ExtractPublicPropTypes, InjectionKey, PropType, Ref, MaybeRef, MaybeRefOrGetter, VNode, WritableComputedRef } from 'vue'
   import('vue')
   // @ts-ignore
-  export type { SessionAccount, LoginStage } from '../../composables/useSession'
-  import('../../composables/useSession')
+  export type { Decision, RunResult, Passkey, AuditEntry, Player, GameState } from '../../composables/useGame'
+  import('../../composables/useGame')
 }
 // for vue template auto import
 import { UnwrapRef } from 'vue'
@@ -232,12 +236,14 @@ declare module 'vue' {
     readonly definePayloadReviver: UnwrapRef<typeof import('../../../node_modules/nuxt/dist/app/composables/payload')['definePayloadReviver']>
     readonly effect: UnwrapRef<typeof import('vue')['effect']>
     readonly effectScope: UnwrapRef<typeof import('vue')['effectScope']>
+    readonly fakeTx: UnwrapRef<typeof import('../../composables/useGame')['fakeTx']>
     readonly fmtTime: UnwrapRef<typeof import('../../utils/token')['fmtTime']>
     readonly forgetToken: UnwrapRef<typeof import('../../utils/token')['forgetToken']>
     readonly getAppManifest: UnwrapRef<typeof import('../../../node_modules/nuxt/dist/app/composables/manifest')['getAppManifest']>
     readonly getCurrentInstance: UnwrapRef<typeof import('vue')['getCurrentInstance']>
     readonly getCurrentScope: UnwrapRef<typeof import('vue')['getCurrentScope']>
     readonly getRouteRules: UnwrapRef<typeof import('../../../node_modules/nuxt/dist/app/composables/manifest')['getRouteRules']>
+    readonly gradeFor: UnwrapRef<typeof import('../../composables/useGame')['gradeFor']>
     readonly h: UnwrapRef<typeof import('vue')['h']>
     readonly hasInjectionContext: UnwrapRef<typeof import('vue')['hasInjectionContext']>
     readonly inject: UnwrapRef<typeof import('vue')['inject']>
@@ -290,12 +296,14 @@ declare module 'vue' {
     readonly requestIdleCallback: UnwrapRef<typeof import('../../../node_modules/nuxt/dist/app/compat/idle-callback')['requestIdleCallback']>
     readonly resolveComponent: UnwrapRef<typeof import('vue')['resolveComponent']>
     readonly saveToken: UnwrapRef<typeof import('../../utils/token')['saveToken']>
+    readonly seedState: UnwrapRef<typeof import('../../composables/useGame')['seedState']>
     readonly setInterval: UnwrapRef<typeof import('../../../node_modules/nuxt/dist/app/compat/interval')['setInterval']>
     readonly setPageLayout: UnwrapRef<typeof import('../../../node_modules/nuxt/dist/app/composables/router')['setPageLayout']>
     readonly setResponseStatus: UnwrapRef<typeof import('../../../node_modules/nuxt/dist/app/composables/ssr')['setResponseStatus']>
     readonly shallowReactive: UnwrapRef<typeof import('vue')['shallowReactive']>
     readonly shallowReadonly: UnwrapRef<typeof import('vue')['shallowReadonly']>
     readonly shallowRef: UnwrapRef<typeof import('vue')['shallowRef']>
+    readonly shortTx: UnwrapRef<typeof import('../../composables/useGame')['shortTx']>
     readonly showError: UnwrapRef<typeof import('../../../node_modules/nuxt/dist/app/composables/error')['showError']>
     readonly toRaw: UnwrapRef<typeof import('vue')['toRaw']>
     readonly toRef: UnwrapRef<typeof import('vue')['toRef']>
@@ -313,6 +321,7 @@ declare module 'vue' {
     readonly useCssVars: UnwrapRef<typeof import('vue')['useCssVars']>
     readonly useError: UnwrapRef<typeof import('../../../node_modules/nuxt/dist/app/composables/error')['useError']>
     readonly useFetch: UnwrapRef<typeof import('../../../node_modules/nuxt/dist/app/composables/fetch')['useFetch']>
+    readonly useGame: UnwrapRef<typeof import('../../composables/useGame')['useGame']>
     readonly useHead: UnwrapRef<typeof import('../../../node_modules/nuxt/dist/app/composables/head')['useHead']>
     readonly useHeadSafe: UnwrapRef<typeof import('../../../node_modules/nuxt/dist/app/composables/head')['useHeadSafe']>
     readonly useHydration: UnwrapRef<typeof import('../../../node_modules/nuxt/dist/app/composables/hydrate')['useHydration']>
@@ -335,7 +344,6 @@ declare module 'vue' {
     readonly useRoute: UnwrapRef<typeof import('../../../node_modules/nuxt/dist/app/composables/router')['useRoute']>
     readonly useRouteAnnouncer: UnwrapRef<typeof import('../../../node_modules/nuxt/dist/app/composables/route-announcer')['useRouteAnnouncer']>
     readonly useRouter: UnwrapRef<typeof import('../../../node_modules/nuxt/dist/app/composables/router')['useRouter']>
-    readonly useRunner: UnwrapRef<typeof import('../../composables/useRunner')['useRunner']>
     readonly useRuntimeConfig: UnwrapRef<typeof import('../../../node_modules/nuxt/dist/app/nuxt')['useRuntimeConfig']>
     readonly useRuntimeHook: UnwrapRef<typeof import('../../../node_modules/nuxt/dist/app/composables/runtime-hook')['useRuntimeHook']>
     readonly useScript: UnwrapRef<typeof import('../../../node_modules/nuxt/dist/app/composables/script-stubs')['useScript']>
@@ -385,7 +393,6 @@ declare module 'vue' {
     readonly useServerHead: UnwrapRef<typeof import('../../../node_modules/nuxt/dist/app/composables/head')['useServerHead']>
     readonly useServerHeadSafe: UnwrapRef<typeof import('../../../node_modules/nuxt/dist/app/composables/head')['useServerHeadSafe']>
     readonly useServerSeoMeta: UnwrapRef<typeof import('../../../node_modules/nuxt/dist/app/composables/head')['useServerSeoMeta']>
-    readonly useSession: UnwrapRef<typeof import('../../composables/useSession')['useSession']>
     readonly useShadowRoot: UnwrapRef<typeof import('vue')['useShadowRoot']>
     readonly useSlots: UnwrapRef<typeof import('vue')['useSlots']>
     readonly useState: UnwrapRef<typeof import('../../../node_modules/nuxt/dist/app/composables/state')['useState']>
@@ -401,5 +408,6 @@ declare module 'vue' {
     readonly withMemo: UnwrapRef<typeof import('vue')['withMemo']>
     readonly withModifiers: UnwrapRef<typeof import('vue')['withModifiers']>
     readonly withScopeId: UnwrapRef<typeof import('vue')['withScopeId']>
+    readonly xpForLevel: UnwrapRef<typeof import('../../composables/useGame')['xpForLevel']>
   }
 }

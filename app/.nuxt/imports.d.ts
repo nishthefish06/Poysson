@@ -30,7 +30,6 @@ export { requestIdleCallback, cancelIdleCallback } from '#app/compat/idle-callba
 export { setInterval } from '#app/compat/interval';
 export { definePageMeta } from '../../node_modules/nuxt/dist/pages/runtime/composables';
 export { defineLazyHydrationComponent } from '#app/composables/lazy-hydration';
-export { useRunner } from '../composables/useRunner';
-export { useSession, SessionAccount, LoginStage } from '../composables/useSession';
+export { fakeTx, shortTx, xpForLevel, gradeFor, seedState, useGame, Decision, RunResult, Passkey, AuditEntry, Player, GameState } from '../composables/useGame';
 export { readToken, saveToken, forgetToken, fmtTime } from '../utils/token';
 export { useNuxtDevTools } from '../../node_modules/@nuxt/devtools/dist/runtime/use-nuxt-devtools';

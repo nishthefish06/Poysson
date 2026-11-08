@@ -1,47 +1,48 @@
 import process from 'node:process';globalThis._importMeta_={url:import.meta.url,env:process.env};import { tmpdir } from 'node:os';
+import { defineEventHandler, handleCacheHeaders, splitCookiesString, createEvent, fetchWithEvent, isEvent, eventHandler, setHeaders, createError, sendRedirect, proxyRequest, getRequestHeader, setResponseHeaders, setResponseStatus, send, getRequestHeaders, setResponseHeader, appendResponseHeader, getRequestURL, getResponseHeader, removeResponseHeader, getQuery as getQuery$1, getRequestWebStream, createApp, createRouter as createRouter$1, toNodeListener, lazyEventHandler, getResponseStatus, getRouterParam, readBody, getResponseStatusText } from 'file:///Users/bthiriveedhi/hackhackhack/hackutd2026/node_modules/h3/dist/index.mjs';
 import { Server } from 'node:http';
-import { resolve, dirname, join } from 'node:path';
-import nodeCrypto, { randomUUID } from 'node:crypto';
+import { resolve, join, dirname } from 'node:path';
+import crypto$1, { randomUUID } from 'node:crypto';
 import { parentPort, threadId } from 'node:worker_threads';
-import { defineEventHandler, handleCacheHeaders, splitCookiesString, createEvent, fetchWithEvent, isEvent, eventHandler, setHeaders, createError, sendRedirect, proxyRequest, getRequestHeader, setResponseHeaders, setResponseStatus, send, getRequestHeaders, setResponseHeader, appendResponseHeader, getRequestURL, getResponseHeader, removeResponseHeader, getQuery as getQuery$1, getRequestWebStream, createApp, createRouter as createRouter$1, toNodeListener, lazyEventHandler, getResponseStatus, getRouterParam, readBody, getResponseStatusText } from 'file://C:/Users/School/Desktop/Hackathons/HackUTD_2026/hackutd2026/node_modules/h3/dist/index.mjs';
-import { escapeHtml } from 'file://C:/Users/School/Desktop/Hackathons/HackUTD_2026/hackutd2026/node_modules/@vue/shared/dist/shared.cjs.js';
-import viteNodeEntry_mjs from 'file://C:/Users/School/Desktop/Hackathons/HackUTD_2026/hackutd2026/node_modules/@nuxt/vite-builder/dist/vite-node-entry.mjs';
-import { viteNodeFetch } from 'file://C:/Users/School/Desktop/Hackathons/HackUTD_2026/hackutd2026/node_modules/@nuxt/vite-builder/dist/vite-node.mjs';
-import { z } from 'file://C:/Users/School/Desktop/Hackathons/HackUTD_2026/hackutd2026/node_modules/zod/index.js';
-import { createRenderer, getRequestDependencies, getPreloadLinks, getPrefetchLinks } from 'file://C:/Users/School/Desktop/Hackathons/HackUTD_2026/hackutd2026/node_modules/vue-bundle-renderer/dist/runtime.mjs';
-import { parseURL, withQuery, getQuery, withoutBase, joinURL, withTrailingSlash, decodePath, withLeadingSlash, withoutTrailingSlash, encodePath, joinRelativeURL } from 'file://C:/Users/School/Desktop/Hackathons/HackUTD_2026/hackutd2026/node_modules/ufo/dist/index.mjs';
-import { renderToString } from 'file://C:/Users/School/Desktop/Hackathons/HackUTD_2026/hackutd2026/node_modules/vue/server-renderer/index.mjs';
-import { klona } from 'file://C:/Users/School/Desktop/Hackathons/HackUTD_2026/hackutd2026/node_modules/klona/dist/index.mjs';
-import defu, { defuFn } from 'file://C:/Users/School/Desktop/Hackathons/HackUTD_2026/hackutd2026/node_modules/defu/dist/defu.mjs';
-import destr, { destr as destr$1 } from 'file://C:/Users/School/Desktop/Hackathons/HackUTD_2026/hackutd2026/node_modules/destr/dist/index.mjs';
-import { snakeCase } from 'file://C:/Users/School/Desktop/Hackathons/HackUTD_2026/hackutd2026/node_modules/scule/dist/index.mjs';
-import { createHead as createHead$1, propsToString, renderSSRHead } from 'file://C:/Users/School/Desktop/Hackathons/HackUTD_2026/hackutd2026/node_modules/unhead/dist/server.mjs';
-import { stringify, uneval } from 'file://C:/Users/School/Desktop/Hackathons/HackUTD_2026/hackutd2026/node_modules/devalue/index.js';
-import { isVNode, isRef, toValue } from 'file://C:/Users/School/Desktop/Hackathons/HackUTD_2026/hackutd2026/node_modules/vue/index.mjs';
-import { DeprecationsPlugin, PromisesPlugin, TemplateParamsPlugin, AliasSortingPlugin } from 'file://C:/Users/School/Desktop/Hackathons/HackUTD_2026/hackutd2026/node_modules/unhead/dist/plugins.mjs';
-import { createHooks } from 'file://C:/Users/School/Desktop/Hackathons/HackUTD_2026/hackutd2026/node_modules/hookable/dist/index.mjs';
-import { createFetch, Headers as Headers$1 } from 'file://C:/Users/School/Desktop/Hackathons/HackUTD_2026/hackutd2026/node_modules/ofetch/dist/node.mjs';
-import { fetchNodeRequestHandler, callNodeRequestHandler } from 'file://C:/Users/School/Desktop/Hackathons/HackUTD_2026/hackutd2026/node_modules/node-mock-http/dist/index.mjs';
-import { createStorage, prefixStorage } from 'file://C:/Users/School/Desktop/Hackathons/HackUTD_2026/hackutd2026/node_modules/unstorage/dist/index.mjs';
-import unstorage_47drivers_47fs from 'file://C:/Users/School/Desktop/Hackathons/HackUTD_2026/hackutd2026/node_modules/unstorage/drivers/fs.mjs';
-import file_58_47_47_47C_58_47Users_47School_47Desktop_47Hackathons_47HackUTD_2026_47hackutd2026_47node_modules_47_64nuxt_47nitro_45server_47dist_47runtime_47utils_47cache_45driver_46js from 'file://C:/Users/School/Desktop/Hackathons/HackUTD_2026/hackutd2026/node_modules/@nuxt/nitro-server/dist/runtime/utils/cache-driver.js';
-import { digest, hash as hash$1 } from 'file://C:/Users/School/Desktop/Hackathons/HackUTD_2026/hackutd2026/node_modules/ohash/dist/index.mjs';
-import { toRouteMatcher, createRouter } from 'file://C:/Users/School/Desktop/Hackathons/HackUTD_2026/hackutd2026/node_modules/radix3/dist/index.mjs';
-import { readFile } from 'node:fs/promises';
-import consola, { consola as consola$1 } from 'file://C:/Users/School/Desktop/Hackathons/HackUTD_2026/hackutd2026/node_modules/consola/dist/index.mjs';
-import { ErrorParser } from 'file://C:/Users/School/Desktop/Hackathons/HackUTD_2026/hackutd2026/node_modules/youch-core/build/index.js';
-import { Youch } from 'file://C:/Users/School/Desktop/Hackathons/HackUTD_2026/hackutd2026/node_modules/youch/build/index.js';
-import { SourceMapConsumer } from 'file://C:/Users/School/Desktop/Hackathons/HackUTD_2026/hackutd2026/node_modules/source-map/source-map.js';
+import { escapeHtml } from 'file:///Users/bthiriveedhi/hackhackhack/hackutd2026/node_modules/@vue/shared/dist/shared.cjs.js';
+import viteNodeEntry_mjs from 'file:///Users/bthiriveedhi/hackhackhack/hackutd2026/node_modules/@nuxt/vite-builder/dist/vite-node-entry.mjs';
+import { viteNodeFetch } from 'file:///Users/bthiriveedhi/hackhackhack/hackutd2026/node_modules/@nuxt/vite-builder/dist/vite-node.mjs';
+import { z } from 'file:///Users/bthiriveedhi/hackhackhack/hackutd2026/node_modules/zod/index.js';
+import { createRenderer, getRequestDependencies, getPreloadLinks, getPrefetchLinks } from 'file:///Users/bthiriveedhi/hackhackhack/hackutd2026/node_modules/vue-bundle-renderer/dist/runtime.mjs';
+import { parseURL, withQuery, getQuery, withoutBase, joinURL, withTrailingSlash, decodePath, withLeadingSlash, withoutTrailingSlash, encodePath, joinRelativeURL } from 'file:///Users/bthiriveedhi/hackhackhack/hackutd2026/node_modules/ufo/dist/index.mjs';
+import { renderToString } from 'file:///Users/bthiriveedhi/hackhackhack/hackutd2026/node_modules/vue/server-renderer/index.mjs';
+import destr, { destr as destr$1 } from 'file:///Users/bthiriveedhi/hackhackhack/hackutd2026/node_modules/destr/dist/index.mjs';
+import { createHooks } from 'file:///Users/bthiriveedhi/hackhackhack/hackutd2026/node_modules/hookable/dist/index.mjs';
+import { createFetch, Headers as Headers$1 } from 'file:///Users/bthiriveedhi/hackhackhack/hackutd2026/node_modules/ofetch/dist/node.mjs';
+import { fetchNodeRequestHandler, callNodeRequestHandler } from 'file:///Users/bthiriveedhi/hackhackhack/hackutd2026/node_modules/node-mock-http/dist/index.mjs';
+import { createStorage, prefixStorage } from 'file:///Users/bthiriveedhi/hackhackhack/hackutd2026/node_modules/unstorage/dist/index.mjs';
+import unstorage_47drivers_47fs from 'file:///Users/bthiriveedhi/hackhackhack/hackutd2026/node_modules/unstorage/drivers/fs.mjs';
+import { mkdir, writeFile, rename, unlink, readFile } from 'node:fs/promises';
+import fsDriver from 'file:///Users/bthiriveedhi/hackhackhack/hackutd2026/node_modules/unstorage/drivers/fs-lite.mjs';
+import lruCache from 'file:///Users/bthiriveedhi/hackhackhack/hackutd2026/node_modules/unstorage/drivers/lru-cache.mjs';
+import { digest, hash as hash$1 } from 'file:///Users/bthiriveedhi/hackhackhack/hackutd2026/node_modules/ohash/dist/index.mjs';
+import { klona } from 'file:///Users/bthiriveedhi/hackhackhack/hackutd2026/node_modules/klona/dist/index.mjs';
+import defu, { defuFn } from 'file:///Users/bthiriveedhi/hackhackhack/hackutd2026/node_modules/defu/dist/defu.mjs';
+import { snakeCase } from 'file:///Users/bthiriveedhi/hackhackhack/hackutd2026/node_modules/scule/dist/index.mjs';
+import { getContext } from 'file:///Users/bthiriveedhi/hackhackhack/hackutd2026/node_modules/unctx/dist/index.mjs';
+import { toRouteMatcher, createRouter } from 'file:///Users/bthiriveedhi/hackhackhack/hackutd2026/node_modules/radix3/dist/index.mjs';
+import consola, { consola as consola$1 } from 'file:///Users/bthiriveedhi/hackhackhack/hackutd2026/node_modules/consola/dist/index.mjs';
+import { ErrorParser } from 'file:///Users/bthiriveedhi/hackhackhack/hackutd2026/node_modules/youch-core/build/index.js';
+import { Youch } from 'file:///Users/bthiriveedhi/hackhackhack/hackutd2026/node_modules/youch/build/index.js';
+import { SourceMapConsumer } from 'file:///Users/bthiriveedhi/hackhackhack/hackutd2026/node_modules/source-map/source-map.js';
 import { AsyncLocalStorage } from 'node:async_hooks';
-import { getContext } from 'file://C:/Users/School/Desktop/Hackathons/HackUTD_2026/hackutd2026/node_modules/unctx/dist/index.mjs';
-import { captureRawStackTrace, parseRawStackTrace } from 'file://C:/Users/School/Desktop/Hackathons/HackUTD_2026/hackutd2026/node_modules/errx/dist/index.mjs';
-import _wH6JrtIxmaSoA8lCPWFnE9z4lQeXW6H5z3l5aymEQw from 'file://C:/Users/School/Desktop/Hackathons/HackUTD_2026/hackutd2026/node_modules/@nuxt/vite-builder/dist/fix-stacktrace.mjs';
+import { stringify, uneval } from 'file:///Users/bthiriveedhi/hackhackhack/hackutd2026/node_modules/devalue/index.js';
+import { captureRawStackTrace, parseRawStackTrace } from 'file:///Users/bthiriveedhi/hackhackhack/hackutd2026/node_modules/errx/dist/index.mjs';
+import { isVNode, isRef, toValue } from 'file:///Users/bthiriveedhi/hackhackhack/hackutd2026/node_modules/vue/index.mjs';
+import _wH6JrtIxmaSoA8lCPWFnE9z4lQeXW6H5z3l5aymEQw from 'file:///Users/bthiriveedhi/hackhackhack/hackutd2026/node_modules/@nuxt/vite-builder/dist/fix-stacktrace.mjs';
 import { promises } from 'node:fs';
 import { fileURLToPath } from 'node:url';
-import { dirname as dirname$1, resolve as resolve$1 } from 'file://C:/Users/School/Desktop/Hackathons/HackUTD_2026/hackutd2026/node_modules/pathe/dist/index.mjs';
-import { walkResolver } from 'file://C:/Users/School/Desktop/Hackathons/HackUTD_2026/hackutd2026/node_modules/unhead/dist/utils.mjs';
+import { dirname as dirname$1, resolve as resolve$1 } from 'file:///Users/bthiriveedhi/hackhackhack/hackutd2026/node_modules/pathe/dist/index.mjs';
+import { createHead as createHead$1, propsToString, renderSSRHead } from 'file:///Users/bthiriveedhi/hackhackhack/hackutd2026/node_modules/unhead/dist/server.mjs';
+import { DeprecationsPlugin, PromisesPlugin, TemplateParamsPlugin, AliasSortingPlugin } from 'file:///Users/bthiriveedhi/hackhackhack/hackutd2026/node_modules/unhead/dist/plugins.mjs';
+import { walkResolver } from 'file:///Users/bthiriveedhi/hackhackhack/hackutd2026/node_modules/unhead/dist/utils.mjs';
 
-const serverAssets = [{"baseName":"server","dir":"C:/Users/School/Desktop/Hackathons/HackUTD_2026/hackutd2026/app/server/assets"}];
+const serverAssets = [{"baseName":"server","dir":"/Users/bthiriveedhi/hackhackhack/hackutd2026/app/server/assets"}];
 
 const assets$1 = createStorage();
 
@@ -49,16 +50,72 @@ for (const asset of serverAssets) {
   assets$1.mount(asset.baseName, unstorage_47drivers_47fs({ base: asset.dir, ignore: (asset?.ignore || []) }));
 }
 
+// @ts-check
+
+
+/**
+ * @param {string} item
+ */
+function normalizeFsKey (item) {
+  const safe = item.replace(/[^\w.-]/g, '_');
+  const prefix = safe.slice(0, 20);
+  const hash = crypto$1.createHash('sha256').update(item).digest('hex');
+  return `${prefix}-${hash}`
+}
+
+/**
+ * Write `value` to `path` atomically so a concurrent reader never observes a
+ * truncated file: the payload is written to a unique sibling and renamed over
+ * the destination, which is a single filesystem operation.
+ * @param {string} path
+ * @param {string} value
+ */
+async function atomicWrite (path, value) {
+  await mkdir(dirname(path), { recursive: true });
+  const tmp = `${path}.${crypto$1.randomBytes(8).toString('hex')}.tmp`;
+  try {
+    await writeFile(tmp, value, 'utf8');
+    await rename(tmp, path);
+  } catch (error) {
+    await unlink(tmp).catch(() => {});
+    throw error
+  }
+}
+
+/**
+ * @param {{ base?: string }} opts
+ * @returns {import('unstorage').Driver} An unstorage driver that uses both LRU cache and file system, with LRU as the primary and file system as the fallback.
+ */
+function cacheDriver (opts) {
+  const fs = fsDriver({ base: opts.base });
+  const lru = lruCache({ max: 1000 });
+  const base = resolve(opts.base || '.');
+
+  return {
+    ...fs, // fall back to file system - only the bottom three methods are used in renderer
+    async setItem (key, value, opts) {
+      await atomicWrite(join(base, normalizeFsKey(key)), value);
+      await lru.setItem?.(key, value, opts);
+    },
+    async hasItem (key, opts) {
+      return await lru.hasItem(key, opts) || await fs.hasItem(normalizeFsKey(key), opts)
+    },
+    async getItem (key, opts) {
+      return await lru.getItem(key, opts) || await fs.getItem(normalizeFsKey(key), opts)
+    },
+  }
+}
+
 const storage = createStorage({});
 
 storage.mount('/assets', assets$1);
 
-storage.mount('root', unstorage_47drivers_47fs({"driver":"fs","readOnly":true,"base":"C:/Users/School/Desktop/Hackathons/HackUTD_2026/hackutd2026/app","watchOptions":{"ignored":[null]}}));
-storage.mount('src', unstorage_47drivers_47fs({"driver":"fs","readOnly":true,"base":"C:/Users/School/Desktop/Hackathons/HackUTD_2026/hackutd2026/app/server","watchOptions":{"ignored":[null]}}));
-storage.mount('cache:nuxt:payload', file_58_47_47_47C_58_47Users_47School_47Desktop_47Hackathons_47HackUTD_2026_47hackutd2026_47node_modules_47_64nuxt_47nitro_45server_47dist_47runtime_47utils_47cache_45driver_46js({"driver":"file:///C:/Users/School/Desktop/Hackathons/HackUTD_2026/hackutd2026/node_modules/@nuxt/nitro-server/dist/runtime/utils/cache-driver.js","base":"C:/Users/School/Desktop/Hackathons/HackUTD_2026/hackutd2026/app/.nuxt/cache/nuxt/payload"}));
-storage.mount('build', unstorage_47drivers_47fs({"driver":"fs","readOnly":false,"base":"C:/Users/School/Desktop/Hackathons/HackUTD_2026/hackutd2026/app/.nuxt"}));
-storage.mount('cache', unstorage_47drivers_47fs({"driver":"fs","readOnly":false,"base":"C:/Users/School/Desktop/Hackathons/HackUTD_2026/hackutd2026/app/.nuxt/cache"}));
-storage.mount('data', unstorage_47drivers_47fs({"driver":"fs","base":"C:/Users/School/Desktop/Hackathons/HackUTD_2026/hackutd2026/app/.data/kv"}));
+storage.mount('root', unstorage_47drivers_47fs({"driver":"fs","readOnly":true,"base":"/Users/bthiriveedhi/hackhackhack/hackutd2026/app","watchOptions":{"ignored":[null]}}));
+storage.mount('src', unstorage_47drivers_47fs({"driver":"fs","readOnly":true,"base":"/Users/bthiriveedhi/hackhackhack/hackutd2026/app/server","watchOptions":{"ignored":[null]}}));
+storage.mount('cache:nuxt:payload', cacheDriver({"base":"/Users/bthiriveedhi/hackhackhack/hackutd2026/app/.nuxt/cache/nuxt/payload"}));
+storage.mount('build', unstorage_47drivers_47fs({"driver":"fs","readOnly":false,"base":"/Users/bthiriveedhi/hackhackhack/hackutd2026/app/.nuxt"}));
+storage.mount('cache', unstorage_47drivers_47fs({"driver":"fs","readOnly":false,"base":"/Users/bthiriveedhi/hackhackhack/hackutd2026/app/.nuxt/cache"}));
+storage.mount('data', unstorage_47drivers_47fs({"driver":"fs","base":"/Users/bthiriveedhi/hackhackhack/hackutd2026/app/.data/kv"}));
 
 function useStorage(base = "") {
   return base ? prefixStorage(storage, base) : storage;
@@ -775,6 +832,11 @@ new Proxy(/* @__PURE__ */ Object.create(null), {
     }
     return void 0;
   }
+});
+
+getContext("nitro-app", {
+  asyncContext: false,
+  AsyncLocalStorage: void 0
 });
 
 const MAX_DECODE_PASSES = 8;
@@ -2248,13 +2310,13 @@ if (!window.__NUXT_DEVTOOLS_TIME_METRIC__) {
 window.__NUXT_DEVTOOLS_TIME_METRIC__.appInit = Date.now()
 `;
 
-const _zQfw_Sa1J_8Nl5lIFLqhrQpper2LIElowSiQNQRidc = (function(nitro) {
+const _xSi227ERw4RpxwO2O6vTPa1t1SMemoSBzBjkSOT43Ew = (function(nitro) {
   nitro.hooks.hook("render:html", (htmlContext) => {
     htmlContext.head.push(`<script>${script}<\/script>`);
   });
 });
 
-const rootDir = "C:/Users/School/Desktop/Hackathons/HackUTD_2026/hackutd2026/app";
+const rootDir = "/Users/bthiriveedhi/hackhackhack/hackutd2026/app";
 
 const appHead = {"meta":[{"name":"viewport","content":"width=device-width, initial-scale=1"},{"charset":"utf-8"}],"link":[],"style":[],"script":[],"noscript":[]};
 
@@ -2280,7 +2342,7 @@ const asyncContext = getContext("nuxt-dev", {
 	asyncContext: true,
 	AsyncLocalStorage
 });
-const _yIWCd3y1zNh__yRfBfOmQsCZR0VWuuUJuAhSvkSjaRU = (nitroApp) => {
+const _5xesVGbXtYCvsKhsXrllMP7Z76oWwOvHzWFzZrQ2haQ = (nitroApp) => {
 	const handler = nitroApp.h3App.handler;
 	nitroApp.h3App.handler = (event) => {
 		return asyncContext.callAsync({
@@ -2356,8 +2418,8 @@ function onConsoleLog(callback) {
 }
 
 const plugins = [
-  _zQfw_Sa1J_8Nl5lIFLqhrQpper2LIElowSiQNQRidc,
-_yIWCd3y1zNh__yRfBfOmQsCZR0VWuuUJuAhSvkSjaRU,
+  _xSi227ERw4RpxwO2O6vTPa1t1SMemoSBzBjkSOT43Ew,
+_5xesVGbXtYCvsKhsXrllMP7Z76oWwOvHzWFzZrQ2haQ,
 _wH6JrtIxmaSoA8lCPWFnE9z4lQeXW6H5z3l5aymEQw
 ];
 
@@ -2390,7 +2452,7 @@ function getAsset (id) {
 
 const METHODS = /* @__PURE__ */ new Set(["HEAD", "GET"]);
 const EncodingMap = { gzip: ".gz", br: ".br" };
-const _YMZ2iH = eventHandler((event) => {
+const _JClrBt = eventHandler((event) => {
   if (event.method && !METHODS.has(event.method)) {
     return;
   }
@@ -3035,25 +3097,25 @@ async function getIslandContext(event) {
 	};
 }
 
-const _lazy_zkZMw0 = () => Promise.resolve().then(function () { return generateScenario_post$1; });
-const _lazy_iCQhZN = () => Promise.resolve().then(function () { return action_post$1; });
-const _lazy_tGToAm = () => Promise.resolve().then(function () { return end_post$1; });
-const _lazy_aAFlzO = () => Promise.resolve().then(function () { return index_get$1; });
-const _lazy_zHtwpR = () => Promise.resolve().then(function () { return start_post$1; });
-const _lazy_CbykIq = () => Promise.resolve().then(function () { return send_post$1; });
-const _lazy_UFFJDE = () => Promise.resolve().then(function () { return renderer; });
+const _lazy_D4TWwq = () => Promise.resolve().then(function () { return generateScenario_post$1; });
+const _lazy_Dmnytz = () => Promise.resolve().then(function () { return action_post$1; });
+const _lazy_9MG4o6 = () => Promise.resolve().then(function () { return end_post$1; });
+const _lazy_s9SwiY = () => Promise.resolve().then(function () { return index_get$1; });
+const _lazy_yrTbQZ = () => Promise.resolve().then(function () { return start_post$1; });
+const _lazy_0IVJrW = () => Promise.resolve().then(function () { return send_post$1; });
+const _lazy_IBP2Tt = () => Promise.resolve().then(function () { return renderer; });
 
 const handlers = [
-  { route: '', handler: _YMZ2iH, lazy: false, middleware: true, method: undefined },
-  { route: '/api/ai/generate-scenario', handler: _lazy_zkZMw0, lazy: true, middleware: false, method: "post" },
-  { route: '/api/arena/:id/action', handler: _lazy_iCQhZN, lazy: true, middleware: false, method: "post" },
-  { route: '/api/arena/:id/end', handler: _lazy_tGToAm, lazy: true, middleware: false, method: "post" },
-  { route: '/api/arena/:id', handler: _lazy_aAFlzO, lazy: true, middleware: false, method: "get" },
-  { route: '/api/arena/start', handler: _lazy_zHtwpR, lazy: true, middleware: false, method: "post" },
-  { route: '/api/photon/send', handler: _lazy_CbykIq, lazy: true, middleware: false, method: "post" },
-  { route: '/__nuxt_error', handler: _lazy_UFFJDE, lazy: true, middleware: false, method: undefined },
+  { route: '', handler: _JClrBt, lazy: false, middleware: true, method: undefined },
+  { route: '/api/ai/generate-scenario', handler: _lazy_D4TWwq, lazy: true, middleware: false, method: "post" },
+  { route: '/api/arena/:id/action', handler: _lazy_Dmnytz, lazy: true, middleware: false, method: "post" },
+  { route: '/api/arena/:id/end', handler: _lazy_9MG4o6, lazy: true, middleware: false, method: "post" },
+  { route: '/api/arena/:id', handler: _lazy_s9SwiY, lazy: true, middleware: false, method: "get" },
+  { route: '/api/arena/start', handler: _lazy_yrTbQZ, lazy: true, middleware: false, method: "post" },
+  { route: '/api/photon/send', handler: _lazy_0IVJrW, lazy: true, middleware: false, method: "post" },
+  { route: '/__nuxt_error', handler: _lazy_IBP2Tt, lazy: true, middleware: false, method: undefined },
   { route: '/__nuxt_island/**', handler: handler$1, lazy: false, middleware: false, method: undefined },
-  { route: '/**', handler: _lazy_UFFJDE, lazy: true, middleware: false, method: undefined }
+  { route: '/**', handler: _lazy_IBP2Tt, lazy: true, middleware: false, method: undefined }
 ];
 
 function createNitroApp() {
@@ -3274,7 +3336,7 @@ async function runTask(name, {
 }
 
 if (!globalThis.crypto) {
-  globalThis.crypto = nodeCrypto.webcrypto;
+  globalThis.crypto = crypto$1.webcrypto;
 }
 const { NITRO_NO_UNIX_SOCKET, NITRO_DEV_WORKER_ID } = process.env;
 trapUnhandledNodeErrors();

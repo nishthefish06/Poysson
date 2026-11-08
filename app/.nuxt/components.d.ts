@@ -14,10 +14,22 @@ type HydrationStrategies = {
 type LazyComponent<T> = DefineComponent<HydrationStrategies, {}, {}, {}, {}, {}, {}, { hydrated: () => void }> & T
 
 
-export const PoyoMascot: typeof import("../components/PoyoMascot.vue")['default']
-export const SessionGate: typeof import("../components/SessionGate.vue")['default']
-export const StepActions: typeof import("../components/StepActions.vue")['default']
-export const StepView: typeof import("../components/StepView.vue")['default']
+export const GameReportDocument: typeof import("../components/game/ReportDocument.vue")['default']
+export const GameSkillRadar: typeof import("../components/game/SkillRadar.vue")['default']
+export const GameSolanaVerified: typeof import("../components/game/SolanaVerified.vue")['default']
+export const UiActionButton: typeof import("../components/ui/ActionButton.vue")['default']
+export const UiCyberBadge: typeof import("../components/ui/CyberBadge.vue")['default']
+export const UiCyberButton: typeof import("../components/ui/CyberButton.vue")['default']
+export const UiCyberIcon: typeof import("../components/ui/CyberIcon.vue")['default']
+export const UiCyberInput: typeof import("../components/ui/CyberInput.vue")['default']
+export const UiCyberPanel: typeof import("../components/ui/CyberPanel.vue")['default']
+export const UiCyberTimer: typeof import("../components/ui/CyberTimer.vue")['default']
+export const UiLogRow: typeof import("../components/ui/LogRow.vue")['default']
+export const UiScenarioCard: typeof import("../components/ui/ScenarioCard.vue")['default']
+export const UiStatCard: typeof import("../components/ui/StatCard.vue")['default']
+export const UiStatusPill: typeof import("../components/ui/StatusPill.vue")['default']
+export const UiTabBar: typeof import("../components/ui/TabBar.vue")['default']
+export const UiXpBar: typeof import("../components/ui/XpBar.vue")['default']
 export const NuxtWelcome: typeof import("../../node_modules/nuxt/dist/app/components/welcome.vue")['default']
 export const NuxtLayout: typeof import("../../node_modules/nuxt/dist/app/components/nuxt-layout")['default']
 export const NuxtErrorBoundary: typeof import("../../node_modules/nuxt/dist/app/components/nuxt-error-boundary.vue")['default']
@@ -41,10 +53,22 @@ export const Head: typeof import("../../node_modules/nuxt/dist/head/runtime/comp
 export const Html: typeof import("../../node_modules/nuxt/dist/head/runtime/components")['Html']
 export const Body: typeof import("../../node_modules/nuxt/dist/head/runtime/components")['Body']
 export const NuxtIsland: typeof import("../../node_modules/nuxt/dist/app/components/nuxt-island")['default']
-export const LazyPoyoMascot: LazyComponent<typeof import("../components/PoyoMascot.vue")['default']>
-export const LazySessionGate: LazyComponent<typeof import("../components/SessionGate.vue")['default']>
-export const LazyStepActions: LazyComponent<typeof import("../components/StepActions.vue")['default']>
-export const LazyStepView: LazyComponent<typeof import("../components/StepView.vue")['default']>
+export const LazyGameReportDocument: LazyComponent<typeof import("../components/game/ReportDocument.vue")['default']>
+export const LazyGameSkillRadar: LazyComponent<typeof import("../components/game/SkillRadar.vue")['default']>
+export const LazyGameSolanaVerified: LazyComponent<typeof import("../components/game/SolanaVerified.vue")['default']>
+export const LazyUiActionButton: LazyComponent<typeof import("../components/ui/ActionButton.vue")['default']>
+export const LazyUiCyberBadge: LazyComponent<typeof import("../components/ui/CyberBadge.vue")['default']>
+export const LazyUiCyberButton: LazyComponent<typeof import("../components/ui/CyberButton.vue")['default']>
+export const LazyUiCyberIcon: LazyComponent<typeof import("../components/ui/CyberIcon.vue")['default']>
+export const LazyUiCyberInput: LazyComponent<typeof import("../components/ui/CyberInput.vue")['default']>
+export const LazyUiCyberPanel: LazyComponent<typeof import("../components/ui/CyberPanel.vue")['default']>
+export const LazyUiCyberTimer: LazyComponent<typeof import("../components/ui/CyberTimer.vue")['default']>
+export const LazyUiLogRow: LazyComponent<typeof import("../components/ui/LogRow.vue")['default']>
+export const LazyUiScenarioCard: LazyComponent<typeof import("../components/ui/ScenarioCard.vue")['default']>
+export const LazyUiStatCard: LazyComponent<typeof import("../components/ui/StatCard.vue")['default']>
+export const LazyUiStatusPill: LazyComponent<typeof import("../components/ui/StatusPill.vue")['default']>
+export const LazyUiTabBar: LazyComponent<typeof import("../components/ui/TabBar.vue")['default']>
+export const LazyUiXpBar: LazyComponent<typeof import("../components/ui/XpBar.vue")['default']>
 export const LazyNuxtWelcome: LazyComponent<typeof import("../../node_modules/nuxt/dist/app/components/welcome.vue")['default']>
 export const LazyNuxtLayout: LazyComponent<typeof import("../../node_modules/nuxt/dist/app/components/nuxt-layout")['default']>
 export const LazyNuxtErrorBoundary: LazyComponent<typeof import("../../node_modules/nuxt/dist/app/components/nuxt-error-boundary.vue")['default']>
