@@ -3,7 +3,7 @@
 //   no account + no login state -> /login
 //   login stage 'totp'          -> /verify
 //   login stage 'enroll'        -> /enroll
-//   signed in on a public page  -> /dashboard
+//   signed in on a public page  -> /admin for admins, /dashboard for everyone else
 // NUXT_PUBLIC_DEV_BYPASS_AUTH=1 (dev server only) disables the redirects.
 import { useSpacetimeDB, useTable } from 'spacetimedb/vue';
 import { tables } from '~/module_bindings';
@@ -13,7 +13,7 @@ const PUBLIC = new Set(['/login', '/verify', '/enroll']);
 const conn = useSpacetimeDB();
 const [accountRows, accountReady] = useTable(tables.myAccount);
 const [loginRows, loginReady] = useTable(tables.myLoginState);
-const { account, loginStage, loginEmail, ready } = useSession();
+const { account, loginStage, loginEmail, ready, isAdmin } = useSession();
 const route = useRoute();
 const bypass = import.meta.dev && String(useRuntimeConfig().public.devBypassAuth) === '1';
 
@@ -32,7 +32,8 @@ watch(
     if (bypass || !ready.value) return;
     const path = route.path;
     let target: string | null = null;
-    if (account.value) target = PUBLIC.has(path) || path === '/' ? '/dashboard' : null;
+    if (account.value)
+      target = PUBLIC.has(path) || path === '/' ? (isAdmin.value ? '/admin' : '/dashboard') : null;
     else if (loginStage.value === 'totp') target = path === '/verify' ? null : '/verify';
     else if (loginStage.value === 'enroll') target = path === '/enroll' ? null : '/enroll';
     else target = path === '/login' ? null : '/login';

@@ -3,15 +3,19 @@ import { useReducer } from 'spacetimedb/vue';
 import { reducers } from '~/module_bindings';
 
 const { player, logout: resetGame } = useGame();
+const { isAdmin } = useSession();
 const logout = useReducer(reducers.logout);
 const route = useRoute();
-const NAV = [
+const BASE_NAV = [
   { to: '/dashboard', label: 'Dashboard', icon: 'grid' },
   { to: '/incidents', label: 'Incident Ops', icon: 'crosshair' },
   { to: '/results', label: 'Last Debrief', icon: 'chart' },
   { to: '/audit', label: 'Audit Log', icon: 'list' },
   { to: '/profile', label: 'Profile', icon: 'user' },
 ];
+const NAV = computed(() =>
+  isAdmin.value ? [{ to: '/admin', label: 'Admin', icon: 'shield' }, ...BASE_NAV] : BASE_NAV
+);
 // Drop the server session, then go to /login ourselves: SessionGate only redirects when it's
 // connected and the dev auth bypass is off.
 async function doLogout() {

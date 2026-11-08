@@ -23,9 +23,14 @@ trap 'rm -f "$ENV_FILE"' EXIT
   echo "NUXT_PUBLIC_SPACETIME_DB=${SPACETIME_DB:-hackutd2026}"
   echo "NUXT_SPACETIME_INTERNAL_URL=ws://127.0.0.1:3000"
   echo "SERVICE_SECRET=${SERVICE_SECRET:-}"
-  echo "NVIDIA_API_KEY=${NVIDIA_API_KEY:-}"
-  echo "PHOTON_PROJECT_ID=${PHOTON_PROJECT_ID:-}"
-  echo "PHOTON_PROJECT_SECRET=${PHOTON_PROJECT_SECRET:-}"
+  # Nuxt only reads runtimeConfig overrides as NUXT_<KEY> at runtime.
+  echo "NUXT_GEMINI_API_KEY=${GEMINI_API_KEY:-}"
+  echo "NUXT_NVIDIA_API_KEY=${NVIDIA_API_KEY:-}"
+  echo "NUXT_NVIDIA_BASE_URL=${NVIDIA_BASE_URL:-https://integrate.api.nvidia.com/v1}"
+  echo "NUXT_NEMOTRON_MODEL=${NEMOTRON_MODEL:-}"
+  echo "NUXT_PHOTON_PROJECT_ID=${PHOTON_PROJECT_ID:-}"
+  echo "NUXT_PHOTON_PROJECT_SECRET=${PHOTON_PROJECT_SECRET:-}"
+  echo "NUXT_DEMO_PHONE_MAP=${DEMO_PHONE_MAP:-}"
 } >"$ENV_FILE"
 
 rsync -az --delete "$ROOT/$WEB_DIR/.output/" "$TARGET:/srv/web/.output/"
