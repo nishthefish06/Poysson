@@ -18,6 +18,9 @@ const now = ref(Date.now());
 let clock: ReturnType<typeof setInterval> | undefined;
 onMounted(() => (clock = setInterval(() => (now.value = Date.now()), 5000)));
 onUnmounted(() => clearInterval(clock));
+// Only highlight rows that arrive after the first load, not the whole history at once.
+const settled = ref(false);
+onMounted(() => setTimeout(() => (settled.value = true), 2500));
 function ago(ms: number) {
   const s = Math.max(0, Math.round((now.value - ms) / 1000));
   if (s < 10) return 'just now';
@@ -162,7 +165,7 @@ const OUTCOME: Record<string, string> = {
       <section class="feed__stream">
         <h3 class="feed__h">Every move</h3>
         <p v-if="!feed.length" class="mute feed__empty">No activity yet.</p>
-        <TransitionGroup tag="ol" name="pop" class="stream">
+        <TransitionGroup tag="ol" :name="settled ? 'pop' : 'none'" class="stream">
           <li v-for="f in feed" :key="f.key" class="item" :class="`tone-${f.tone}`">
             <span class="item__bar" />
             <div class="item__body">
