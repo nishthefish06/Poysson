@@ -14,7 +14,7 @@ let lastFailure = 0;
 
 function geminiEmbedder(): EmbedFn | null {
   const c = useRuntimeConfig();
-  const ai = geminiClient(8_000);
+  const ai = geminiClient(GEMINI_MIN_DEADLINE_MS);
   if (!ai) return null;
   return async (texts, kind) => {
     const res = await ai.models.embedContent({

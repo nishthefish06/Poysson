@@ -19,6 +19,8 @@ The round is over. Speak to the employee as the attacker, in the first person, i
 4. the one habit that would have stopped you.
 Refer to messages by their subject, never by an id. Describe what the employee did ONLY from the
 "What the employee actually did" list; never invent a refusal or a mistake that isn't there.
+Describe how it ended ONLY from "How the round ended": if it says you still have access or something
+is STILL IN PLACE, you were NOT stopped or cut off. Reporting alone does not remove your access.
 Stay inside the fiction: fictional company, ".example" domains only, no real brands or people, and no
 step-by-step technique a real attacker could reuse. Plain text, no markdown.
 Reply with ONLY JSON: {"reveal": string}`;
@@ -80,8 +82,12 @@ export async function writeReveal(r: ArenaRound, f: Facts): Promise<Reveal> {
           .map((h) => `- ${byTitle(h)}`)
           .join('\n')}`,
         `What the employee actually did, in order (the only facts about them you may use):\n${did.join('\n') || '- nothing: they never acted on any message'}`,
+        `How the round ended: ${f.headline}\n${
+          f.attackerActions
+            .map((a) => `- ${a.text}: ${a.remediated ? 'undone or reported by the employee' : 'STILL IN PLACE'}`)
+            .join('\n') || '- you never got into their account'
+        }`,
         `Messages (revealed): ${JSON.stringify(f.messages.map(({ title: t, malicious, handledWell, ignored }) => ({ title: t, malicious, handledWell, ignored })))}`,
-        `What you did inside their account: ${JSON.stringify(f.attackerActions)}`,
         'Your reveal. JSON only.',
       ].join('\n\n');
       const out = await chatJson(RevealOutput, REVEAL_PROMPT, user, { temperature: 0.7, maxTokens: 600 });
