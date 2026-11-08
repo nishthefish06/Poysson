@@ -123,10 +123,6 @@ async function doLogout() {
         </NuxtLink>
       </nav>
       <div class="spacer" />
-      <div v-show="navOpen" class="app-shell__status mono">
-        <div><span class="app-shell__live" /> SOC LINK ONLINE</div>
-        <div class="mute">latency 12ms · enc AES-256</div>
-      </div>
     </aside>
 
     <div class="app-shell__main">
@@ -134,7 +130,6 @@ async function doLogout() {
         <button v-if="isMobile" class="app-shell__toggle" aria-label="Open sidebar" @click="toggleNav">
           <CyberIcon name="menu" :size="18" />
         </button>
-        <div class="app-shell__crumb mono">// {{ route.path.split('/').filter(Boolean).join(' / ').toUpperCase() || 'HOME' }}</div>
         <div class="spacer" />
         <div class="app-shell__xp">
           <XpBar
@@ -288,27 +283,6 @@ async function doLogout() {
   box-shadow: 2px 3px 0 var(--ink);
   transform: rotate(-1deg);
 }
-.app-shell__status {
-  font-size: 10px;
-  letter-spacing: 0.1em;
-  color: var(--c-ideal);
-  display: flex;
-  flex-direction: column;
-  gap: 2px;
-  padding: var(--s-3);
-  border: 2px dashed var(--c-line-strong);
-  border-radius: var(--r-md);
-  white-space: nowrap;
-}
-.app-shell__live {
-  display: inline-block;
-  width: 6px;
-  height: 6px;
-  background: var(--c-ideal);
-  box-shadow: 0 0 6px var(--c-ideal);
-  animation: blink 1.4s steps(2) infinite;
-  margin-right: 4px;
-}
 .app-shell__main {
   min-width: 0;
   display: flex;
@@ -326,11 +300,6 @@ async function doLogout() {
   background: var(--paper);
   border-bottom: 4px solid var(--c-magenta);
   box-shadow: 0 4px 0 rgba(18, 34, 74, .12);
-}
-.app-shell__crumb {
-  font-size: var(--fs-xs);
-  letter-spacing: 0.2em;
-  color: var(--c-magenta);
 }
 .app-shell__xp {
   width: 220px;

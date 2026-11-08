@@ -14,7 +14,7 @@ const introOn = useState<boolean>('castIntro', () => false);
     <main class="auth__card" :class="{ 'is-intro': introOn }" :inert="introOn || undefined">
       <header class="auth__head">
         <span class="auth__logo"><CyberIcon name="shield" :size="22" /></span>
-        <h1 class="auth__title" data-text="Poysson Training">Poysson Training</h1>
+        <h1 class="auth__title" data-text="Poysson">Poysson</h1>
         <p class="auth__subtitle">{{ subtitle }}</p>
       </header>
       <div class="auth__divider" aria-hidden="true"><span /></div>

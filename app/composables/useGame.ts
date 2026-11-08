@@ -155,7 +155,6 @@ export function seedState(): GameState {
     { id: 'a2', ts: ago(1510), event: 'MFA_APPROVED', detail: 'Duo push · iPhone 15', kind: 'auth', ip: '10.24.8.17', tx: fakeTx(), slot: nextSlot() },
     { id: 'a3', ts: ago(2900), event: 'REPORT_EXPORTED', detail: 'SILENT RELAY · PDF', kind: 'report', ip: '10.24.8.17', tx: fakeTx(), slot: nextSlot() },
     { id: 'a4', ts: ago(2920), event: 'RUN_COMPLETE', detail: 'SILENT RELAY · Recruit · S', kind: 'run', ip: '10.24.8.17', tx: runs[1].tx, slot: nextSlot(), runId: runs[1].id },
-    { id: 'a5', ts: ago(5800), event: 'PASSKEY_REGISTERED', detail: 'YubiKey 5C NFC', kind: 'config', ip: '10.31.2.200', tx: fakeTx(), slot: nextSlot() },
     { id: 'a6', ts: ago(5810), event: 'LOGIN_SUCCESS', detail: 'Password + Duo', kind: 'auth', ip: '10.31.2.200', tx: fakeTx(), slot: nextSlot() },
   ] satisfies AuditEntry[]).map(a => ({ ...a, tx: '', slot: 0, anchor: 'pending' as const })) // sample history is anchored for real on first load
   // the two runs those records point at get their real tx when the records are anchored
@@ -241,6 +240,8 @@ export function useGame() {
    * real pending records (and link sample runs to their records) so they get anchored too.
    */
   function promoteSamples() {
+    // The sample 'YubiKey 5C NFC' passkey event was dropped; remove it from older saves too.
+    state.value.audit = state.value.audit.filter(e => e.id !== 'a5')
     for (const e of state.value.audit) {
       if (anchorOf(e) !== 'demo') continue
       Object.assign(e, { tx: '', slot: 0, anchor: 'pending' as const })
