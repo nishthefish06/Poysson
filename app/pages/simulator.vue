@@ -244,7 +244,7 @@ const stamp = (t: number) => `T+${fmtTime(t)}`
               :time="fmtTime(l.t)" :severity="l.severity" :rating="l.rating" :fresh="i === 0"
             />
           </TransitionGroup>
-          <div v-if="!feed.length" class="sim__empty mono">// awaiting telemetry…</div>
+          <div v-if="!feed.length" class="sim__empty mono">Awaiting telemetry…</div>
         </div>
       </CyberPanel>
 
@@ -266,7 +266,7 @@ const stamp = (t: number) => `T+${fmtTime(t)}`
               <span v-if="decisionFor(a.inject.id)" class="sim__qitem-done" :style="{ color: `var(--c-${decisionFor(a.inject.id)!.rating})` }"><CyberIcon :name="decisionFor(a.inject.id)!.rating === 'harmful' ? 'x' : 'check'" :size="14" :stroke="2.5" /></span>
               <span v-else class="sim__qitem-new" />
             </button>
-            <div v-if="!arrived.length" class="sim__empty mono">// queue empty</div>
+            <div v-if="!arrived.length" class="sim__empty mono">Queue empty</div>
           </nav>
 
           <article v-if="selected" class="sim__detail" :key="selected.inject.id">
@@ -381,7 +381,7 @@ const stamp = (t: number) => `T+${fmtTime(t)}`
                       <span v-for="indicator in entry.indicators" :key="indicator">{{ indicator }}</span>
                     </div>
                   </article>
-                  <div v-if="!guideResults.length" class="sim__empty mono">// no verified guidance found</div>
+                  <div v-if="!guideResults.length" class="sim__empty mono">No verified guidance found</div>
                 </div>
               </div>
             </Transition>
@@ -390,7 +390,7 @@ const stamp = (t: number) => `T+${fmtTime(t)}`
               <span v-if="decisionFor(selected.inject.id)!.speedBonus" class="sim__bonus mono">+10 SPEED</span>
             </div>
           </div>
-          <div v-else class="sim__empty mono">// no item selected</div>
+          <div v-else class="sim__empty mono">No item selected</div>
         </CyberPanel>
       </aside>
 
@@ -403,7 +403,7 @@ const stamp = (t: number) => `T+${fmtTime(t)}`
               <span class="sim__msg-text">{{ m.text }}</span>
               <span class="sim__msg-t mono mute">{{ fmtTime(m.t) }}</span>
             </div>
-            <div v-if="!chat.length" class="sim__empty mono">// channel quiet</div>
+            <div v-if="!chat.length" class="sim__empty mono">Channel quiet</div>
           </div>
           <div class="sim__comms-btns">
             <CyberButton

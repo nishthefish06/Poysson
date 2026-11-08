@@ -23,7 +23,7 @@ const inputType = computed(() => (props.type === 'password' && reveal.value ? 't
 <template>
   <label class="cyber-input" :class="{ 'cyber-input--error': error, 'cyber-input--disabled': disabled }" :for="id">
     <span v-if="label" class="cyber-input__label">
-      <span class="cyber-input__label-mark">//</span> {{ label }}
+      {{ label }}
     </span>
     <span class="cyber-input__field">
       <CyberIcon v-if="icon" :name="icon" :size="16" class="cyber-input__icon" />
@@ -44,8 +44,7 @@ const inputType = computed(() => (props.type === 'password' && reveal.value ? 't
 
 <style scoped>
 .cyber-input { display: flex; flex-direction: column; gap: var(--s-2); }
-.cyber-input__label { font-family: var(--f-hand); font-size: 22px; font-weight: 700; color: var(--ink); }
-.cyber-input__label-mark { display: none; }
+.cyber-input__label { font-family: var(--f-hand); font-size: 19px; font-weight: 700; color: var(--ink); }
 .cyber-input__field {
   position: relative; display: flex; align-items: center; gap: var(--s-2);
   height: 46px; padding: 0 var(--s-3);

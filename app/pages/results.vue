@@ -116,7 +116,7 @@ const ratingColor = (r: Rating) => `var(--c-${r})`
         <XpBar :value="player.xp" :max="xpForLevel(player.level)" :level="player.level" size="lg" :gain="run === state.runs[0] ? Math.min(run.xpEarned, player.xp) : 0" />
       </CyberPanel>
       <CyberPanel title="Decisions" :eyebrow="`${run.decisions.length} calls made`" accent="magenta">
-        <div v-if="isSeed" class="mute mono">// historical run — per-decision data not retained</div>
+        <div v-if="isSeed" class="mute mono">Historical run — per-decision data not retained</div>
         <div class="res__decisions">
           <div v-for="e in events" :key="e.d.injectId" class="res__dec">
             <span class="res__dec-vec" :style="{ color: `var(${vectorById(e.inj.vector).color})` }"><CyberIcon :name="vectorById(e.inj.vector).icon" :size="16" /></span>
@@ -141,7 +141,7 @@ const ratingColor = (r: Rating) => `var(--c-${r})`
 
     <!-- =============== REPLAY =============== -->
     <section v-else-if="tab === 'replay'" class="res__replay">
-      <div v-if="!events.length" class="mute mono">// no decision data for this run</div>
+      <div v-if="!events.length" class="mute mono">No decision data for this run</div>
       <template v-else>
         <CyberPanel title="Timeline" eyebrow="Your path vs ideal path">
           <template #actions>
@@ -230,7 +230,7 @@ const ratingColor = (r: Rating) => `var(--c-${r})`
       </div>
     </section>
   </div>
-  <div v-else class="mute mono">// no runs yet — <NuxtLink to="/incidents">start an incident</NuxtLink></div>
+  <div v-else class="mute mono">No runs yet — <NuxtLink to="/incidents">start an incident</NuxtLink></div>
 </template>
 
 <style scoped>

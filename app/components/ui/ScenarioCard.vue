@@ -19,7 +19,7 @@ defineEmits<{ toggle: [] }>()
 <template>
   <button class="scenario-card" :class="{ 'is-armed': armed }" :style="{ '--c': `var(${color})` }" :aria-pressed="armed" @click="$emit('toggle')">
     <div class="scenario-card__top">
-      <span class="scenario-card__code">{{ String(index ?? 0).padStart(2, '0') }} // {{ code }}</span>
+      <span class="scenario-card__code">{{ String(index ?? 0).padStart(2, '0') }} · {{ code }}</span>
       <span class="scenario-card__state">{{ armed ? 'ARMED' : 'OFFLINE' }}</span>
     </div>
     <div class="scenario-card__icon"><CyberIcon :name="icon" :size="34" :stroke="1.5" /></div>
