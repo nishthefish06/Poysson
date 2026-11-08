@@ -5,6 +5,7 @@ import QRCode from 'qrcode';
 import { useReducer } from 'spacetimedb/vue';
 import { reducers } from '~/module_bindings';
 
+definePageMeta({ layout: 'auth' });
 const APP_LABEL = 'poysson.fishing';
 const enrollTotp = useReducer(reducers.enrollTotp);
 const cancelLogin = useReducer(reducers.cancelLogin);
@@ -41,32 +42,52 @@ onMounted(async () => {
 </script>
 
 <template>
-  <main class="mx-auto mt-16 max-w-sm p-6">
-    <h1 class="text-2xl font-bold">Set up your authenticator app</h1>
-    <p class="mt-2 text-neutral-400">
-      Scan with Google Authenticator, Authy, 1Password or similar, then enter the code.
-    </p>
-    <img
-      v-if="qr"
-      :src="qr"
-      alt="Authenticator QR code"
-      width="200"
-      height="200"
-      class="mt-4 rounded bg-white p-2"
+  <form class="enroll" @submit.prevent="run(() => enrollTotp({ secret, code }))">
+    <div class="eyebrow eyebrow--magenta">Step 02 / 02 · Set up 2FA</div>
+    <h1 class="enroll__title">Bind authenticator</h1>
+    <p class="dim">Scan with Google Authenticator, Authy, 1Password or similar, then enter the code.</p>
+
+    <img v-if="qr" :src="qr" alt="Authenticator QR code" width="180" height="180" class="enroll__qr" />
+    <p class="enroll__key mono">Can't scan? Setup key: {{ secret }}</p>
+
+    <CyberInput
+      v-model="code"
+      label="Code"
+      icon="key"
+      placeholder="123456"
+      autocomplete="one-time-code"
+      :error="error"
     />
-    <p class="mt-2 text-xs text-neutral-500">
-      Can't scan? Setup key: <code>{{ secret }}</code>
-    </p>
-    <form class="mt-4 flex gap-2" @submit.prevent="run(() => enrollTotp({ secret, code }))">
-      <input
-        v-model="code"
-        inputmode="numeric"
-        maxlength="6"
-        class="flex-1 rounded bg-panel px-3 py-2 font-mono tracking-widest"
-      />
-      <button :disabled="busy" class="rounded bg-neon-cyan px-4 py-2 font-semibold text-black">Finish</button>
-    </form>
-    <button class="mt-3 text-sm text-neutral-400 underline" @click="cancelLogin()">Cancel</button>
-    <p v-if="error" class="mt-3 text-verdict-harmful">{{ error }}</p>
-  </main>
+
+    <CyberButton type="submit" variant="primary" size="lg" block :loading="busy" icon="check"
+      >Finish setup</CyberButton
+    >
+    <CyberButton variant="ghost" size="sm" @click="cancelLogin()">Use a different account</CyberButton>
+  </form>
 </template>
+
+<style scoped>
+.enroll {
+  display: flex;
+  flex-direction: column;
+  gap: var(--s-4);
+}
+.enroll__title {
+  font-size: var(--fs-2xl);
+  text-transform: uppercase;
+}
+.enroll__qr {
+  align-self: center;
+  background: #fff;
+  padding: var(--s-2);
+}
+.enroll__key {
+  font-size: var(--fs-xs);
+  color: var(--c-text-mute);
+  word-break: break-all;
+  text-align: center;
+}
+.enroll :deep(.cyber-btn--ghost) {
+  align-self: center;
+}
+</style>

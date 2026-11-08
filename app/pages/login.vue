@@ -1,41 +1,80 @@
 <script setup lang="ts">
-// OWNER: Person 1 (logic, working) / UI person (styling)
+// Step 1: email + password via the `login` reducer. SessionGate then routes to /verify, /enroll
+// or (demo accounts) /dashboard once the server updates the views.
 import { useReducer } from 'spacetimedb/vue';
 import { reducers } from '~/module_bindings';
 
+definePageMeta({ layout: 'auth' });
 const login = useReducer(reducers.login);
 const { error, busy, run } = useRunner();
 const email = ref('');
 const password = ref('');
-// SessionGate moves to /verify, /enroll or /dashboard once the server updates the views.
+const errors = reactive({ email: '', password: '' });
+
+function submit() {
+  errors.email = /.+@.+\..+/.test(email.value) ? '' : 'Enter a valid email';
+  errors.password = password.value ? '' : 'Enter your password';
+  if (errors.email || errors.password) return;
+  void run(() => login({ email: email.value, password: password.value }));
+}
 </script>
 
 <template>
-  <main class="mx-auto mt-24 max-w-sm p-6">
-    <h1 class="text-2xl font-bold">Sign in</h1>
-    <form class="mt-6 space-y-3" @submit.prevent="run(() => login({ email, password }))">
-      <input
-        v-model="email"
-        type="email"
-        autocomplete="username"
-        placeholder="Email"
-        class="w-full rounded bg-panel px-3 py-2"
-      />
-      <input
-        v-model="password"
-        type="password"
-        autocomplete="current-password"
-        placeholder="Password"
-        class="w-full rounded bg-panel px-3 py-2"
-      />
-      <button
-        :disabled="busy"
-        class="w-full rounded bg-neon-cyan px-3 py-2 font-semibold text-black disabled:opacity-50"
-      >
-        Sign in
-      </button>
-    </form>
-    <p v-if="error" class="mt-3 text-verdict-harmful">{{ error }}</p>
-    <p class="mt-6 text-sm text-neutral-500">Demo: demo.employee@example.com / demo.admin@example.com</p>
-  </main>
+  <form class="login" @submit.prevent="submit">
+    <div class="eyebrow eyebrow--magenta">Step 01 / 02 · Authenticate</div>
+    <h1 class="login__title">Jack in</h1>
+    <p class="dim login__sub">Operators only. All sessions are logged.</p>
+
+    <CyberInput
+      v-model="email"
+      label="Email"
+      type="email"
+      icon="user"
+      placeholder="you@t-mobile.com"
+      autocomplete="username"
+      :error="errors.email"
+    />
+    <CyberInput
+      v-model="password"
+      label="Password"
+      type="password"
+      icon="lock"
+      placeholder="••••••••••"
+      autocomplete="current-password"
+      :error="errors.password"
+    />
+
+    <p v-if="error" class="login__err mono" role="alert">! {{ error }}</p>
+
+    <CyberButton type="submit" variant="primary" size="lg" block :loading="busy" icon-right="arrow"
+      >Authenticate</CyberButton
+    >
+    <p class="login__demo mono">Demo: demo.employee@example.com · demo.admin@example.com</p>
+  </form>
 </template>
+
+<style scoped>
+.login {
+  display: flex;
+  flex-direction: column;
+  gap: var(--s-5);
+}
+.login__title {
+  font-size: var(--fs-3xl);
+  line-height: 1;
+  text-transform: uppercase;
+}
+.login__sub {
+  font-size: var(--fs-sm);
+  margin-top: calc(var(--s-3) * -1);
+}
+.login__err {
+  color: var(--c-harmful);
+  font-size: var(--fs-xs);
+}
+.login__demo {
+  font-size: var(--fs-xs);
+  color: var(--c-text-mute);
+  text-align: center;
+}
+</style>

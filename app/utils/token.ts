@@ -25,6 +25,6 @@ export function forgetToken(url: string, db: string) {
   }
 }
 
-export function fmtTime(ts: { microsSinceUnixEpoch: bigint } | undefined | null): string {
+export function fmtTimestamp(ts: { microsSinceUnixEpoch: bigint } | undefined | null): string {
   return ts ? new Date(Number(ts.microsSinceUnixEpoch / 1000n)).toLocaleString() : '';
 }

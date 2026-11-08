@@ -7,7 +7,7 @@ export default defineNuxtConfig({
   // SpacetimeDB's local server already uses :3000
   devServer: { port: 3001 },
   modules: ['@nuxtjs/tailwindcss'],
-  css: ['~/assets/css/main.css'],
+  css: ['~/assets/css/main.css', '~/assets/css/tokens.css', '~/assets/css/base.css'],
   typescript: { strict: true },
   runtimeConfig: {
     // Server-only: AI + Photon run on the Nuxt server, never in the browser.

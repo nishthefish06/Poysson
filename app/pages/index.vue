@@ -1,7 +1,4 @@
 <script setup lang="ts">
-// SessionGate redirects from here to /dashboard or /login.
+definePageMeta({ middleware: () => navigateTo('/dashboard') })
 </script>
-
-<template>
-  <div />
-</template>
+<template><div /></template>
