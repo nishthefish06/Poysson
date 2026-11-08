@@ -237,7 +237,7 @@ const ratingColor = (r: Rating) => `var(--c-${r})`
 /* score */
 .res__score { display: grid; grid-template-columns: 300px 1fr; gap: var(--s-5); }
 .res__score > :nth-child(n+3) { grid-column: 1 / -1; }
-.res__grade-card { display: flex; flex-direction: column; align-items: center; gap: var(--s-2); padding: var(--s-6); background: var(--c-bg-1); border: 1px solid var(--c-line-strong); clip-path: var(--clip-chamfer); grid-row: span 1; }
+.res__grade-card { display: flex; flex-direction: column; align-items: center; gap: var(--s-2); padding: var(--s-6); background: var(--c-bg-1); border: 1px solid var(--c-line-strong); border-radius: var(--r-lg); grid-row: span 1; }
 .res__grade { font-family: var(--f-display); font-size: 110px; font-weight: 900; line-height: 1; }
 .res__score-num { font-family: var(--f-display); font-size: var(--fs-xl); }
 .res__score-bar { width: 100%; height: 6px; background: var(--c-bg-3); }
@@ -268,7 +268,7 @@ const ratingColor = (r: Rating) => `var(--c-${r})`
 .res__inj { --c: var(--c-cyan); position: absolute; top: 50%; transform: translate(-50%, -50%); width: 22px; height: 22px; display: grid; place-items: center; padding: 0; color: var(--c); background: var(--c-bg-1); border: 1px solid var(--c); cursor: pointer; }
 .res__playhead { position: absolute; top: 0; bottom: 0; width: 2px; background: var(--c-yellow); box-shadow: 0 0 10px var(--c-yellow); pointer-events: none; z-index: 3; }
 .res__scrubber { display: grid; grid-template-columns: 40px 1fr auto; gap: var(--s-3); align-items: center; margin-top: var(--s-3); }
-.res__play { width: 40px; height: 40px; display: grid; place-items: center; background: var(--c-cyan); color: var(--c-text-invert); border: 0; cursor: pointer; clip-path: var(--clip-chamfer-sm); }
+.res__play { width: 40px; height: 40px; display: grid; place-items: center; background: var(--c-cyan); color: var(--c-text-invert); border: 0; cursor: pointer; border-radius: var(--r-md); }
 .res__range { -webkit-appearance: none; appearance: none; width: 100%; height: 6px; background: var(--c-bg-3); outline: none; }
 .res__range::-webkit-slider-thumb { -webkit-appearance: none; width: 14px; height: 24px; background: var(--c-yellow); box-shadow: 0 0 10px var(--c-yellow); cursor: grab; }
 .res__range::-moz-range-thumb { width: 14px; height: 24px; background: var(--c-yellow); border: 0; cursor: grab; }

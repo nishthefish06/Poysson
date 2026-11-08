@@ -84,7 +84,7 @@ function reroll() { buildIncident() }
 
 <style scoped>
 .brief__grid { display: grid; grid-template-columns: 1.6fr 1fr; gap: var(--s-5); }
-.brief__typed { font-size: var(--fs-md); line-height: 1.7; color: var(--c-ideal); min-height: 110px; text-shadow: 0 0 6px rgba(57, 255, 136, .4); }
+.brief__typed { font-size: var(--fs-md); line-height: 1.7; color: var(--c-ideal); min-height: 110px; text-shadow: 0 0 6px rgba(var(--rgb-ideal), .4); }
 .brief__intel { margin-top: var(--s-6); display: flex; flex-direction: column; gap: var(--s-3); }
 .brief__vectors { display: grid; grid-template-columns: 1fr 1fr; gap: var(--s-3); }
 .brief__vector { display: flex; gap: var(--s-3); align-items: flex-start; padding: var(--s-3); color: var(--c); background: color-mix(in srgb, var(--c) 6%, var(--c-bg-2)); border-left: 3px solid var(--c); }

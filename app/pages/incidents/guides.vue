@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { COPY as copy } from '~/data/copy'
 /*
  * GUIDES: one field guide per threat vector, built from the inject content
  * (red flags, ideal / harmful actions, analyst tips) so it always matches the sims.
@@ -33,8 +34,8 @@ function practice() {
   <div class="guides">
     <header class="page-head">
       <div>
-        <NuxtLink to="/incidents" class="guides__back mono"><CyberIcon name="back" :size="14" /> Incident Ops</NuxtLink>
-        <div class="eyebrow eyebrow--cyan">Guides · field manual</div>
+        <NuxtLink to="/incidents" class="guides__back mono"><CyberIcon name="back" :size="14" /> {{ copy.incidents }}</NuxtLink>
+        <div class="eyebrow eyebrow--cyan">{{ copy.guides }} · field manual</div>
         <h1 class="page-head__title">Know the threat</h1>
         <p class="page-head__sub">What each attack looks like, what to do first and what never to do.</p>
       </div>
@@ -51,6 +52,8 @@ function practice() {
       </div>
       <div class="spacer" />
       <CyberButton variant="primary" icon="play" @click="practice">Practice guided</CyberButton>
+      <SketchBox :width="2.4" />
+      <Sparkles :size="16" color="var(--c)" />
     </section>
 
     <div class="guides__grid">
@@ -95,8 +98,8 @@ function practice() {
 .guides .page-head { margin-bottom: 0; }
 .guides__back { display: inline-flex; align-items: center; gap: 6px; font-size: var(--fs-xs); letter-spacing: .15em; text-transform: uppercase; color: var(--c-text-mute); margin-bottom: var(--s-2); }
 .guides__back:hover { color: var(--c-cyan); }
-.guides__intro { display: flex; align-items: center; flex-wrap: wrap; gap: var(--s-5); padding: var(--s-5) var(--s-6); border: 1px solid color-mix(in srgb, var(--c) 50%, transparent); background: linear-gradient(100deg, color-mix(in srgb, var(--c) 12%, transparent), transparent 70%); clip-path: var(--clip-chamfer); }
-.guides__icon { width: 56px; height: 56px; display: grid; place-items: center; color: var(--c); border: 1px solid var(--c); clip-path: var(--clip-chamfer-sm); }
+.guides__intro { display: flex; align-items: center; flex-wrap: wrap; gap: var(--s-5); padding: var(--s-5) var(--s-6); background: var(--paper); border-radius: var(--r-lg); position: relative; box-shadow: 5px 6px 0 color-mix(in srgb, var(--c) 55%, var(--ink)), var(--glow-panel); }
+.guides__icon { width: 56px; height: 56px; display: grid; place-items: center; color: var(--c); border: 2.5px solid var(--ink); background: color-mix(in srgb, var(--c) 12%, var(--paper-2)); border-radius: var(--blob); }
 .guides__name { font-family: var(--f-display); font-size: var(--fs-xl); color: var(--c); letter-spacing: .06em; }
 .guides__grid { display: grid; grid-template-columns: 1fr 1fr; gap: var(--s-5); }
 .guides__list { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: var(--s-3); }

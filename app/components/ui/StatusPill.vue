@@ -18,7 +18,7 @@ const text = computed(() => props.label ?? { ideal: 'IDEAL', ok: 'OK', harmful: 
   font-family: var(--f-mono); font-size: var(--fs-xs); font-weight: 700; letter-spacing: .14em;
   color: var(--c); background: color-mix(in srgb, var(--c) 12%, transparent);
   border: 1px solid color-mix(in srgb, var(--c) 60%, transparent);
-  clip-path: polygon(6px 0, 100% 0, calc(100% - 6px) 100%, 0 100%);
+  border-radius: var(--r-pill);
   white-space: nowrap;
 }
 .status-pill__dot { width: 6px; height: 6px; background: var(--c); box-shadow: 0 0 6px var(--c); }

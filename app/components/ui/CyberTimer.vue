@@ -47,6 +47,6 @@ const dash = computed(() => C * Math.max(0, props.seconds / props.total))
 .cyber-timer__label { font-family: var(--f-mono); font-size: 9px; letter-spacing: .2em; color: var(--c-text-dim); }
 .cyber-timer__value { font-family: var(--f-display); font-size: var(--fs-xl); font-weight: 700; text-shadow: 0 0 10px var(--c); font-variant-numeric: tabular-nums; }
 .cyber-timer.is-crit .cyber-timer__value { animation: blink 1s steps(2) infinite; }
-.cyber-timer--digital { display: inline-flex; flex-direction: column; padding: var(--s-2) var(--s-4); border: 1px solid var(--c); background: color-mix(in srgb, var(--c) 8%, transparent); clip-path: var(--clip-chamfer-sm); }
+.cyber-timer--digital { display: inline-flex; flex-direction: column; padding: var(--s-2) var(--s-4); border: 1px solid var(--c); background: color-mix(in srgb, var(--c) 8%, transparent); border-radius: var(--r-md); }
 .cyber-timer--digital .cyber-timer__value { font-size: var(--fs-2xl); line-height: 1; }
 </style>

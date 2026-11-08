@@ -3,7 +3,9 @@
  * CyberPanel — framed container used by every screen section.
  * accent: cyan | magenta | red | none   ·   padded: bool
  */
-withDefaults(defineProps<{ title?: string; eyebrow?: string; accent?: 'cyan' | 'magenta' | 'red' | 'none'; padded?: boolean }>(), { accent: 'cyan', padded: true })
+const props = withDefaults(defineProps<{ title?: string; eyebrow?: string; accent?: 'cyan' | 'magenta' | 'red' | 'none'; padded?: boolean; sparkles?: boolean }>(), { accent: 'cyan', padded: true, sparkles: true })
+// Two diagonal corners per panel keeps a page of panels from looking busy.
+const sparkleCorners = computed(() => (props.sparkles ? (['tl', 'br'] as const).slice() : []))
 </script>
 
 <template>
@@ -17,8 +19,8 @@ withDefaults(defineProps<{ title?: string; eyebrow?: string; accent?: 'cyan' | '
       <slot name="actions" />
     </header>
     <div class="cyber-panel__body"><slot /></div>
-    <span class="cyber-panel__tick cyber-panel__tick--tl" aria-hidden="true" />
-    <span class="cyber-panel__tick cyber-panel__tick--br" aria-hidden="true" />
+    <SketchBox />
+    <Sparkles :corners="sparkleCorners" :color="'var(--accent)'" />
   </section>
 </template>
 
@@ -26,19 +28,21 @@ withDefaults(defineProps<{ title?: string; eyebrow?: string; accent?: 'cyan' | '
 .cyber-panel {
   --accent: var(--c-cyan);
   position: relative;
-  background: linear-gradient(180deg, rgba(15, 20, 36, .92), rgba(9, 12, 22, .92));
-  border: 1px solid var(--c-line);
-  clip-path: var(--clip-chamfer);
+  background: var(--paper);
+  border-radius: var(--r-lg);
+  box-shadow: 5px 6px 0 rgba(18, 34, 74, .16), var(--glow-panel);
   display: flex; flex-direction: column; min-height: 0;
 }
+/* accent tab: a little marker stripe under the title */
 .cyber-panel--magenta { --accent: var(--c-magenta); }
 .cyber-panel--red { --accent: var(--c-harmful); }
-.cyber-panel--none { --accent: var(--c-line-strong); }
-.cyber-panel__head { display: flex; align-items: center; gap: var(--s-3); padding: var(--s-4) var(--s-5) 0; }
-.cyber-panel__title { font-size: var(--fs-md); letter-spacing: .12em; text-transform: uppercase; }
-.cyber-panel__body { padding: var(--s-5); flex: 1; min-height: 0; }
+.cyber-panel--none { --accent: var(--c-violet); }
+.cyber-panel__head { display: flex; align-items: center; gap: var(--s-3); padding: var(--s-5) var(--s-6) 0; }
+.cyber-panel__title {
+  font-size: var(--fs-lg); color: var(--ink); display: inline;
+  background: linear-gradient(100deg, transparent 1%, color-mix(in srgb, var(--accent) 30%, transparent) 3%, color-mix(in srgb, var(--accent) 22%, transparent) 96%, transparent 99%) 0 90% / 100% 38% no-repeat;
+  padding: 0 .15em;
+}
+.cyber-panel__body { padding: var(--s-5) var(--s-6) var(--s-6); flex: 1; min-height: 0; }
 .cyber-panel--flush .cyber-panel__body { padding: 0; }
-.cyber-panel__tick { position: absolute; width: 18px; height: 18px; pointer-events: none; }
-.cyber-panel__tick--tl { top: 0; left: 0; border-top: 2px solid var(--accent); border-left: 2px solid var(--accent); transform: translate(6px, 0); }
-.cyber-panel__tick--br { right: 0; bottom: 0; border-bottom: 2px solid var(--accent); border-right: 2px solid var(--accent); transform: translate(-6px, 0); }
 </style>

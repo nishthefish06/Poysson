@@ -58,9 +58,9 @@ defineProps<{
 .log-row--alert .log-row__text { color: var(--c-text); }
 .log-row--alert.sev-crit, .log-row--alert.sev-high { --c: var(--c-harmful); }
 .log-row--alert.sev-low { --c: var(--c-cyan); }
-.log-row--action { --c: var(--c-cyan); background: rgba(0, 240, 255, .04); }
+.log-row--action { --c: var(--c-cyan); background: rgba(var(--rgb-cyan), .04); }
 .log-row--action .log-row__text { color: var(--c-text); }
 .log-row--action.rated-ideal { --c: var(--c-ideal); }
 .log-row--action.rated-ok { --c: var(--c-ok); }
-.log-row--action.rated-harmful { --c: var(--c-harmful); background: rgba(255, 59, 92, .08); }
+.log-row--action.rated-harmful { --c: var(--c-harmful); background: rgba(var(--rgb-harmful), .08); }
 </style>

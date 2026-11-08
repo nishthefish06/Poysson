@@ -360,15 +360,15 @@ const stamp = (t: number) => `T+${fmtTime(t)}`
 
 <style scoped>
 .sim { height: 100vh; display: flex; flex-direction: column; overflow: hidden; position: relative; }
-.sim--flagged::after { content: ''; position: fixed; inset: 0; pointer-events: none; box-shadow: inset 0 0 0 3px var(--c-harmful), inset 0 0 120px rgba(255, 59, 92, .35); animation: blink .5s steps(2) 4; z-index: 30; }
+.sim--flagged::after { content: ''; position: fixed; inset: 0; pointer-events: none; box-shadow: inset 0 0 0 3px var(--c-harmful), inset 0 0 120px rgba(var(--rgb-harmful), .35); animation: blink .5s steps(2) 4; z-index: 30; }
 
 /* top bar */
-.sim__top { flex-shrink: 0; height: 64px; display: flex; align-items: center; gap: var(--s-6); padding: 0 var(--s-5); border-bottom: 1px solid var(--c-line); background: rgba(4, 5, 10, .9); }
+.sim__top { flex-shrink: 0; height: 64px; display: flex; align-items: center; gap: var(--s-6); padding: 0 var(--s-5); border-bottom: 1px solid var(--c-line); background: var(--paper); border-bottom: 4px solid var(--c-magenta); }
 .sim__exit { width: 34px; height: 34px; display: grid; place-items: center; border: 1px solid var(--c-line-strong); color: var(--c-text-dim); }
 .sim__exit:hover { color: var(--c-harmful); border-color: var(--c-harmful); }
 .sim__op-name { font-family: var(--f-display); font-weight: 700; letter-spacing: .1em; }
 .sim__progress { width: 200px; display: flex; flex-direction: column; gap: 4px; }
-.sim__progress-track { height: 6px; background: var(--c-bg-3); transform: skewX(-20deg); }
+.sim__progress-track { height: 6px; background: var(--c-bg-3); border-radius: var(--r-pill); }
 .sim__progress-track div { height: 100%; background: var(--c-ideal); box-shadow: 0 0 8px var(--c-ideal); transition: width .5s var(--ease); }
 .sim__vectors { display: flex; gap: var(--s-2); }
 .sim__vchip { display: inline-flex; align-items: center; gap: 4px; font-family: var(--f-mono); font-size: 10px; padding: 3px 6px; color: var(--c-text-mute); border: 1px solid var(--c-line); }
@@ -379,7 +379,7 @@ const stamp = (t: number) => `T+${fmtTime(t)}`
 .sim__live.is-on span { animation: blink 1s steps(2) infinite; box-shadow: 0 0 8px var(--c-harmful); }
 
 /* flag banner */
-.sim__flag { position: absolute; top: 76px; left: 50%; transform: translateX(-50%); z-index: 40; display: flex; gap: var(--s-3); align-items: center; padding: var(--s-3) var(--s-6); background: var(--c-harmful); color: #fff; clip-path: var(--clip-chamfer-sm); box-shadow: var(--glow-red); max-width: 640px; }
+.sim__flag { position: absolute; top: 76px; left: 50%; transform: translateX(-50%); z-index: 40; display: flex; gap: var(--s-3); align-items: center; padding: var(--s-3) var(--s-6); background: var(--c-harmful); color: #fff; border-radius: var(--r-md); box-shadow: var(--glow-red); max-width: 640px; }
 .sim__flag-title { font-family: var(--f-display); font-weight: 900; letter-spacing: .14em; font-size: var(--fs-sm); }
 .sim__flag-text { font-size: var(--fs-sm); }
 .flag-enter-active, .flag-leave-active { transition: all .3s var(--ease); }
@@ -436,12 +436,12 @@ const stamp = (t: number) => `T+${fmtTime(t)}`
 .sim__email-row .mute { width: 40px; font-family: var(--f-mono); font-size: 11px; }
 .sim__email-body { margin: 0; padding: var(--s-4); font-family: var(--f-ui); font-size: var(--fs-sm); color: var(--c-text); white-space: pre-wrap; }
 .sim__ticket { border: 1px solid var(--c-line-strong); background: var(--c-bg-2); }
-.sim__ticket-head { display: flex; align-items: center; gap: var(--s-2); padding: var(--s-2) var(--s-4); font-size: 11px; color: var(--c-cyan); border-bottom: 1px solid var(--c-line); background: rgba(0, 240, 255, .05); }
+.sim__ticket-head { display: flex; align-items: center; gap: var(--s-2); padding: var(--s-2) var(--s-4); font-size: 11px; color: var(--c-cyan); border-bottom: 1px solid var(--c-line); background: rgba(var(--rgb-cyan), .05); }
 .sim__ticket-body { padding: var(--s-4); font-size: var(--fs-sm); }
 .sim__meta { display: grid; grid-template-columns: max-content 1fr; gap: 4px var(--s-4); margin: 0; font-family: var(--f-mono); font-size: 12px; }
 .sim__meta dt { color: var(--c-text-mute); }
 .sim__meta dd { margin: 0; color: var(--c-text); }
-.sim__flags { padding: var(--s-3) var(--s-4); border: 1px dashed var(--c-cyan); background: rgba(0, 240, 255, .04); animation: slide-in .3s; }
+.sim__flags { padding: var(--s-3) var(--s-4); border: 1px dashed var(--c-cyan); background: rgba(var(--rgb-cyan), .04); animation: slide-in .3s; }
 .sim__flags ul { margin: var(--s-2) 0 0; padding-left: var(--s-5); font-size: var(--fs-sm); color: var(--c-text-dim); }
 
 /* right */
@@ -470,8 +470,8 @@ const stamp = (t: number) => `T+${fmtTime(t)}`
 .sim__comms-btns { display: flex; flex-direction: column; gap: var(--s-2); justify-content: center; }
 
 /* overlays */
-.sim__overlay { position: absolute; inset: 0; z-index: 50; display: grid; place-items: center; background: rgba(4, 5, 10, .78); backdrop-filter: blur(4px); }
-.sim__modal { display: flex; flex-direction: column; align-items: center; gap: var(--s-4); text-align: center; padding: var(--s-10) var(--s-12); background: var(--c-bg-1); border: 1px solid var(--c-cyan); box-shadow: var(--glow-cyan); clip-path: var(--clip-chamfer); max-width: 640px; }
+.sim__overlay { position: absolute; inset: 0; z-index: 50; display: grid; place-items: center; background: rgba(10, 70, 140, .35); backdrop-filter: blur(3px); }
+.sim__modal { display: flex; flex-direction: column; align-items: center; gap: var(--s-4); text-align: center; padding: var(--s-10) var(--s-12); background: var(--c-bg-1); border: 3px solid var(--ink); box-shadow: var(--pop); border-radius: var(--r-lg); max-width: 640px; }
 .sim__modal-title { font-size: var(--fs-3xl); color: var(--c-magenta); text-shadow: var(--text-glow-magenta); }
 .sim__modal kbd { font-family: var(--f-mono); font-size: 11px; padding: 1px 6px; border: 1px solid var(--c-line-strong); color: var(--c-cyan); }
 .sim__kbd { margin-left: var(--s-2); border: 1px solid currentColor; padding: 0 5px; font-size: 11px; }
@@ -484,6 +484,6 @@ const stamp = (t: number) => `T+${fmtTime(t)}`
 .g-B { color: var(--c-cyan); text-shadow: 0 0 30px var(--c-cyan); }
 .g-C { color: var(--c-ok); text-shadow: 0 0 30px var(--c-ok); }
 .g-D { color: var(--c-harmful); text-shadow: 0 0 30px var(--c-harmful); }
-.sim__guide { display: flex; gap: var(--s-2); align-items: flex-start; margin-top: var(--s-3); padding: var(--s-3); font-size: var(--fs-sm); color: var(--c-text); border: 1px dashed var(--c-cyan); background: rgba(0, 240, 255, .06); }
+.sim__guide { display: flex; gap: var(--s-2); align-items: flex-start; margin-top: var(--s-3); padding: var(--s-3); font-size: var(--fs-sm); color: var(--c-text); border: 1px dashed var(--c-cyan); background: rgba(var(--rgb-cyan), .06); }
 .sim__guide b { color: var(--c-cyan); }
 </style>

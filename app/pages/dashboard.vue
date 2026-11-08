@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { COPY as copy } from '~/data/copy'
 /*
  * DASHBOARD
  * DYNAMIC DATA: player (level, xp, skills, badges), audit[] (preview).
@@ -47,12 +48,15 @@ const rank = computed(() => {
         <div class="eyebrow">Current badge</div>
         <CyberBadge v-if="currentBadge" :name="currentBadge.name" :icon="currentBadge.icon" :tier="currentBadge.tier" size="sm" />
         <CyberBadge v-else name="None yet" icon="lock" locked size="sm" />
+        <SketchBox color="var(--c-magenta)" :width="1.8" :overshoot="6" />
       </NuxtLink>
+      <SketchBox :width="2.6" />
+      <Sparkles :size="18" color="var(--c-magenta)" />
     </section>
 
     <div class="dash__grid">
       <!-- SKILL RADAR -->
-      <CyberPanel title="Skill matrix" eyebrow="5 threat vectors" class="dash__radar">
+      <CyberPanel :title="copy.skillTitle" :eyebrow="copy.skillEyebrow" class="dash__radar">
         <div class="dash__radar-body">
           <SkillRadar :skills="player.skills" :size="300" />
           <div class="dash__skill-list">
@@ -89,22 +93,21 @@ const rank = computed(() => {
 
 <style scoped>
 .dash { display: flex; flex-direction: column; gap: var(--s-6); }
-.dash__hero { display: grid; grid-template-columns: auto 1fr auto; align-items: center; gap: var(--s-8); padding: var(--s-6) var(--s-8); background: linear-gradient(100deg, rgba(255, 43, 214, .12), rgba(0, 240, 255, .06) 60%, transparent); border: 1px solid var(--c-line-strong); clip-path: var(--clip-chamfer); position: relative; overflow: hidden; }
-.dash__hero::after { content: 'SYS.OPERATOR'; position: absolute; right: 24px; bottom: -14px; font-family: var(--f-display); font-size: 80px; font-weight: 900; color: rgba(255, 255, 255, .025); letter-spacing: .1em; pointer-events: none; }
+.dash__hero { display: grid; grid-template-columns: auto 1fr auto; align-items: center; gap: var(--s-8); padding: var(--s-6) var(--s-8); background: var(--paper); border: 0; border-radius: var(--r-lg); box-shadow: 5px 6px 0 rgba(18, 34, 74, .16), var(--glow-panel); position: relative; }
 .dash__id { display: flex; align-items: center; gap: var(--s-5); }
-.dash__avatar { position: relative; width: 84px; height: 84px; display: grid; place-items: center; font-family: var(--f-display); font-size: var(--fs-xl); font-weight: 900; color: var(--c-text-invert); background: linear-gradient(135deg, var(--c-cyan), var(--c-magenta)); clip-path: polygon(50% 0, 100% 25%, 100% 75%, 50% 100%, 0 75%, 0 25%); }
+.dash__avatar { box-shadow: var(--pop); border: 2.5px solid var(--ink);  position: relative; width: 84px; height: 84px; display: grid; place-items: center; font-family: var(--f-display); font-size: var(--fs-xl); font-weight: 900; color: var(--c-text-invert); background: var(--chrome); border-radius: var(--blob); animation: blob 10s var(--ease-soft) infinite; }
 .dash__handle { font-size: var(--fs-2xl); }
 .dash__email { font-size: var(--fs-xs); }
 .dash__xp { min-width: 0; }
 .dash__xp-total { font-size: 10px; letter-spacing: .2em; color: var(--c-text-mute); margin-top: var(--s-2); text-align: right; }
 .dash__grid { display: grid; grid-template-columns: 1fr; gap: var(--s-5); }
-.dash__badge { display: flex; flex-direction: column; align-items: center; gap: var(--s-2); padding: var(--s-3) var(--s-4); border: 1px solid var(--c-line-strong); background: rgba(4, 5, 10, .5); clip-path: var(--clip-chamfer-sm); transition: border-color var(--t-fast); }
-.dash__badge:hover { border-color: var(--c-magenta); text-shadow: none; }
+.dash__badge { display: flex; flex-direction: column; align-items: center; gap: var(--s-2); padding: var(--s-3) var(--s-4); background: var(--c-magenta-tint); border-radius: var(--r-md); position: relative; transition: transform var(--t-fast) var(--ease-bounce); }
+.dash__badge:hover { text-decoration: none; transform: rotate(-1.5deg); }
 .dash__radar-body { display: grid; grid-template-columns: auto 1fr; gap: var(--s-6); align-items: center; }
 .dash__skill-list { display: flex; flex-direction: column; gap: var(--s-3); }
 .dash__skill { display: grid; grid-template-columns: 18px 130px 1fr 32px; gap: var(--s-3); align-items: center; color: var(--c); }
 .dash__skill-name { color: var(--c-text); font-size: var(--fs-sm); font-weight: 600; }
-.dash__skill-bar { height: 6px; background: var(--c-bg-3); transform: skewX(-20deg); }
+.dash__skill-bar { height: 6px; background: var(--c-bg-3); border-radius: var(--r-pill); }
 .dash__skill-bar span { display: block; height: 100%; background: var(--c); box-shadow: 0 0 8px var(--c); transition: width .8s var(--ease); }
 .dash__skill-val { text-align: right; font-size: var(--fs-sm); }
 .dash__hint { display: block; font-size: 11px; color: var(--c-text-dim); margin-top: var(--s-2); padding: var(--s-2) var(--s-3); border: 1px dashed var(--c-line-strong); }

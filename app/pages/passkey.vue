@@ -65,7 +65,7 @@ function skip() { skipPasskey(); navigateTo('/dashboard') }
 <style scoped>
 .passkey { display: flex; flex-direction: column; gap: var(--s-4); }
 .passkey__title { font-size: var(--fs-2xl); text-transform: uppercase; }
-.passkey__scanner { --c: var(--c-cyan); position: relative; align-self: center; width: 140px; height: 140px; display: grid; place-items: center; color: var(--c); border: 1px solid var(--c); background: radial-gradient(circle, color-mix(in srgb, var(--c) 15%, transparent), transparent 70%); clip-path: var(--clip-chamfer); overflow: hidden; margin: var(--s-3) 0; }
+.passkey__scanner { --c: var(--c-cyan); position: relative; align-self: center; width: 140px; height: 140px; display: grid; place-items: center; color: var(--c); border: 1px solid var(--c); background: radial-gradient(circle, color-mix(in srgb, var(--c) 15%, transparent), transparent 70%); border-radius: var(--r-lg); overflow: hidden; margin: var(--s-3) 0; }
 .passkey__scanner.is-done { --c: var(--c-ideal); }
 .passkey__scanner.is-error { --c: var(--c-harmful); }
 .passkey__beam { position: absolute; left: 0; right: 0; height: 3px; background: var(--c); box-shadow: 0 0 14px var(--c); top: -4px; opacity: 0; }

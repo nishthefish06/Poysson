@@ -16,6 +16,8 @@ const subtitle = computed(
       </header>
       <div class="auth__divider" aria-hidden="true"><span /></div>
       <slot />
+      <SketchBox :width="2.8" />
+      <Sparkles :size="18" color="var(--c-magenta)" />
     </main>
     <div class="auth__city" aria-hidden="true" />
   </div>
@@ -43,40 +45,11 @@ const subtitle = computed(
   max-width: 440px;
   padding: var(--s-8) var(--s-8) var(--s-6);
   --edge: color-mix(in srgb, var(--auth-magenta) 45%, transparent);
-  border: 1px solid var(--edge);
-  /* Top-right and bottom-left corners cut at 45°; the two gradients redraw the border on the cuts. */
-  clip-path: polygon(0 0, calc(100% - 18px) 0, 100% 18px, 100% 100%, 18px 100%, 0 calc(100% - 18px));
-  background:
-    linear-gradient(
-        to bottom left,
-        transparent calc(50% - 1px),
-        var(--edge) calc(50% - 1px),
-        var(--edge) 50%,
-        transparent 50%
-      )
-      top right / 18px 18px no-repeat border-box,
-    linear-gradient(
-        to top right,
-        transparent calc(50% - 1px),
-        var(--edge) calc(50% - 1px),
-        var(--edge) 50%,
-        transparent 50%
-      )
-      bottom left / 18px 18px no-repeat border-box,
-    rgba(24, 30, 64, 0.82);
-  backdrop-filter: blur(8px);
-  /* Neon edge, after cybercore-css's neon borders. */
-  box-shadow: 0 0 0 1px rgba(255, 255, 255, 0.04) inset;
+  border: 0;
+  border-radius: var(--r-lg);
+  background: var(--paper);
+  box-shadow: 7px 8px 0 var(--c-magenta), var(--glow-panel);
   position: relative;
-  overflow: hidden;
-}
-/* Scanlines over the card. */
-.auth__card::after {
-  content: '';
-  position: absolute;
-  inset: 0;
-  pointer-events: none;
-  background: repeating-linear-gradient(to bottom, rgba(255, 255, 255, 0.025) 0 1px, transparent 1px 3px);
 }
 .auth__head {
   display: flex;
@@ -90,18 +63,19 @@ const subtitle = computed(
   height: 40px;
   display: grid;
   place-items: center;
-  clip-path: var(--auth-clip-sm);
-  background: var(--auth-magenta);
-  color: #fff;
+  border-radius: var(--blob); animation: blob 10s var(--ease-soft) infinite;
+  background: var(--chrome);
+  color: var(--c-text-invert);
+  box-shadow: var(--glow-chrome);
   margin-bottom: var(--s-2);
 }
 .auth__title {
   font-family: var(--f-display);
   font-size: 18px;
   font-weight: 700;
-  letter-spacing: 0.04em;
-  text-transform: uppercase;
-  color: #fff;
+  letter-spacing: 0.02em;
+  font-size: 24px;
+  color: var(--c-magenta);
   position: relative;
   /* Glitch when the card appears, and again on hover. */
   animation: auth-glitch 0.55s steps(1) 0.1s 1 both;
@@ -209,15 +183,16 @@ const subtitle = computed(
   height: 7px;
   background: var(--auth-magenta);
   transform: translate(-50%, -50%) rotate(45deg);
-  outline: 6px solid rgba(24, 30, 64, 1);
+  outline: 6px solid var(--paper-2);
 }
+.auth__city { display: none; } /* the ocean layer is the backdrop now */
 </style>
 
 <!-- Shared by the auth pages (login, verify, enroll). -->
 <style>
 :root {
   --auth-magenta: #e20074;
-  --auth-clip-sm: polygon(0 0, calc(100% - 7px) 0, 100% 7px, 100% 100%, 7px 100%, 0 calc(100% - 7px));
+  --auth-clip-sm: inset(0 round var(--r-md));
 }
 .auth-form {
   display: flex;
@@ -229,7 +204,7 @@ const subtitle = computed(
   font-size: 14px;
   letter-spacing: 0.06em;
   text-transform: uppercase;
-  color: #fff;
+  color: var(--ink);
 }
 .auth-text {
   font-size: 13px;
@@ -252,9 +227,9 @@ const subtitle = computed(
   gap: var(--s-2);
   height: 38px;
   padding: 0 var(--s-3);
-  border: 1px solid color-mix(in srgb, var(--auth-magenta) 70%, transparent);
-  clip-path: var(--auth-clip-sm);
-  background: rgba(10, 12, 40, 0.75);
+  border: 2px solid var(--ink);
+  border-radius: var(--r-md);
+  background: var(--paper-2);
   color: var(--auth-magenta);
   transition:
     border-color 0.15s,
@@ -262,7 +237,7 @@ const subtitle = computed(
 }
 .auth-field:focus-within {
   border-color: var(--auth-magenta);
-  box-shadow: 0 0 0 3px color-mix(in srgb, var(--auth-magenta) 25%, transparent);
+  box-shadow: 3px 4px 0 var(--auth-magenta);
 }
 .auth-field input {
   flex: 1;
@@ -270,7 +245,7 @@ const subtitle = computed(
   background: none;
   border: 0;
   outline: 0;
-  color: #fff;
+  color: var(--ink);
   font: inherit;
   font-size: 13px;
 }
@@ -294,7 +269,9 @@ const subtitle = computed(
 .auth-btn {
   height: 40px;
   border: 0;
-  clip-path: var(--auth-clip-sm);
+  border: 2px solid var(--ink);
+  border-radius: var(--r-md);
+  box-shadow: 3px 4px 0 var(--ink);
   background: var(--auth-magenta);
   color: #fff;
   font-family: var(--f-display);
@@ -303,10 +280,15 @@ const subtitle = computed(
   letter-spacing: 0.1em;
   text-transform: uppercase;
   cursor: pointer;
-  transition: filter 0.15s;
+  transition: transform 0.15s var(--ease-bounce), box-shadow 0.15s;
 }
 .auth-btn:hover {
-  filter: brightness(1.12);
+  transform: translate(-1px, -2px) rotate(-0.6deg);
+  box-shadow: 5px 7px 0 var(--ink);
+}
+.auth-btn:active {
+  transform: translate(2px, 3px);
+  box-shadow: 0 0 0 var(--ink);
 }
 .auth-btn:disabled {
   opacity: 0.6;
@@ -321,11 +303,11 @@ const subtitle = computed(
   cursor: pointer;
 }
 .auth-link:hover {
-  color: #fff;
+  color: var(--auth-magenta);
 }
 .auth-error {
   font-size: 12px;
-  color: #ff6b8a;
+  color: var(--c-harmful);
   margin: -6px 0 0;
 }
 .auth-hint {

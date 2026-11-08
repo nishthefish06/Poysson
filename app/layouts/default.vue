@@ -1,14 +1,15 @@
 <script setup lang="ts">
 import { useReducer } from 'spacetimedb/vue';
 import { reducers } from '~/module_bindings';
+import { COPY } from '~/data/copy';
 
 const { player, logout: resetGame } = useGame();
 const logout = useReducer(reducers.logout);
 const route = useRoute();
 const NAV = [
-  { to: '/dashboard', label: 'Dashboard', icon: 'grid' },
-  { to: '/incidents', label: 'Incident Ops', icon: 'crosshair' },
-  { to: '/audit', label: 'Audit Log', icon: 'list' },
+  { to: '/dashboard', label: COPY.dashboard, icon: 'anchor' },
+  { to: '/incidents', label: COPY.incidents, icon: 'hook' },
+  { to: '/audit', label: COPY.audit, icon: 'fish' },
 ];
 
 /* ---- sidebar: expanded / collapsed to an icon rail (desktop), drawer (mobile) ---- */
@@ -92,7 +93,7 @@ async function doLogout() {
     <aside class="app-shell__nav" :aria-hidden="isMobile && !navOpen">
       <div class="app-shell__nav-head">
         <NuxtLink v-show="navOpen" to="/dashboard" class="app-shell__logo">
-          <span class="glitch" data-text="POYSSON">POYSSON</span>
+          <CyberIcon name="fish" :size="24" class="app-shell__logo-fish" /><span>POYSSON</span>
         </NuxtLink>
         <button
           class="app-shell__toggle"
@@ -195,9 +196,9 @@ async function doLogout() {
   flex-direction: column;
   gap: var(--s-6);
   padding: var(--s-5) var(--s-3);
-  background: rgba(6, 8, 15, 0.85);
-  border-right: 1px solid var(--c-line);
-  backdrop-filter: blur(6px);
+  background: var(--paper);
+  border-right: 0;
+  box-shadow: 4px 0 0 rgba(18, 34, 74, .12);
   overflow: hidden;
 }
 .app-shell__nav-head {
@@ -211,14 +212,19 @@ async function doLogout() {
   justify-content: center;
 }
 .app-shell__logo {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
   font-family: var(--f-display);
-  font-weight: 900;
+  font-weight: 700;
   font-size: 22px;
-  letter-spacing: 0.12em;
-  color: var(--c-cyan);
-  text-shadow: var(--text-glow-cyan);
+  letter-spacing: 0.04em;
+  color: var(--c-magenta);
   padding: 0 var(--s-2);
   white-space: nowrap;
+}
+.app-shell__logo-fish {
+  animation: wobble 2.4s ease-in-out infinite;
 }
 .app-shell__toggle {
   width: 36px;
@@ -228,6 +234,7 @@ async function doLogout() {
   place-items: center;
   background: none;
   border: 1px solid transparent;
+  border-radius: var(--r-pill);
   color: var(--c-text-dim);
   cursor: pointer;
   transition: all var(--t-fast);
@@ -249,11 +256,11 @@ async function doLogout() {
   height: 42px;
   padding: 0 var(--s-3);
   color: var(--c-text-dim);
-  font-weight: 600;
-  letter-spacing: 0.08em;
-  text-transform: uppercase;
-  font-size: var(--fs-sm);
-  border-left: 2px solid transparent;
+  font-family: var(--f-display);
+  font-weight: 500;
+  letter-spacing: 0.01em;
+  font-size: var(--fs-md);
+  border-radius: var(--r-md);
   white-space: nowrap;
   transition: all var(--t-fast);
 }
@@ -270,10 +277,10 @@ async function doLogout() {
   text-shadow: none;
 }
 .app-shell__link.is-active {
-  color: var(--c-cyan);
-  border-left-color: var(--c-cyan);
-  background: linear-gradient(90deg, rgba(0, 240, 255, 0.14), transparent);
-  text-shadow: var(--text-glow-cyan);
+  color: #fff;
+  background: var(--c-magenta);
+  box-shadow: 2px 3px 0 var(--ink);
+  transform: rotate(-1deg);
 }
 .app-shell__status {
   font-size: 10px;
@@ -283,7 +290,8 @@ async function doLogout() {
   flex-direction: column;
   gap: 2px;
   padding: var(--s-3);
-  border: 1px solid var(--c-line);
+  border: 2px dashed var(--c-line-strong);
+  border-radius: var(--r-md);
   white-space: nowrap;
 }
 .app-shell__live {
@@ -309,9 +317,9 @@ async function doLogout() {
   align-items: center;
   gap: var(--s-5);
   padding: 0 var(--s-8);
-  background: rgba(4, 5, 10, 0.8);
-  border-bottom: 1px solid var(--c-line);
-  backdrop-filter: blur(8px);
+  background: var(--paper);
+  border-bottom: 4px solid var(--c-magenta);
+  box-shadow: 0 4px 0 rgba(18, 34, 74, .12);
 }
 .app-shell__crumb {
   font-size: var(--fs-xs);
@@ -340,11 +348,13 @@ async function doLogout() {
   border: 0;
   cursor: pointer;
   font-family: var(--f-display);
-  font-weight: 900;
+  font-weight: 700;
   font-size: var(--fs-sm);
   color: var(--c-text-invert);
-  background: linear-gradient(135deg, var(--c-cyan), var(--c-magenta));
-  clip-path: var(--clip-chamfer-sm);
+  background: var(--chrome);
+  box-shadow: var(--glow-chrome);
+  border-radius: var(--blob);
+  animation: blob 10s var(--ease-soft) infinite;
 }
 .app-shell__avatar:focus-visible {
   outline: 2px solid var(--c-cyan);
@@ -357,10 +367,10 @@ async function doLogout() {
   z-index: 30;
   min-width: 220px;
   padding: var(--s-2);
-  background: rgba(8, 10, 18, 0.97);
-  border: 1px solid var(--c-line-strong);
-  box-shadow: 0 12px 40px rgba(0, 0, 0, 0.6), 0 0 0 1px rgba(0, 240, 255, 0.08);
-  backdrop-filter: blur(10px);
+  background: var(--paper-2);
+  border: 2px solid var(--ink);
+  border-radius: var(--r-md);
+  box-shadow: var(--pop);
   animation: menu-in 120ms ease-out;
 }
 @keyframes menu-in {
@@ -404,6 +414,7 @@ async function doLogout() {
   letter-spacing: 0.06em;
   text-transform: uppercase;
   text-align: left;
+  border-radius: var(--r-sm);
 }
 .app-shell__menu-item:hover {
   color: var(--c-cyan);
@@ -435,7 +446,7 @@ async function doLogout() {
   bottom: 0;
   z-index: 50;
   width: var(--nav-w);
-  background: rgba(6, 8, 15, 0.98);
+  background: var(--paper-2);
   transform: translateX(-100%);
   transition: transform var(--t-fast);
 }

@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { COPY as copy } from '~/data/copy'
 /*
  * INCIDENT OPS (replaces a "drills" picker)
  * You don't pick one drill — you arm threat vectors and the generator builds a
@@ -31,8 +32,8 @@ function launch() {
   <div class="ops">
     <header class="page-head">
       <div>
-        <NuxtLink to="/incidents" class="ops__back mono"><CyberIcon name="back" :size="14" /> Incident Ops</NuxtLink>
-        <div class="eyebrow eyebrow--magenta">Simulations · mixed-threat generator</div>
+        <NuxtLink to="/incidents" class="ops__back mono"><CyberIcon name="back" :size="14" /> {{ copy.incidents }}</NuxtLink>
+        <div class="eyebrow eyebrow--magenta">{{ copy.sims }} · mixed-threat generator</div>
         <h1 class="page-head__title">Arm your threat mix</h1>
         <p class="page-head__sub">Real incidents don't arrive one at a time. Every vector you arm drops into a single shuffled incident — no two runs play the same.</p>
       </div>
@@ -98,9 +99,9 @@ function launch() {
 .ops__back { display: inline-flex; align-items: center; gap: 6px; font-size: var(--fs-xs); letter-spacing: .15em; text-transform: uppercase; color: var(--c-text-mute); margin-bottom: var(--s-2); }
 .ops__back:hover { color: var(--c-cyan); }
 .ops__modes { display: grid; grid-template-columns: 1fr 1fr; gap: var(--s-4); }
-.ops__mode { display: flex; gap: var(--s-4); align-items: flex-start; padding: var(--s-4) var(--s-5); background: var(--c-bg-2); border: 1px solid var(--c-line-strong); color: var(--c-text-dim); cursor: pointer; text-align: left; clip-path: var(--clip-chamfer-sm); transition: all var(--t-fast); }
+.ops__mode { display: flex; gap: var(--s-4); align-items: flex-start; padding: var(--s-4) var(--s-5); background: var(--c-bg-2); border: 1px solid var(--c-line-strong); color: var(--c-text-dim); cursor: pointer; text-align: left; border-radius: var(--r-md); transition: all var(--t-fast); }
 .ops__mode:hover { border-color: var(--c-cyan); }
-.ops__mode.is-on { color: var(--c-cyan); border-color: var(--c-cyan); background: linear-gradient(180deg, rgba(0, 240, 255, .14), var(--c-bg-2)); box-shadow: inset 0 0 20px rgba(0, 240, 255, .12); }
+.ops__mode.is-on { color: var(--c-cyan); border-color: var(--c-cyan); background: linear-gradient(180deg, rgba(var(--rgb-cyan), .14), var(--c-bg-2)); box-shadow: inset 0 0 20px rgba(var(--rgb-cyan), .12); }
 .ops__mode-text { display: flex; flex-direction: column; gap: 4px; }
 .ops__mode-name { font-family: var(--f-display); font-weight: 700; letter-spacing: .1em; text-transform: uppercase; color: var(--c-text); }
 .ops__mode.is-on .ops__mode-name { color: var(--c-cyan); text-shadow: var(--text-glow-cyan); }
@@ -109,9 +110,9 @@ function launch() {
 .ops__cards { display: grid; grid-template-columns: repeat(5, 1fr); gap: var(--s-4); }
 .ops__config { display: grid; grid-template-columns: 1.3fr 1fr; gap: var(--s-5); }
 .ops__diff-list { display: grid; grid-template-columns: repeat(3, 1fr); gap: var(--s-3); }
-.ops__diff-opt { display: flex; flex-direction: column; gap: var(--s-1); align-items: flex-start; padding: var(--s-4); background: var(--c-bg-2); border: 1px solid var(--c-line-strong); color: var(--c-text); cursor: pointer; text-align: left; clip-path: var(--clip-chamfer-sm); transition: all var(--t-fast); }
+.ops__diff-opt { display: flex; flex-direction: column; gap: var(--s-1); align-items: flex-start; padding: var(--s-4); background: var(--c-bg-2); border: 1px solid var(--c-line-strong); color: var(--c-text); cursor: pointer; text-align: left; border-radius: var(--r-md); transition: all var(--t-fast); }
 .ops__diff-opt:hover { border-color: var(--c-cyan); }
-.ops__diff-opt.is-on { border-color: var(--c-cyan); background: linear-gradient(180deg, rgba(0, 240, 255, .14), var(--c-bg-2)); box-shadow: inset 0 0 20px rgba(0, 240, 255, .12); }
+.ops__diff-opt.is-on { border-color: var(--c-cyan); background: linear-gradient(180deg, rgba(var(--rgb-cyan), .14), var(--c-bg-2)); box-shadow: inset 0 0 20px rgba(var(--rgb-cyan), .12); }
 .ops__diff-name { font-family: var(--f-display); font-weight: 700; letter-spacing: .08em; text-transform: uppercase; }
 .ops__diff-opt.is-on .ops__diff-name { color: var(--c-cyan); text-shadow: var(--text-glow-cyan); }
 .ops__diff-desc { font-size: 11px; color: var(--c-text-dim); }
