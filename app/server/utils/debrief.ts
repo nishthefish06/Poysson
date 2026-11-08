@@ -4,7 +4,7 @@
  */
 import type { ArenaSummary, RunbookRef } from '@hackutd2026/shared/arena';
 
-type Facts = Omit<ArenaSummary, 'debrief' | 'debriefSource' | 'runbook'>;
+type Facts = Omit<ArenaSummary, 'debrief' | 'debriefSource' | 'runbook' | 'attackerReveal'>;
 
 const PROMPT = `You are a friendly security coach debriefing a customer-care employee after a TRAINING SIMULATION
 (everything was fictional). Using the facts below, write 4-6 short sentences addressed to them ("you"):

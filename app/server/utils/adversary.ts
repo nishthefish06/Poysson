@@ -113,7 +113,8 @@ export function safeNarration(n: string | null): string | null {
   return n.length <= 140 && !SPOILER.test(n) ? n : null;
 }
 
-export async function nextArenaMove(input: AttackerInput): Promise<ArenaMove> {
+/** The attacker's next move, and whether live Nemotron played it (false = scripted fallback). */
+export async function nextArenaMove(input: AttackerInput): Promise<{ move: ArenaMove; live: boolean }> {
   if (nemotronEnabled()) {
     try {
       const move = await nemotronMove(input);
@@ -125,12 +126,12 @@ export async function nextArenaMove(input: AttackerInput): Promise<ArenaMove> {
         move.flags = opening.flags;
         move.narration ??= opening.narration;
       }
-      return move;
+      return { move, live: true };
     } catch (e) {
       console.warn('[arena] Nemotron failed, using scripted move:', e instanceof Error ? e.message : e);
     }
   }
-  return stubMove(input);
+  return { move: stubMove(input), live: false };
 }
 
 // ---------- Scripted fallback: plays a full attack without any model ----------
