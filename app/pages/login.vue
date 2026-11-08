@@ -4,77 +4,68 @@
 import { useReducer } from 'spacetimedb/vue';
 import { reducers } from '~/module_bindings';
 
-definePageMeta({ layout: 'auth' });
+definePageMeta({ layout: 'auth', authSubtitle: 'Cybersecurity & scam avoidance' });
 const login = useReducer(reducers.login);
 const { error, busy, run } = useRunner();
 const email = ref('');
 const password = ref('');
-const errors = reactive({ email: '', password: '' });
+const showPassword = ref(false);
+const formError = ref('');
 
 function submit() {
-  errors.email = /.+@.+\..+/.test(email.value) ? '' : 'Enter a valid email';
-  errors.password = password.value ? '' : 'Enter your password';
-  if (errors.email || errors.password) return;
+  formError.value = !/.+@.+\..+/.test(email.value)
+    ? 'Enter a valid email address.'
+    : !password.value
+      ? 'Enter your password.'
+      : '';
+  if (formError.value) return;
   void run(() => login({ email: email.value, password: password.value }));
 }
 </script>
 
 <template>
-  <form class="login" @submit.prevent="submit">
-    <div class="eyebrow eyebrow--magenta">Step 01 / 02 · Authenticate</div>
-    <h1 class="login__title">Jack in</h1>
-    <p class="dim login__sub">Operators only. All sessions are logged.</p>
+  <form class="auth-form" novalidate @submit.prevent="submit">
+    <div>
+      <label class="auth-label" for="email">Email address</label>
+      <div class="auth-field">
+        <CyberIcon name="mail" :size="15" />
+        <input
+          id="email"
+          v-model="email"
+          type="email"
+          autocomplete="username"
+          placeholder="you@t-mobile.com"
+          @input="formError = ''"
+        />
+      </div>
+    </div>
 
-    <CyberInput
-      v-model="email"
-      label="Email"
-      type="email"
-      icon="user"
-      placeholder="you@t-mobile.com"
-      autocomplete="username"
-      :error="errors.email"
-    />
-    <CyberInput
-      v-model="password"
-      label="Password"
-      type="password"
-      icon="lock"
-      placeholder="••••••••••"
-      autocomplete="current-password"
-      :error="errors.password"
-    />
+    <div>
+      <label class="auth-label" for="password">Password</label>
+      <div class="auth-field">
+        <CyberIcon name="lock" :size="15" />
+        <input
+          id="password"
+          v-model="password"
+          :type="showPassword ? 'text' : 'password'"
+          autocomplete="current-password"
+          placeholder="••••••••"
+          @input="formError = ''"
+        />
+        <button
+          type="button"
+          class="auth-icon-btn"
+          :aria-label="showPassword ? 'Hide password' : 'Show password'"
+          @click="showPassword = !showPassword"
+        >
+          <CyberIcon name="eye" :size="15" />
+        </button>
+      </div>
+    </div>
 
-    <p v-if="error" class="login__err mono" role="alert">! {{ error }}</p>
+    <p v-if="formError || error" class="auth-error" role="alert">{{ formError || error }}</p>
 
-    <CyberButton type="submit" variant="primary" size="lg" block :loading="busy" icon-right="arrow"
-      >Authenticate</CyberButton
-    >
-    <p class="login__demo mono">Demo: demo.employee@example.com · demo.admin@example.com</p>
+    <button type="submit" class="auth-btn" :disabled="busy">{{ busy ? 'Signing in…' : 'Login' }}</button>
+    <p class="auth-hint">Demo: demo.employee@example.com · demo.admin@example.com</p>
   </form>
 </template>
-
-<style scoped>
-.login {
-  display: flex;
-  flex-direction: column;
-  gap: var(--s-5);
-}
-.login__title {
-  font-size: var(--fs-3xl);
-  line-height: 1;
-  text-transform: uppercase;
-}
-.login__sub {
-  font-size: var(--fs-sm);
-  margin-top: calc(var(--s-3) * -1);
-}
-.login__err {
-  color: var(--c-harmful);
-  font-size: var(--fs-xs);
-}
-.login__demo {
-  font-size: var(--fs-xs);
-  color: var(--c-text-mute);
-  text-align: center;
-}
-</style>

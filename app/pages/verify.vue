@@ -3,7 +3,7 @@
 import { useReducer } from 'spacetimedb/vue';
 import { reducers } from '~/module_bindings';
 
-definePageMeta({ layout: 'auth' });
+definePageMeta({ layout: 'auth', authSubtitle: 'Identity verification' });
 const verifyTotp = useReducer(reducers.verifyTotp);
 const cancelLogin = useReducer(reducers.cancelLogin);
 const { loginEmail } = useSession();
@@ -12,42 +12,29 @@ const code = ref('');
 </script>
 
 <template>
-  <form class="verify" @submit.prevent="run(() => verifyTotp({ code }))">
-    <div class="eyebrow eyebrow--magenta">Step 02 / 02 · Second factor</div>
-    <h1 class="verify__title">Verify</h1>
-    <p class="dim">
-      Enter the 6-digit code from your authenticator app for <b>{{ loginEmail }}</b
+  <form class="auth-form" @submit.prevent="run(() => verifyTotp({ code }))">
+    <h2 class="auth-heading">Complete 2FA</h2>
+    <p class="auth-text">
+      Enter the 6-digit code from your authenticator app<template v-if="loginEmail">
+        for {{ loginEmail }}</template
       >.
     </p>
 
-    <CyberInput
-      v-model="code"
-      label="Code"
-      icon="key"
-      placeholder="123456"
-      autocomplete="one-time-code"
-      :error="error"
-    />
+    <div class="auth-field auth-field--code">
+      <CyberIcon name="key" :size="15" />
+      <input
+        v-model="code"
+        inputmode="numeric"
+        maxlength="6"
+        autocomplete="one-time-code"
+        placeholder="000000"
+        aria-label="6-digit code"
+      />
+    </div>
+    <p v-if="error" class="auth-error" role="alert">{{ error }}</p>
 
-    <CyberButton type="submit" variant="primary" size="lg" block :loading="busy" icon="check"
-      >Verify code</CyberButton
-    >
-    <CyberButton variant="ghost" size="sm" @click="cancelLogin()">Use a different account</CyberButton>
+    <button type="submit" class="auth-btn" :disabled="busy">{{ busy ? 'Verifying…' : 'Verify code' }}</button>
+    <p class="auth-hint">Lost your phone? Contact IT support to reset 2FA.</p>
+    <button type="button" class="auth-link" @click="cancelLogin()">Back to sign in</button>
   </form>
 </template>
-
-<style scoped>
-.verify {
-  display: flex;
-  flex-direction: column;
-  gap: var(--s-5);
-}
-.verify__title {
-  font-size: var(--fs-3xl);
-  text-transform: uppercase;
-  line-height: 1;
-}
-.verify :deep(.cyber-btn--ghost) {
-  align-self: center;
-}
-</style>

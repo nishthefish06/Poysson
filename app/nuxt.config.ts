@@ -7,6 +7,22 @@ export default defineNuxtConfig({
   // SpacetimeDB's local server already uses :3000
   devServer: { port: 3001 },
   modules: ['@nuxtjs/tailwindcss'],
+  // Pages use <CyberInput>, not <UiCyberInput>: register components by file name only.
+  components: [{ path: '~/components', pathPrefix: false }],
+  app: {
+    head: {
+      title: 'Poysson Training',
+      link: [
+        { rel: 'preconnect', href: 'https://fonts.googleapis.com' },
+        { rel: 'preconnect', href: 'https://fonts.gstatic.com', crossorigin: '' },
+        {
+          rel: 'stylesheet',
+          // The faces tokens.css names (--f-display, --f-ui, --f-mono).
+          href: 'https://fonts.googleapis.com/css2?family=Orbitron:wght@500;700;900&family=Chakra+Petch:wght@400;500;600;700&family=JetBrains+Mono:wght@400;700&display=swap',
+        },
+      ],
+    },
+  },
   css: ['~/assets/css/main.css', '~/assets/css/tokens.css', '~/assets/css/base.css'],
   typescript: { strict: true },
   runtimeConfig: {

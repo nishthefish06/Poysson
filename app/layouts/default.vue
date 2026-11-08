@@ -12,10 +12,16 @@ const NAV = [
   { to: '/audit', label: 'Audit Log', icon: 'list' },
   { to: '/profile', label: 'Profile', icon: 'user' },
 ];
-// SessionGate sends the user to /login once the server drops the session.
-function doLogout() {
+// Drop the server session, then go to /login ourselves: SessionGate only redirects when it's
+// connected and the dev auth bypass is off.
+async function doLogout() {
   resetGame();
-  void logout();
+  try {
+    await logout();
+  } catch {
+    // Not connected or already signed out: still leave the app.
+  }
+  await navigateTo('/login', { replace: true });
 }
 </script>
 
@@ -23,7 +29,7 @@ function doLogout() {
   <div class="app-shell">
     <aside class="app-shell__nav">
       <NuxtLink to="/dashboard" class="app-shell__logo">
-        <span class="glitch" data-text="NEON//IR">NEON//IR</span>
+        <span class="glitch" data-text="POYSSON">POYSSON</span>
       </NuxtLink>
       <nav class="app-shell__links">
         <NuxtLink

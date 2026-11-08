@@ -5,7 +5,7 @@ import QRCode from 'qrcode';
 import { useReducer } from 'spacetimedb/vue';
 import { reducers } from '~/module_bindings';
 
-definePageMeta({ layout: 'auth' });
+definePageMeta({ layout: 'auth', authSubtitle: 'Set up two-factor sign-in' });
 const APP_LABEL = 'poysson.fishing';
 const enrollTotp = useReducer(reducers.enrollTotp);
 const cancelLogin = useReducer(reducers.cancelLogin);
@@ -42,52 +42,44 @@ onMounted(async () => {
 </script>
 
 <template>
-  <form class="enroll" @submit.prevent="run(() => enrollTotp({ secret, code }))">
-    <div class="eyebrow eyebrow--magenta">Step 02 / 02 · Set up 2FA</div>
-    <h1 class="enroll__title">Bind authenticator</h1>
-    <p class="dim">Scan with Google Authenticator, Authy, 1Password or similar, then enter the code.</p>
+  <form class="auth-form" @submit.prevent="run(() => enrollTotp({ secret, code }))">
+    <h2 class="auth-heading">Set up your authenticator</h2>
+    <p class="auth-text">
+      Scan with Google Authenticator, Authy, 1Password or similar, then enter the 6-digit code it shows.
+    </p>
 
-    <img v-if="qr" :src="qr" alt="Authenticator QR code" width="180" height="180" class="enroll__qr" />
-    <p class="enroll__key mono">Can't scan? Setup key: {{ secret }}</p>
+    <img v-if="qr" :src="qr" alt="Authenticator QR code" width="168" height="168" class="enroll-qr" />
+    <p class="auth-hint enroll-key">Can't scan? Setup key: {{ secret }}</p>
 
-    <CyberInput
-      v-model="code"
-      label="Code"
-      icon="key"
-      placeholder="123456"
-      autocomplete="one-time-code"
-      :error="error"
-    />
+    <div class="auth-field auth-field--code">
+      <CyberIcon name="key" :size="15" />
+      <input
+        v-model="code"
+        inputmode="numeric"
+        maxlength="6"
+        autocomplete="one-time-code"
+        placeholder="000000"
+        aria-label="6-digit code"
+      />
+    </div>
+    <p v-if="error" class="auth-error" role="alert">{{ error }}</p>
 
-    <CyberButton type="submit" variant="primary" size="lg" block :loading="busy" icon="check"
-      >Finish setup</CyberButton
-    >
-    <CyberButton variant="ghost" size="sm" @click="cancelLogin()">Use a different account</CyberButton>
+    <button type="submit" class="auth-btn" :disabled="busy">
+      {{ busy ? 'Verifying…' : 'Finish setup' }}
+    </button>
+    <button type="button" class="auth-link" @click="cancelLogin()">Back to sign in</button>
   </form>
 </template>
 
 <style scoped>
-.enroll {
-  display: flex;
-  flex-direction: column;
-  gap: var(--s-4);
-}
-.enroll__title {
-  font-size: var(--fs-2xl);
-  text-transform: uppercase;
-}
-.enroll__qr {
+.enroll-qr {
   align-self: center;
   background: #fff;
-  padding: var(--s-2);
+  padding: 8px;
+  border-radius: 8px;
 }
-.enroll__key {
-  font-size: var(--fs-xs);
-  color: var(--c-text-mute);
+.enroll-key {
+  font-family: var(--f-mono);
   word-break: break-all;
-  text-align: center;
-}
-.enroll :deep(.cyber-btn--ghost) {
-  align-self: center;
 }
 </style>
