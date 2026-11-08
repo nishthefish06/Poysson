@@ -103,6 +103,8 @@ function joined(ts: { microsSinceUnixEpoch: bigint }) {
       <StatCard label="Awaiting 2FA" :value="pending2fa" icon="alert" accent="yellow" caption="first sign-in pending" />
     </section>
 
+    <div class="adm__live"><AdminLiveFeed /></div>
+
     <p v-if="error" class="adm__msg adm__msg--err" role="alert">{{ error }}</p>
     <p v-else-if="notice" class="adm__msg" role="status">{{ notice }}</p>
 
@@ -215,6 +217,9 @@ function joined(ts: { microsSinceUnixEpoch: bigint }) {
 </template>
 
 <style scoped>
+.adm__live {
+  margin-bottom: var(--s-6);
+}
 .adm__stats {
   display: grid;
   grid-template-columns: repeat(4, minmax(0, 1fr));
