@@ -40,6 +40,11 @@ export default defineNuxtConfig({
     photonProjectId: process.env.PHOTON_PROJECT_ID ?? '',
     photonProjectSecret: process.env.PHOTON_PROJECT_SECRET ?? '',
     demoPhoneMap: process.env.DEMO_PHONE_MAP ?? '',
+    // Solana devnet wallet that signs audit-log memo transactions (server-only, never public)
+    solanaRpcUrl: process.env.SOLANA_RPC_URL ?? 'https://api.devnet.solana.com',
+    solanaSecretKey: process.env.SOLANA_SECRET_KEY ?? '',
+    // public site URL for badge metadata JSON (e.g. https://poysson.app); empty = name/symbol only
+    solanaMetadataBaseUrl: process.env.SOLANA_METADATA_BASE_URL ?? '',
     public: {
       // NUXT_PUBLIC_SPACETIME_URL / NUXT_PUBLIC_SPACETIME_DB from .env
       spacetimeUrl: 'ws://127.0.0.1:3000',
