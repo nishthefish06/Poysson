@@ -1,4 +1,4 @@
-git <script setup lang="ts">
+<script setup lang="ts">
 /*
  * CastIntro: the Poisson landing intro, shown once per session on the sign-in page.
  * Rendered by the auth layout BEHIND the sign-in card, and it moves the real card:
