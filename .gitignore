@@ -1,5 +1,12 @@
 node_modules/
 dist/
+
+# Nuxt build output (generated)
+.nuxt/
+.output/
+.data/
+.nitro/
+.cache/
 .DS_Store
 .env
 .env.*

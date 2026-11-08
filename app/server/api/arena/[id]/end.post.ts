@@ -1,6 +1,9 @@
-// Employee ends the round. TODO (Person 4): kick off AI feedback on the round here.
-export default defineEventHandler((event) => {
+// Employee ends the round: reveals the summary (what the attacker did, what's still compromised, debrief).
+export default defineEventHandler(async (event) => {
   const r = getRound(getRouterParam(event, 'id') ?? '');
-  r.status = 'finished';
-  return toArenaState(r);
+  if (r.summary) return toArenaState(r);
+  return withRoundLock(r, async () => {
+    await finishRound(r);
+    return toArenaState(r);
+  });
 });
