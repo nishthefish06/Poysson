@@ -88,11 +88,15 @@ function recheckLabel(a: AuditEntry) {
           <div class="ship__hull">
             <svg class="ship__hull-bg" viewBox="0 0 200 90" preserveAspectRatio="none" aria-hidden="true">
               <path d="M3 4 H197 Q193 50 172 86 H28 Q7 50 3 4Z" class="ship__hull-fill" vector-effect="non-scaling-stroke" />
-              <path d="M10 62 H190" class="ship__stripe" vector-effect="non-scaling-stroke" />
+            </svg>
+            <!-- the stripe sits a fixed distance from the bottom, so wrapped text above never hits it -->
+            <svg class="ship__stripe-bg" viewBox="0 0 200 10" preserveAspectRatio="none" aria-hidden="true">
+              <path d="M14 5 H186" class="ship__stripe" vector-effect="non-scaling-stroke" />
             </svg>
             <div class="ship__name">{{ pretty(a.event) }}</div>
             <div class="ship__cargo">{{ a.detail }}</div>
-            <div class="ship__reg mono">{{ day(a.ts) }} · {{ a.ip }} · slot {{ a.slot.toLocaleString() }}</div>
+            <div class="ship__reg mono">{{ day(a.ts) }} · {{ a.ip }}</div>
+            <div class="ship__slot mono">slot {{ a.slot.toLocaleString() }}</div>
           </div>
         </div>
 
@@ -162,13 +166,15 @@ function recheckLabel(a: AuditEntry) {
 }
 .ship__porthole { width: 12px; height: 12px; border-radius: 50%; background: #9fdcff; border: 2px solid var(--ink); }
 .ship__time { font-family: var(--f-hand); font-size: 18px; font-weight: 700; color: var(--ink); line-height: 1; }
-.ship__hull { position: relative; width: 100%; padding: 12px 26px 22px; text-align: center; min-height: 104px; }
+.ship__hull { position: relative; width: 100%; padding: 12px 26px 44px; text-align: center; min-height: 104px; }
 .ship__hull-bg { position: absolute; inset: 0; width: 100%; height: 100%; overflow: visible; filter: drop-shadow(3px 4px 0 rgba(18, 34, 74, .25)); }
 .ship__hull-fill { fill: var(--paper-2); stroke: var(--ink); stroke-width: 2.6; stroke-linejoin: round; }
+.ship__stripe-bg { position: absolute; left: 0; right: 0; bottom: 26px; width: 100%; height: 10px; overflow: visible; }
 .ship__stripe { stroke: var(--k); stroke-width: 6; stroke-linecap: round; }
 .ship__name { position: relative; font-family: var(--f-display); font-weight: 600; font-size: var(--fs-md); color: var(--ink); }
 .ship__cargo { position: relative; font-size: var(--fs-sm); color: var(--c-text-dim); line-height: 1.3; margin-top: 2px; }
 .ship__reg { position: relative; font-size: 9px; color: var(--c-text-mute); margin-top: 6px; letter-spacing: .02em; }
+.ship__slot { position: absolute; left: 0; right: 0; bottom: 9px; font-size: 9px; color: var(--c-text-mute); letter-spacing: .02em; }
 
 /* water + pier */
 .berth__water { position: relative; z-index: 1; width: calc(100% + var(--s-6)); height: 14px; display: block; fill: rgba(255, 255, 255, .55); }
