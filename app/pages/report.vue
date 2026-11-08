@@ -15,7 +15,7 @@ function print() {
     <div class="report-page__bar">
       <CyberButton variant="ghost" size="sm" icon="back" to="/results">Back to debrief</CyberButton>
       <div class="spacer" />
-      <SolanaVerified v-if="run" :tx="run.tx" />
+      <SolanaVerified v-if="run" :tx="run.tx" :status="anchorOf(run)" />
       <CyberButton variant="primary" size="sm" icon="print" @click="print">Print / Save PDF</CyberButton>
     </div>
     <ReportDocument v-if="run" :run="run" />

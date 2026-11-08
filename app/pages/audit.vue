@@ -7,7 +7,7 @@
 import type { AuditEntry } from '~/composables/useGame'
 import { COPY } from '~/data/copy'
 
-const { state } = useGame()
+const { state, verifyEntry, anchorEntry } = useGame()
 const filter = ref<string>('all')
 const q = ref('')
 const tabs = computed(() => [
@@ -31,10 +31,18 @@ const KIND: Record<AuditEntry['kind'], { icon: string; color: string; label: str
 const pretty = (ev: string) => ev.charAt(0) + ev.slice(1).toLowerCase().replace(/_/g, ' ')
 const time = (ts: string) => new Date(ts).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
 const day = (ts: string) => new Date(ts).toLocaleDateString([], { month: 'short', day: 'numeric' })
+// Re-verify: re-hash the record as it is now and check it against its Solana memo.
 const verifying = ref<string | null>(null)
-function verify(id: string) {
+const results = ref<Record<string, { ok: boolean; reason?: string }>>({})
+async function verify(id: string) {
   verifying.value = id
-  setTimeout(() => { if (verifying.value === id) verifying.value = null }, 1500)
+  results.value = { ...results.value, [id]: await verifyEntry(id) }
+  if (verifying.value === id) verifying.value = null
+}
+function recheckLabel(a: AuditEntry) {
+  if (verifying.value === a.id) return 'checking…'
+  const r = results.value[a.id]
+  return r ? (r.ok ? 'matches chain ✓' : 'mismatch ✗') : 're-verify'
 }
 </script>
 
@@ -100,8 +108,9 @@ function verify(id: string) {
           <span class="berth__bollard" aria-hidden="true" />
           <svg class="berth__rope" viewBox="0 0 60 50" aria-hidden="true"><path d="M8 44 Q20 10 56 2" /></svg>
           <div class="berth__sign">
-            <SolanaVerified :tx="a.tx" :slot="a.slot" compact />
-            <button class="audit__recheck" @click="verify(a.id)">{{ verifying === a.id ? 'checking…' : 're-verify' }}</button>
+            <SolanaVerified :tx="a.tx" :slot="a.slot" :status="anchorOf(a)" :error="a.anchorError" compact />
+            <button v-if="anchorOf(a) === 'anchored'" class="audit__recheck" :class="results[a.id] && (results[a.id].ok ? 'is-ok' : 'is-bad')" :title="results[a.id]?.reason" @click="verify(a.id)">{{ recheckLabel(a) }}</button>
+            <button v-else-if="anchorOf(a) === 'failed'" class="audit__recheck" :title="a.anchorError" @click="anchorEntry(a.id)">retry</button>
           </div>
         </div>
       </article>
@@ -193,6 +202,8 @@ function verify(id: string) {
   box-shadow: 2px 3px 0 rgba(18, 34, 74, .35); transform: rotate(-1.5deg);
 }
 .audit__recheck { background: none; border: 0; color: var(--c-text-dim); font-family: var(--f-hand); font-size: 16px; font-weight: 700; text-decoration: underline wavy rgba(var(--rgb-magenta), .5); text-underline-offset: 3px; }
+.audit__recheck.is-ok { color: var(--c-ideal); text-decoration: none; }
+.audit__recheck.is-bad { color: var(--c-harmful); text-decoration: none; }
 .audit__recheck:hover { color: var(--c-magenta); }
 .harbor__empty { grid-column: 1 / -1; display: flex; flex-direction: column; align-items: center; gap: var(--s-2); padding: var(--s-10); color: #fff; font-family: var(--f-hand); font-size: 24px; text-shadow: 0 2px 0 var(--ink); }
 

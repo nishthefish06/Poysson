@@ -1,278 +1,439 @@
 <script setup lang="ts">
 /*
- * CastIntro: the "let's go phishing" opener shown on the way into the dashboard.
- * Rod winds back and casts, the hook splashes down, the bobber bites twice,
- * the rod yanks and a magenta fish comes up on the hook. Click / Esc skips.
- * Driven by one requestAnimationFrame timeline (seconds), so every piece stays attached to the line.
+ * CastIntro: the Poisson landing intro, shown once per session on the sign-in page.
+ * Rendered by the auth layout BEHIND the sign-in card, and it moves the real card:
+ *
+ *   aim   the rod follows your pointer; click / Space / Enter to cast (auto after a few seconds)
+ *   cast  the rod swings, the hook lands where you aimed
+ *   wait  the bobber floats
+ *   bite  the bobber dips; click / Space / Enter to reel in (auto after a moment)
+ *   reel  the fish comes up out of the water and the sign-in card rises right underneath it,
+ *         landing exactly where it normally sits
+ *   land  the fish slips the hook and swims off, the scene fades into the normal background
+ *
+ * Esc or "Skip intro" jumps to the end. One rAF loop drives everything; the hook position is
+ * converted from SVG units to screen pixels so the card can hang off it precisely.
  */
 const show = useState<boolean>('castIntro', () => false)
 
 const WATER = 330
 const PIVOT = { x: 190, y: 352 }
 const ROD = 290
-const SPLASH = { x: 700, y: WATER }
-const END = 4.7 // seconds until the wipe-out starts
+const FISH_DROP = 94 // svg units from the hook down to just below the hanging fish's tail
 
-const t = ref(0)
-const leaving = ref(false)
-const splashes = ref<{ id: number; x: number; at: number }[]>([])
-let raf = 0
-let t0 = 0
-let splashed1 = false
-let splashed2 = false
+type Phase = 'aim' | 'cast' | 'wait' | 'bite' | 'reel' | 'land' | 'done'
+const phase = ref<Phase>('aim')
+const svg = ref<SVGSVGElement>()
+const scene = ref<HTMLElement>()
 
-/* ---- easing + keyframe helpers ---- */
+/* reactive bits the template draws (updated each frame) */
+const tip = reactive({ x: 0, y: 0 })
+const hook = reactive({ x: 0, y: 0 })
+const bobber = reactive({ x: 0, y: 0, on: false })
+const fish = reactive({ on: false, tilt: 0, x: 0, y: 0, free: false, flip: 1 })
+const splashes = ref<{ id: number; x: number }[]>([])
+const hint = ref('')
+const fade = ref(0) // 0 = scene fully shown, 1 = gone
+const tagline = ref(0)
+
+/* ---- helpers ---- */
 const clamp = (v: number, a = 0, b = 1) => Math.min(b, Math.max(a, v))
+const lerp = (a: number, b: number, t: number) => a + (b - a) * t
 const easeOut = (x: number) => 1 - (1 - x) ** 3
 const easeInOut = (x: number) => (x < 0.5 ? 4 * x ** 3 : 1 - (-2 * x + 2) ** 3 / 2)
-const lerp = (a: number, b: number, x: number) => a + (b - a) * x
-/** piecewise: [[time, value, ease?], ...] */
-function track(keys: [number, number, ((x: number) => number)?][], time: number) {
-  if (time <= keys[0][0]) return keys[0][1]
-  for (let i = 1; i < keys.length; i++) {
-    const [tb, vb, ez] = keys[i]
-    const [ta, va] = keys[i - 1]
-    if (time <= tb) return lerp(va, vb, (ez ?? easeInOut)(clamp((time - ta) / (tb - ta))))
-  }
-  return keys[keys.length - 1][1]
+const rad = (d: number) => (d * Math.PI) / 180
+const tipAt = (deg: number) => ({ x: PIVOT.x + Math.cos(rad(deg)) * ROD, y: PIVOT.y - Math.sin(rad(deg)) * ROD })
+
+/* ---- svg <-> screen ---- */
+function ctm() {
+  const m = svg.value?.getScreenCTM()
+  return m ? { a: m.a, e: m.e, f: m.f } : { a: 1, e: 0, f: 0 }
+}
+const toScreen = (x: number, y: number) => { const m = ctm(); return { x: m.a * x + m.e, y: m.a * y + m.f } }
+const toSvg = (x: number, y: number) => { const m = ctm(); return { x: (x - m.e) / m.a, y: (y - m.f) / m.a } }
+
+/* ---- the real sign-in card ---- */
+let card: HTMLElement | null = null
+let rest = { cx: 0, top: 0, h: 0 }
+const cardPos = { x: 0, y: 0, r: 0, o: 0 }
+function measureCard() {
+  if (!card) return
+  const prev = card.style.transform
+  card.style.transform = 'none'
+  const r = card.getBoundingClientRect()
+  card.style.transform = prev
+  rest = { cx: r.left + r.width / 2, top: r.top, h: r.height }
+}
+function placeCard() {
+  if (!card) return
+  card.style.transform = `translate3d(${cardPos.x}px, ${cardPos.y}px, 0) rotate(${cardPos.r}deg)`
+  card.style.opacity = String(cardPos.o)
+}
+function releaseCard() {
+  if (!card) return
+  card.style.transform = ''
+  card.style.opacity = ''
+  card.style.filter = ''
 }
 
-/* ---- the scene, derived from t ---- */
-const angle = computed(() => {
-  const time = t.value
-  const base = track([
-    [0, 62], [0.45, 118], [0.85, 32, easeOut], [2.25, 32], [2.32, 25], [2.42, 32], [2.5, 24], [2.6, 31],
-    [2.7, 31], [3.15, 80, easeOut],
-  ], time)
-  return base + (time > 3.15 ? Math.sin(time * 5) * 2 : 0)
-})
-const tip = computed(() => {
-  const a = (angle.value * Math.PI) / 180
-  return { x: PIVOT.x + Math.cos(a) * ROD, y: PIVOT.y - Math.sin(a) * ROD }
-})
-const RELEASE = 0.72
-const LAND = 1.5
-const YANK = 2.7
-const UP = 3.25
-const releaseTip = { x: PIVOT.x + Math.cos((50 * Math.PI) / 180) * ROD, y: PIVOT.y - Math.sin((50 * Math.PI) / 180) * ROD }
-
-const hook = computed(() => {
-  const time = t.value
-  const tp = tip.value
-  if (time < RELEASE) {
-    // dangling from the tip, swinging as the rod winds
-    return { x: tp.x + Math.sin(time * 9) * 14, y: tp.y + 55 }
-  }
-  if (time < LAND) {
-    // flight: parabola from the tip to the splash point
-    const x = easeOut(clamp((time - RELEASE) / (LAND - RELEASE)))
-    const sx = releaseTip.x
-    const sy = releaseTip.y + 55
-    return { x: lerp(sx, SPLASH.x, x), y: lerp(sy, SPLASH.y, x) - Math.sin(x * Math.PI) * 190 }
-  }
-  if (time < YANK) {
-    // sinking, then waiting with a little drift
-    const sink = easeOut(clamp((time - LAND) / 0.5))
-    return { x: SPLASH.x + 6 + Math.sin(time * 2) * 4, y: lerp(WATER, WATER + 80, sink) }
-  }
-  // yank: up out of the water to hang under the tip, then swing
-  const up = easeOut(clamp((time - YANK) / (UP - YANK)))
-  const hang = { x: tp.x + Math.sin(time * 4.5) * 22, y: tp.y + 120 }
-  return { x: lerp(SPLASH.x + 6, hang.x, up), y: lerp(WATER + 80, hang.y, up) }
-})
-const bobberOn = computed(() => t.value >= LAND && t.value < YANK + 0.08)
-const bobber = computed(() => {
-  const time = t.value
-  let dip = 0
-  if (time > 2.25 && time < 2.65) dip = Math.max(0, Math.sin((time - 2.25) * 16)) * 14
-  return { x: SPLASH.x - 30, y: WATER - 4 + Math.sin(time * 3) * 2 + dip }
-})
-const fishOn = computed(() => t.value >= YANK - 0.15)
-const fishTilt = computed(() => (t.value > UP ? Math.sin(t.value * 11) * 18 : Math.sin(t.value * 6) * 6))
-const textOn = computed(() => t.value >= 3.1)
-
-const line = computed(() => {
-  const tp = tip.value
-  const h = hook.value
-  if (bobberOn.value && t.value >= LAND) {
-    const b = bobber.value
-    const mx = (tp.x + b.x) / 2
-    const my = Math.max(tp.y, b.y) + 40
-    return `M${tp.x} ${tp.y} Q${mx} ${my} ${b.x} ${b.y} L${h.x} ${h.y}`
-  }
-  if (t.value >= RELEASE && t.value < LAND) {
-    const mx = (tp.x + h.x) / 2
-    const my = (tp.y + h.y) / 2 + 30
-    return `M${tp.x} ${tp.y} Q${mx} ${my} ${h.x} ${h.y}`
-  }
-  return `M${tp.x} ${tp.y} L${h.x} ${h.y}`
-})
-
-/* ---- loop ---- */
-function frame(now: number) {
-  if (!t0) t0 = now
-  t.value = (now - t0) / 1000
-  if (!splashed1 && t.value >= LAND) { splashed1 = true; splash(SPLASH.x) }
-  if (!splashed2 && t.value >= YANK + 0.22) { splashed2 = true; splash(SPLASH.x - 10) }
-  if (t.value >= END && !leaving.value) leave()
-  if (!leaving.value || t.value < END + 0.8) raf = requestAnimationFrame(frame)
-}
+/* ---- timeline state ---- */
+let raf = 0
+let last = 0
+let phaseAt = 0
+let aimX = 0.6 // 0..1 across the screen
+let splash = { x: 640, y: WATER }
+let hookStart = { x: 640, y: WATER + 80 }
+let hookEnd = { x: 500, y: 150 }
+let castFrom = { x: 0, y: 0 }
+let crossed = false
+let autoTimer: ReturnType<typeof setTimeout> | undefined
 let sid = 0
-function splash(x: number) {
-  splashes.value.push({ id: ++sid, x, at: t.value })
+
+function go(p: Phase) {
+  phase.value = p
+  phaseAt = performance.now()
+  clearTimeout(autoTimer)
+  hint.value = ''
+  if (p === 'aim') {
+    setTimeout(() => { if (phase.value === 'aim') hint.value = 'Move to aim · click to cast' }, 700)
+    autoTimer = setTimeout(() => { if (phase.value === 'aim') go('cast') }, 3600)
+  }
+  if (p === 'cast') {
+    splash = { x: lerp(440, 820, aimX), y: WATER }
+    castFrom = { ...tip }
+  }
+  if (p === 'bite') {
+    hint.value = 'Fish on! Click to reel in'
+    autoTimer = setTimeout(() => { if (phase.value === 'bite') go('reel') }, 2200)
+  }
+  if (p === 'reel') {
+    crossed = false
+    measureCard()
+    hookStart = { x: splash.x + 6, y: WATER + 80 }
+    // finish with the fish hanging right above where the card normally sits
+    const end = toSvg(rest.cx, rest.top)
+    hookEnd = { x: end.x, y: end.y - FISH_DROP }
+    fish.on = true
+    fish.free = false
+  }
 }
-function leave() {
-  if (leaving.value) return
-  leaving.value = true
-  setTimeout(() => { show.value = false }, 650)
+
+function addSplash(x: number) {
+  const id = ++sid
+  splashes.value.push({ id, x })
+  setTimeout(() => { splashes.value = splashes.value.filter(s => s.id !== id) }, 1200)
 }
-function onKey(e: KeyboardEvent) { if (e.key === 'Escape' || e.key === 'Enter' || e.key === ' ') leave() }
+
+function frame(now: number) {
+  const dt = last ? Math.min(0.05, (now - last) / 1000) : 0.016
+  last = now
+  const t = (now - phaseAt) / 1000
+  const p = phase.value
+  let angle = 62
+
+  if (p === 'aim') {
+    // rod leans with the pointer; the hook dangles from the tip
+    angle = lerp(70, 54, aimX) + Math.sin(now / 900) * 1.5
+    Object.assign(tip, tipAt(angle))
+    hook.x = tip.x + Math.sin(now / 420) * 6
+    hook.y = tip.y + 55
+  } else if (p === 'cast') {
+    // wind back, then swing through; the hook flies in an arc to where you aimed
+    angle = t < 0.4 ? lerp(62, 112, easeInOut(t / 0.4)) : lerp(112, 32, easeOut(clamp((t - 0.4) / 0.4)))
+    Object.assign(tip, tipAt(angle))
+    if (t < 0.5) {
+      hook.x = tip.x + Math.sin(t * 12) * 10
+      hook.y = tip.y + 55
+      castFrom = { x: hook.x, y: hook.y }
+    } else {
+      const u = easeOut(clamp((t - 0.5) / 0.8))
+      hook.x = lerp(castFrom.x, splash.x, u)
+      hook.y = lerp(castFrom.y, splash.y, u) - Math.sin(u * Math.PI) * 170
+      if (u >= 1) { addSplash(splash.x); go('wait') }
+    }
+  } else if (p === 'wait' || p === 'bite') {
+    angle = 32 + Math.sin(now / 1100) * 1
+    Object.assign(tip, tipAt(angle))
+    const sink = easeOut(clamp(t / 0.5))
+    hook.x = splash.x + 6 + Math.sin(now / 700) * 3
+    hook.y = p === 'wait' ? lerp(WATER, WATER + 80, sink) : WATER + 80
+    bobber.on = true
+    bobber.x = splash.x - 30
+    const dip = p === 'bite' ? Math.max(0, Math.sin(t * 9)) * 12 : 0
+    bobber.y = WATER - 3 + Math.sin(now / 500) * 1.5 + dip
+    if (p === 'wait' && t > 1.3) go('bite')
+  } else if (p === 'reel') {
+    // the rod lifts, the fish comes up and travels to just above the card's resting spot
+    const u = easeInOut(clamp(t / 1.5))
+    angle = lerp(32, 76, easeOut(clamp(t / 0.9)))
+    Object.assign(tip, tipAt(angle))
+    bobber.on = t < 0.15
+    hook.x = lerp(hookStart.x, hookEnd.x, u)
+    hook.y = lerp(hookStart.y, hookEnd.y, u) - Math.sin(u * Math.PI) * 40
+    fish.tilt = Math.sin(now / 90) * 14 * (1 - u * 0.6)
+    if (!crossed && hook.y < WATER) { crossed = true; addSplash(hook.x) }
+    tagline.value = clamp((t - 0.6) / 0.6)
+    if (t >= 1.5) go('land')
+  } else if (p === 'land') {
+    angle = 76
+    Object.assign(tip, tipAt(angle))
+    if (t < 0.5) {
+      // hanging still for a beat, a last wiggle
+      hook.x = hookEnd.x
+      hook.y = hookEnd.y
+      fish.tilt = Math.sin(now / 70) * 10 * (1 - t / 0.5)
+    } else {
+      // slips the hook and swims off; the line reels back in
+      fish.free = true
+      const u = easeOut(clamp((t - 0.5) / 0.8))
+      fish.x = lerp(hookEnd.x, hookEnd.x + 520, u)
+      fish.y = lerp(hookEnd.y + 32, hookEnd.y - 60, u) + Math.sin(u * 10) * 8
+      const r = easeInOut(clamp((t - 0.5) / 0.5))
+      hook.x = lerp(hookEnd.x, tip.x, r)
+      hook.y = lerp(hookEnd.y, tip.y + 40, r)
+    }
+    fade.value = clamp((t - 0.7) / 0.7)
+    tagline.value = 1 - clamp((t - 0.6) / 0.6)
+    if (t >= 1.45) go('done')
+  } else if (p === 'done') {
+    finish()
+    return
+  }
+
+  // ---- the card: below the screen until the reel, then hanging under the fish ----
+  if (card) {
+    const water = toScreen(0, WATER).y
+    if (p === 'reel' || p === 'land') {
+      const h = toScreen(hook.x, hook.y)
+      const m = ctm()
+      const tx = p === 'land' ? 0 : h.x - rest.cx
+      const ty = p === 'land' ? 0 : h.y + FISH_DROP * m.a - rest.top
+      const k = 1 - Math.exp(-dt * (p === 'land' ? 10 : 8))
+      const px = cardPos.x
+      cardPos.x += (tx - cardPos.x) * k
+      cardPos.y += (ty - cardPos.y) * k
+      cardPos.r = clamp((cardPos.x - px) * 0.6, -6, 6) * (p === 'land' ? 1 - clamp(t / 0.6) : 1)
+      // dim and soft while under the water, clear once it's out
+      const under = rest.top + cardPos.y > water - 10
+      cardPos.o += ((under ? 0.55 : 1) - cardPos.o) * k
+      card.style.filter = under ? 'saturate(.7) blur(.6px)' : ''
+    } else {
+      const s = toScreen(splash.x, WATER)
+      cardPos.x = s.x - rest.cx
+      cardPos.y = window.innerHeight - rest.top + 40
+      cardPos.r = 0
+      cardPos.o = 0
+    }
+    placeCard()
+  }
+  raf = requestAnimationFrame(frame)
+}
+
+/* ---- interaction ---- */
+function act() {
+  if (phase.value === 'aim') go('cast')
+  else if (phase.value === 'bite') go('reel')
+}
+function onMove(e: PointerEvent) {
+  if (phase.value === 'aim') aimX = clamp(e.clientX / window.innerWidth)
+}
+function onDown(e: PointerEvent) {
+  if ((e.target as Element | null)?.closest?.('.cast__skip')) return
+  act()
+}
+function onKey(e: KeyboardEvent) {
+  if (e.key === 'Escape') { e.preventDefault(); skip() }
+  else if (e.key === ' ' || e.key === 'Enter') { e.preventDefault(); act() }
+}
+function skip() {
+  cardPos.x = 0
+  cardPos.y = 0
+  cardPos.r = 0
+  cardPos.o = 1
+  placeCard()
+  finish()
+}
+let finished = false
+function finish() {
+  if (finished) return
+  finished = true
+  cancelAnimationFrame(raf)
+  clearTimeout(autoTimer)
+  releaseCard()
+  show.value = false
+}
+function onResize() { measureCard() }
 
 onMounted(() => {
-  if (matchMedia('(prefers-reduced-motion: reduce)').matches) {
-    t.value = 3.6 // show the catch, no motion
-    setTimeout(leave, 1400)
-  } else {
-    raf = requestAnimationFrame(frame)
-  }
+  card = document.querySelector('.auth__card')
+  measureCard()
+  window.addEventListener('pointermove', onMove, { passive: true })
+  window.addEventListener('pointerdown', onDown)
   window.addEventListener('keydown', onKey)
+  window.addEventListener('resize', onResize)
+  go('aim')
+  raf = requestAnimationFrame(frame)
 })
 onBeforeUnmount(() => {
   cancelAnimationFrame(raf)
+  clearTimeout(autoTimer)
+  releaseCard()
+  window.removeEventListener('pointermove', onMove)
+  window.removeEventListener('pointerdown', onDown)
   window.removeEventListener('keydown', onKey)
+  window.removeEventListener('resize', onResize)
 })
 
-const FISH = `M-34 0 Q-20 -15 2 -14 Q22 -12 30 0 Q22 12 2 14 Q-20 15 -34 0Z`
+const line = computed(() => {
+  if (bobber.on && (phase.value === 'wait' || phase.value === 'bite' || phase.value === 'reel')) {
+    const mx = (tip.x + bobber.x) / 2
+    const my = Math.max(tip.y, bobber.y) + 36
+    return `M${tip.x} ${tip.y} Q${mx} ${my} ${bobber.x} ${bobber.y} L${hook.x} ${hook.y}`
+  }
+  if (phase.value === 'cast') {
+    const mx = (tip.x + hook.x) / 2
+    return `M${tip.x} ${tip.y} Q${mx} ${(tip.y + hook.y) / 2 + 26} ${hook.x} ${hook.y}`
+  }
+  return `M${tip.x} ${tip.y} L${hook.x} ${hook.y}`
+})
+const FISH = 'M-34 0 Q-20 -15 2 -14 Q22 -12 30 0 Q22 12 2 14 Q-20 15 -34 0Z'
+const fishUnder = computed(() => fish.on && !fish.free && hook.y > WATER)
 </script>
 
 <template>
-  <div class="cast" :class="{ 'is-leaving': leaving }" role="dialog" aria-label="Let's go phishing" @click="leave">
-    <svg class="cast__scene" viewBox="0 0 1000 600" preserveAspectRatio="xMidYMid slice" aria-hidden="true">
+  <div ref="scene" class="cast" :style="{ opacity: 1 - fade }">
+    <svg ref="svg" class="cast__scene" viewBox="0 0 1000 600" preserveAspectRatio="xMidYMid slice" aria-hidden="true">
       <defs>
-        <linearGradient id="cast-sky" x1="0" y1="0" x2="0" y2="1">
-          <stop offset="0" stop-color="#9fe2ff" /><stop offset="1" stop-color="#d9f4ff" />
+        <linearGradient id="ci-sky" x1="0" y1="0" x2="0" y2="1">
+          <stop offset="0" stop-color="#a9dcf6" /><stop offset="1" stop-color="#e3f5fd" />
         </linearGradient>
-        <linearGradient id="cast-sea" x1="0" y1="0" x2="0" y2="1">
-          <stop offset="0" stop-color="#3fb8ff" stop-opacity=".78" /><stop offset="1" stop-color="#1478d8" stop-opacity=".95" />
+        <linearGradient id="ci-sea" x1="0" y1="0" x2="0" y2="1">
+          <stop offset="0" stop-color="#4fb4e6" stop-opacity=".9" />
+          <stop offset=".5" stop-color="#2a8fd2" stop-opacity=".95" />
+          <stop offset="1" stop-color="#155f9f" />
         </linearGradient>
+        <radialGradient id="ci-sun">
+          <stop offset="0" stop-color="#fff8dc" /><stop offset=".35" stop-color="#fff1b8" stop-opacity=".8" /><stop offset="1" stop-color="#fff1b8" stop-opacity="0" />
+        </radialGradient>
+        <linearGradient id="ci-fish" x1="0" y1="0" x2="0" y2="1">
+          <stop offset="0" stop-color="#ff4fa8" /><stop offset="1" stop-color="#c2006a" />
+        </linearGradient>
+        <linearGradient id="ci-wood" x1="0" y1="0" x2="0" y2="1">
+          <stop offset="0" stop-color="#b98457" /><stop offset="1" stop-color="#8a5b35" />
+        </linearGradient>
+        <filter id="ci-soft"><feGaussianBlur stdDeviation="6" /></filter>
       </defs>
 
-      <!-- sky -->
-      <rect width="1000" :height="WATER" fill="url(#cast-sky)" />
-      <circle cx="840" cy="90" r="46" fill="#ffd54a" stroke="#12224a" stroke-width="4" />
-      <g class="cast__cloud" fill="#fff" stroke="#12224a" stroke-width="4" stroke-linejoin="round">
-        <path d="M120 120 q0 -30 34 -30 q10 -26 44 -18 q26 -18 48 6 q34 0 30 30 Z" />
+      <!-- sky, soft sun and clouds -->
+      <rect width="1000" :height="WATER" fill="url(#ci-sky)" />
+      <circle cx="830" cy="96" r="120" fill="url(#ci-sun)" />
+      <g fill="#fff" opacity=".75" filter="url(#ci-soft)" class="cast__clouds">
+        <ellipse cx="200" cy="110" rx="90" ry="22" /><ellipse cx="250" cy="98" rx="60" ry="20" />
+        <ellipse cx="560" cy="70" rx="80" ry="18" /><ellipse cx="610" cy="62" rx="50" ry="16" />
       </g>
-      <g class="cast__cloud cast__cloud--2" fill="#fff" stroke="#12224a" stroke-width="4" stroke-linejoin="round">
-        <path d="M520 80 q0 -24 28 -24 q10 -22 38 -14 q22 -14 40 6 q28 0 24 26 Z" />
+      <line x1="0" :y1="WATER - 1" x2="1000" :y2="WATER - 1" stroke="#ffffff" stroke-opacity=".6" />
+
+      <!-- under the surface: hook + hooked fish (the water tints them) -->
+      <path v-if="hook.y > WATER" :d="`M${hook.x} ${hook.y} c0 9 -8 11 -8 4`" fill="none" stroke="#3a4152" stroke-width="2" stroke-linecap="round" />
+      <g v-if="fishUnder" :transform="`translate(${hook.x} ${hook.y + 32}) rotate(${90 + fish.tilt})`">
+        <path :d="FISH" fill="url(#ci-fish)" />
       </g>
 
-      <!-- underwater things (drawn before the water so it tints them) -->
-      <g v-if="!fishOn || hook.y > WATER">
-        <path d="M0 0 c0 10 -9 12 -9 4" :transform="`translate(${hook.x} ${hook.y})`" fill="none" stroke="#12224a" stroke-width="3.5" stroke-linecap="round" />
+      <!-- the sea -->
+      <rect :y="WATER" width="1000" :height="600 - WATER" fill="url(#ci-sea)" />
+      <g class="cast__glints" stroke="#fff" stroke-linecap="round" fill="none">
+        <path :d="`M120 ${WATER + 26} h70 M420 ${WATER + 18} h50 M700 ${WATER + 40} h90 M300 ${WATER + 70} h60 M860 ${WATER + 90} h50 M560 ${WATER + 110} h70`" stroke-opacity=".35" stroke-width="2" />
       </g>
-      <g v-if="fishOn && hook.y > WATER" :transform="`translate(${hook.x} ${hook.y + 32}) rotate(${90 + fishTilt})`">
-        <path :d="FISH" fill="#e20074" stroke="#12224a" stroke-width="3.5" />
-      </g>
-
-      <!-- sea -->
-      <rect :y="WATER" width="1000" :height="600 - WATER" fill="url(#cast-sea)" />
-      <path class="cast__waves" :d="`M-40 ${WATER} q25 -12 50 0 t50 0 t50 0 t50 0 t50 0 t50 0 t50 0 t50 0 t50 0 t50 0 t50 0 t50 0 t50 0 t50 0 t50 0 t50 0 t50 0 t50 0 t50 0 t50 0 t50 0 t50 0`" fill="none" stroke="#fff" stroke-width="5" stroke-linecap="round" />
 
       <!-- dock -->
-      <g stroke="#12224a" stroke-width="4" stroke-linejoin="round">
-        <rect x="-10" :y="WATER + 18" width="270" height="26" fill="#c98b4f" />
-        <rect x="40" :y="WATER + 44" width="18" height="90" fill="#8a5a2b" />
-        <rect x="190" :y="WATER + 44" width="18" height="90" fill="#8a5a2b" />
-        <path :d="`M60 ${WATER + 18} v26 M120 ${WATER + 18} v26 M180 ${WATER + 18} v26`" fill="none" stroke-width="2.5" />
+      <g>
+        <rect x="-10" :y="WATER + 16" width="270" height="18" rx="2" fill="url(#ci-wood)" />
+        <rect x="44" :y="WATER + 34" width="12" height="90" fill="#6e4528" />
+        <rect x="194" :y="WATER + 34" width="12" height="90" fill="#6e4528" />
+        <path :d="`M60 ${WATER + 16} v18 M120 ${WATER + 16} v18 M180 ${WATER + 16} v18`" stroke="#6e4528" stroke-opacity=".6" stroke-width="1.5" />
       </g>
 
-      <!-- fishing line -->
-      <path :d="line" fill="none" stroke="#12224a" stroke-width="2" />
+      <!-- line -->
+      <path :d="line" fill="none" stroke="#2c3346" stroke-opacity=".75" stroke-width="1.2" />
 
       <!-- bobber -->
-      <g v-if="bobberOn" :transform="`translate(${bobber.x} ${bobber.y})`" stroke="#12224a" stroke-width="3">
-        <circle r="11" fill="#fff" />
-        <path d="M-11 0 A11 11 0 0 1 11 0 Z" fill="#e20074" />
+      <g v-if="bobber.on" :transform="`translate(${bobber.x} ${bobber.y})`">
+        <circle r="8" fill="#fff" stroke="#2c3346" stroke-opacity=".5" />
+        <path d="M-8 0 A8 8 0 0 1 8 0Z" fill="#e20074" />
       </g>
 
-      <!-- rod (on top of the dock) -->
+      <!-- rod: graphite with a magenta grip -->
       <g stroke-linecap="round">
-        <line :x1="PIVOT.x" :y1="PIVOT.y" :x2="tip.x" :y2="tip.y" stroke="#12224a" stroke-width="11" />
-        <line :x1="PIVOT.x" :y1="PIVOT.y" :x2="tip.x" :y2="tip.y" stroke="#e20074" stroke-width="6" />
-        <circle :cx="PIVOT.x + (tip.x - PIVOT.x) * 0.12" :cy="PIVOT.y + (tip.y - PIVOT.y) * 0.12" r="11" fill="#ffd54a" stroke="#12224a" stroke-width="4" />
+        <line :x1="PIVOT.x" :y1="PIVOT.y" :x2="tip.x" :y2="tip.y" stroke="#2a2f3b" stroke-width="5" />
+        <line :x1="PIVOT.x" :y1="PIVOT.y" :x2="PIVOT.x + (tip.x - PIVOT.x) * 0.18" :y2="PIVOT.y + (tip.y - PIVOT.y) * 0.18" stroke="#e20074" stroke-width="8" />
+        <circle :cx="PIVOT.x + (tip.x - PIVOT.x) * 0.22" :cy="PIVOT.y + (tip.y - PIVOT.y) * 0.22" r="7" fill="#c9ced8" stroke="#6b7180" stroke-width="1.5" />
       </g>
 
-      <!-- hook + fish above water -->
-      <g v-if="fishOn && hook.y <= WATER" :transform="`translate(${hook.x} ${hook.y})`">
-        <path d="M0 0 c0 10 -9 12 -9 4" fill="none" stroke="#12224a" stroke-width="3.5" stroke-linecap="round" />
-        <g :transform="`translate(0 32) rotate(${90 + fishTilt})`">
-          <path d="M30 0 L52 -16 L46 0 L52 16Z" fill="#b3005c" stroke="#12224a" stroke-width="3.5" stroke-linejoin="round" />
-          <path :d="FISH" fill="#e20074" stroke="#12224a" stroke-width="3.5" />
-          <path d="M-6 -11 q-8 11 0 22" fill="none" stroke="#ffd1e8" stroke-width="3" stroke-linecap="round" />
-          <circle cx="-20" cy="-4" r="4" fill="#12224a" /><circle cx="-21.5" cy="-5.5" r="1.4" fill="#fff" />
-        </g>
+      <!-- hook + fish above the water -->
+      <path v-if="hook.y <= WATER" :d="`M${hook.x} ${hook.y} c0 9 -8 11 -8 4`" fill="none" stroke="#3a4152" stroke-width="2" stroke-linecap="round" />
+      <g v-if="fish.on && !fish.free && hook.y <= WATER" :transform="`translate(${hook.x} ${hook.y + 32}) rotate(${90 + fish.tilt})`">
+        <path d="M30 0 L50 -14 L45 0 L50 14Z" fill="#a8005c" />
+        <path :d="FISH" fill="url(#ci-fish)" stroke="#8f004d" stroke-width="1.2" />
+        <path d="M-6 -10 q-7 10 0 20" fill="none" stroke="#ffd1e8" stroke-opacity=".7" stroke-width="2" stroke-linecap="round" />
+        <circle cx="-20" cy="-4" r="3" fill="#1d2233" /><circle cx="-21" cy="-5" r="1" fill="#fff" />
       </g>
-      <g v-else-if="!fishOn && hook.y <= WATER" :transform="`translate(${hook.x} ${hook.y})`">
-        <path d="M0 0 c0 10 -9 12 -9 4" fill="none" stroke="#12224a" stroke-width="3.5" stroke-linecap="round" />
+      <!-- free fish swimming off -->
+      <g v-if="fish.free" :transform="`translate(${fish.x} ${fish.y}) rotate(-12) scale(-1 1)`">
+        <path d="M30 0 L50 -14 L45 0 L50 14Z" fill="#a8005c" />
+        <path :d="FISH" fill="url(#ci-fish)" stroke="#8f004d" stroke-width="1.2" />
+        <circle cx="-20" cy="-4" r="3" fill="#1d2233" />
       </g>
 
-      <!-- splashes -->
-      <g v-for="s in splashes" :key="s.id" class="cast__splash" :transform="`translate(${s.x} ${WATER})`">
-        <ellipse rx="30" ry="8" fill="none" stroke="#fff" stroke-width="4" class="cast__ring" />
-        <ellipse rx="30" ry="8" fill="none" stroke="#fff" stroke-width="3" class="cast__ring cast__ring--2" />
-        <circle v-for="d in 6" :key="d" r="5" fill="#fff" stroke="#12224a" stroke-width="2" class="cast__drop" :style="{ '--dx': `${(d - 3.5) * 16}px`, '--dy': `${-40 - (d % 3) * 18}px` }" />
+      <!-- splashes: thin rings and droplets -->
+      <g v-for="s in splashes" :key="s.id" :transform="`translate(${s.x} ${WATER})`">
+        <ellipse rx="26" ry="6" fill="none" stroke="#fff" stroke-opacity=".9" stroke-width="1.5" class="cast__ring" />
+        <ellipse rx="26" ry="6" fill="none" stroke="#fff" stroke-opacity=".7" stroke-width="1.2" class="cast__ring cast__ring--2" />
+        <circle v-for="d in 5" :key="d" r="2.5" fill="#fff" class="cast__drop" :style="{ '--dx': `${(d - 3) * 12}px`, '--dy': `${-26 - (d % 3) * 12}px` }" />
       </g>
     </svg>
 
-    <div v-if="textOn" class="cast__title">
-      <span class="cast__title-text">Let's go phishing!</span>
-    </div>
-    <div class="cast__skip">click to skip</div>
+    <p class="cast__tagline" :style="{ opacity: tagline, transform: `translateY(${(1 - tagline) * 8}px)` }" aria-hidden="true">Let's go phishing.</p>
+    <p class="cast__hint" role="status" aria-live="polite">{{ hint }}</p>
+    <button type="button" class="cast__skip" @click="skip">Skip intro <kbd>Esc</kbd></button>
   </div>
 </template>
 
 <style scoped>
-.cast {
-  position: fixed; inset: 0; z-index: 200;
-  background: #bfeaff;
-  display: grid; place-items: center;
-  overflow: hidden;
-  transition: clip-path 600ms cubic-bezier(.6, 0, .3, 1), opacity 600ms;
-  clip-path: circle(150% at 50% 50%);
-}
-.cast.is-leaving { clip-path: circle(0% at 50% 60%); }
+.cast { position: fixed; inset: 0; z-index: -1; transition: opacity 120ms linear; }
 .cast__scene { position: absolute; inset: 0; width: 100%; height: 100%; }
-.cast__cloud { animation: drift-cloud 9s ease-in-out infinite alternate; }
-.cast__cloud--2 { animation-duration: 12s; }
-.cast__waves { animation: wave-slide 2.4s linear infinite; }
-@keyframes drift-cloud { to { transform: translateX(30px); } }
-@keyframes wave-slide { to { transform: translateX(-50px); } }
-
-.cast__ring { animation: ring .9s ease-out forwards; transform-box: fill-box; transform-origin: center; }
-.cast__ring--2 { animation-delay: .15s; opacity: 0; }
-@keyframes ring { from { transform: scale(.2); opacity: 1; } to { transform: scale(2.4); opacity: 0; } }
-.cast__drop { animation: drop .8s cubic-bezier(.2, .7, .4, 1) forwards; }
-@keyframes drop {
-  0% { transform: translate(0, 0) scale(.6); opacity: 1; }
-  50% { transform: translate(calc(var(--dx) * .7), var(--dy)) scale(1); opacity: 1; }
-  100% { transform: translate(var(--dx), 10px) scale(.4); opacity: 0; }
+.cast__clouds { animation: ci-drift 16s ease-in-out infinite alternate; }
+@keyframes ci-drift { to { transform: translateX(24px); } }
+.cast__glints { animation: ci-glint 5s ease-in-out infinite alternate; }
+@keyframes ci-glint { from { transform: translateX(0); opacity: .6; } to { transform: translateX(-18px); opacity: 1; } }
+.cast__ring { animation: ci-ring .9s ease-out forwards; transform-box: fill-box; transform-origin: center; }
+.cast__ring--2 { animation-delay: .14s; opacity: 0; }
+@keyframes ci-ring { from { transform: scale(.25); opacity: 1; } to { transform: scale(2.2); opacity: 0; } }
+.cast__drop { animation: ci-drop .7s cubic-bezier(.2, .7, .4, 1) forwards; }
+@keyframes ci-drop {
+  0% { transform: translate(0, 0); opacity: 1; }
+  50% { transform: translate(calc(var(--dx) * .7), var(--dy)); opacity: 1; }
+  100% { transform: translate(var(--dx), 6px); opacity: 0; }
 }
-
-.cast__title {
-  position: absolute; top: 14%; left: 50%; translate: -50% 0;
-  animation: pop-in .6s cubic-bezier(.3, 1.8, .5, 1) both;
+.cast__tagline {
+  position: absolute; left: 0; right: 0; top: 9vh; margin: 0; text-align: center; pointer-events: none;
+  font-family: var(--f-ui); font-weight: 700; font-size: clamp(22px, 3vw, 36px); letter-spacing: .02em;
+  color: #fff; text-shadow: 0 2px 12px rgba(10, 60, 120, .35);
 }
-.cast__title-text {
-  display: inline-block;
-  font-family: var(--f-display); font-weight: 700; font-size: clamp(36px, 7vw, 84px);
-  color: var(--c-magenta);
-  -webkit-text-stroke: 3px var(--ink); paint-order: stroke fill;
-  text-shadow: 5px 6px 0 var(--ink);
-  white-space: nowrap;
-  animation: title-wobble 1.6s ease-in-out .6s infinite;
+.cast__hint {
+  position: absolute; left: 0; right: 0; bottom: 13vh; margin: 0; text-align: center; pointer-events: none;
+  font-family: var(--f-ui); font-weight: 600; font-size: 15px; color: #fff;
+  text-shadow: 0 1px 6px rgba(10, 50, 100, .5);
+  animation: ci-hint 1.6s ease-in-out infinite;
 }
-@keyframes pop-in { from { transform: scale(.2) rotate(-12deg); opacity: 0; } to { transform: scale(1) rotate(-3deg); opacity: 1; } }
-@keyframes title-wobble { 0%, 100% { transform: rotate(0); } 50% { transform: rotate(2deg) scale(1.03); } }
-.cast__skip { position: absolute; bottom: 18px; right: 22px; font-family: var(--f-hand); font-size: 20px; font-weight: 700; color: #fff; text-shadow: 0 2px 0 var(--ink); opacity: .9; }
+@keyframes ci-hint { 50% { opacity: .65; } }
+.cast__skip {
+  position: absolute; right: 20px; bottom: 18px;
+  display: inline-flex; align-items: center; gap: 8px;
+  padding: 6px 12px; border-radius: 999px;
+  background: rgba(255, 255, 255, .7); border: 1px solid rgba(18, 34, 74, .2);
+  color: #12224a; font-family: var(--f-ui); font-weight: 700; font-size: 13px;
+  backdrop-filter: blur(6px);
+}
+.cast__skip:hover { background: #fff; }
+.cast__skip kbd { font-family: var(--f-mono); font-size: 11px; padding: 0 5px; border-radius: 4px; border: 1px solid rgba(18, 34, 74, .25); }
 </style>

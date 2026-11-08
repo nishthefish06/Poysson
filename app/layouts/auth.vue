@@ -4,11 +4,14 @@ const route = useRoute();
 const subtitle = computed(
   () => (route.meta.authSubtitle as string | undefined) ?? 'Cybersecurity & scam avoidance'
 );
+// Landing intro (once per session): the cast runs behind the card and carries the real card in.
+const introOn = useState<boolean>('castIntro', () => false);
 </script>
 
 <template>
   <div class="auth">
-    <main class="auth__card">
+    <CastIntro v-if="introOn" />
+    <main class="auth__card" :class="{ 'is-intro': introOn }" :inert="introOn || undefined">
       <header class="auth__head">
         <span class="auth__logo"><CyberIcon name="shield" :size="22" /></span>
         <h1 class="auth__title" data-text="Poysson Training">Poysson Training</h1>
@@ -50,6 +53,9 @@ const subtitle = computed(
   background: var(--paper);
   box-shadow: 7px 8px 0 var(--c-magenta), var(--glow-panel);
   position: relative;
+}
+.auth__card.is-intro {
+  opacity: 0; /* CastIntro drives transform/opacity and lands it in place */
 }
 .auth__head {
   display: flex;
