@@ -43,6 +43,11 @@ export default defineNuxtConfig({
     // The server's own SpacetimeDB connection (arena-sync.ts), registered as the agent service.
     spacetimeInternalUrl: process.env.SPACETIME_INTERNAL_URL ?? 'ws://127.0.0.1:3000',
     serviceSecret: process.env.SERVICE_SECRET ?? '',
+    // Solana devnet wallet that signs audit-log memo transactions (server-only, never public)
+    solanaRpcUrl: process.env.SOLANA_RPC_URL ?? 'https://api.devnet.solana.com',
+    solanaSecretKey: process.env.SOLANA_SECRET_KEY ?? '',
+    // public site URL for badge metadata JSON (e.g. https://poysson.app); empty = name/symbol only
+    solanaMetadataBaseUrl: process.env.SOLANA_METADATA_BASE_URL ?? '',
     public: {
       // NUXT_PUBLIC_SPACETIME_URL / NUXT_PUBLIC_SPACETIME_DB from .env
       spacetimeUrl: 'ws://127.0.0.1:3000',

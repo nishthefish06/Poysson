@@ -104,7 +104,8 @@ const docNo = computed(() => `AAR-${date.value.getFullYear()}-${props.run.planId
       </div>
       <div class="rd__verify">
         <small>Integrity anchor (Solana devnet)</small>
-        <code>{{ run.tx.slice(0, 44) }}<br>{{ run.tx.slice(44) }}</code>
+        <code v-if="anchorOf(run) === 'anchored'">{{ run.tx.slice(0, 44) }}<br>{{ run.tx.slice(44) }}</code>
+        <code v-else>{{ anchorOf(run) === 'pending' ? 'anchoring…' : anchorOf(run) === 'demo' ? 'sample data (not anchored)' : 'not anchored' }}</code>
       </div>
     </footer>
   </article>

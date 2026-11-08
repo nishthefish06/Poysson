@@ -82,7 +82,7 @@ const rank = computed(() => {
               <td class="mono mute">{{ new Date(a.ts).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) }}</td>
               <td class="mono dash__audit-ev">{{ a.event }}</td>
               <td class="dim">{{ a.detail }}</td>
-              <td class="dash__audit-v"><SolanaVerified :tx="a.tx" :slot="a.slot" compact /></td>
+              <td class="dash__audit-v"><SolanaVerified :tx="a.tx" :slot="a.slot" :status="anchorOf(a)" :error="a.anchorError" compact /></td>
             </tr>
           </tbody>
         </table>
