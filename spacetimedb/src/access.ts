@@ -54,7 +54,7 @@ export function isService(ctx: ReadCtx) {
   return ctx.db.serviceIdentity.identity.find(ctx.sender) != null;
 }
 
-// The Nemotron agent (a registered service). Admins may also play this role from the test client
+// The Nemotron agent (a registered service). Admins may also play this role (e.g. from the CLI)
 // to simulate the agent before it exists.
 export function requireServiceOrAdmin(ctx: ReadCtx) {
   if (isService(ctx)) return { kind: 'service' as const, id: 0n };

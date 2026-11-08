@@ -5,7 +5,6 @@
 #   - SpacetimeDB on 127.0.0.1:3000. Only the two endpoints browsers need are public;
 #     publishing and admin calls go over SSH (deploy/vultr/deploy.sh and stdb.sh).
 #   - The Nuxt app on 127.0.0.1:3001 (deploy/vultr/deploy-web.sh). It starts once deployed.
-#   - The bare-bones test client as static files under /test/ (deploy/vultr/deploy-test-client.sh).
 #
 # Hostname: defaults to <ip-with-dashes>.sslip.io so HTTPS works before a real domain exists.
 # To use a custom domain later, point an A record at the server and change the first line of
@@ -71,13 +70,6 @@ write_files:
         handle /v1/* {
           respond "Not found" 404
         }
-        # Bare-bones test client (static build).
-        redir /test /test/
-        handle_path /test/* {
-          root * /srv/test-client
-          try_files {path} /index.html
-          file_server
-        }
         # Everything else: the Nuxt app.
         handle {
           reverse_proxy 127.0.0.1:3001
@@ -101,7 +93,7 @@ runcmd:
       -c,
       'id webapp || useradd --system --home-dir /srv/web --create-home --shell /usr/sbin/nologin webapp',
     ]
-  - [bash, -c, 'mkdir -p /srv/test-client /etc/hackutd && chmod 750 /etc/hackutd']
+  - [bash, -c, 'mkdir -p /etc/hackutd && chmod 750 /etc/hackutd']
   # Node 22 LTS for the Nuxt server.
   - [bash, -c, 'curl -fsSL https://deb.nodesource.com/setup_22.x | bash - && apt-get install -y nodejs']
   - [
