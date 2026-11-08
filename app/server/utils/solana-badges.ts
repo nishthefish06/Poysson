@@ -129,6 +129,10 @@ export function parseOwner(raw: unknown): PublicKey {
  * Returns the existing credential instead of minting again if they already hold it.
  */
 export async function issueBadge(id: string, owner: PublicKey) {
+  return solanaQueue(() => issueBadgeNow(id, owner));
+}
+
+async function issueBadgeNow(id: string, owner: PublicKey) {
   badgeOrThrow(id);
   const { conn, payer } = solanaClient();
   try {
@@ -150,11 +154,7 @@ export async function issueBadge(id: string, owner: PublicKey) {
     return { badge: id, mint: mint.toBase58(), account: ata.toBase58(), tx: sig, already: false };
   } catch (e) {
     if ((e as { statusCode?: number }).statusCode) throw e;
-    const msg = e instanceof Error ? e.message : String(e);
-    if (/insufficient|no record of a prior credit|debit an account/i.test(msg)) {
-      throw createError({ statusCode: 402, statusMessage: 'Solana wallet has no devnet SOL; fund it at faucet.solana.com' });
-    }
-    throw createError({ statusCode: 502, statusMessage: `Badge mint failed: ${msg.slice(0, 160)}` });
+    rethrowSolana(e, 'Badge mint');
   }
 }
 

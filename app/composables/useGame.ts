@@ -251,11 +251,26 @@ export function useGame() {
     }
   }
 
-  /** Re-sends anything left pending (page closed mid-request) or failed. */
-  function retryAnchors() {
-    promoteSamples()
-    for (const e of state.value.audit) {
-      if (e.anchor === 'pending' || e.anchor === 'failed') void anchorEntry(e.id)
+  /**
+   * Re-sends anything left pending (page closed mid-request) or failed, one record at a time.
+   * Skipped when the server has no Solana wallet; stops early if devnet rate-limits or errors,
+   * and the rest stay "retry" until the next load.
+   */
+  let retrying = false
+  async function retryAnchors() {
+    if (retrying) return
+    retrying = true
+    try {
+      promoteSamples()
+      const status = await $fetch<{ configured: boolean }>('/api/solana/status').catch(() => ({ configured: false }))
+      if (!status.configured) return
+      for (const e of [...state.value.audit].reverse()) {
+        if (e.anchor !== 'pending' && e.anchor !== 'failed') continue
+        await anchorEntry(e.id)
+        if (state.value.audit.find(a => a.id === e.id)?.anchor === 'failed') break
+      }
+    } finally {
+      retrying = false
     }
   }
 
