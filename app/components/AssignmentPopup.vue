@@ -151,7 +151,7 @@ function later() {
   border-left: 3px solid var(--c-magenta);
   border-radius: var(--r-sm);
   font-family: var(--f-hand);
-  font-size: var(--fs-lg);
+  font-size: calc(var(--fs-lg) + 3px);
 }
 .assign__brief {
   margin-top: var(--s-3);
@@ -176,7 +176,7 @@ function later() {
   background: none;
   border: 0;
   color: var(--c-text-mute);
-  cursor: pointer;
+  cursor: var(--cursor-fish-bite);
   padding: var(--s-1);
 }
 .assign__close:hover {

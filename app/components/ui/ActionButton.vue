@@ -40,7 +40,7 @@ defineEmits<{ select: [] }>()
   position: relative; background: var(--paper-2); color: var(--c-text);
   border: 0; box-shadow: 3px 4px 0 rgba(18, 34, 74, .15);
   font-family: var(--f-ui); font-size: var(--fs-sm); font-weight: 600; text-align: left;
-  cursor: pointer; border-radius: var(--r-md);
+  cursor: var(--cursor-fish-bite); border-radius: var(--r-md);
   transition: background var(--t-fast), border-color var(--t-fast), transform var(--t-fast);
 }
 .action-btn--idle:hover { background: var(--c-magenta-tint); transform: translateX(3px) rotate(-.4deg); box-shadow: 4px 5px 0 var(--c-magenta); }
@@ -51,7 +51,7 @@ defineEmits<{ select: [] }>()
 .action-btn--idle:hover .action-btn__arrow { color: var(--c); }
 .action-btn__result { display: flex; align-items: center; gap: var(--s-2); }
 .action-btn__pts { font-family: var(--f-display); font-size: var(--fs-sm); color: var(--c); }
-.action-btn--chosen { cursor: default; }
+.action-btn--chosen { cursor: var(--cursor-fish); }
 .action-btn--chosen.is-ideal { --c: var(--c-ideal); background: rgba(var(--rgb-ideal), .08); border-color: var(--c-ideal); }
 .action-btn--chosen.is-ok { --c: var(--c-ok); background: rgba(var(--rgb-ok), .08); border-color: var(--c-ok); }
 .action-btn--chosen.is-harmful { --c: var(--c-harmful); background: rgba(var(--rgb-harmful), .12); border-color: var(--c-harmful); animation: shake .4s; }

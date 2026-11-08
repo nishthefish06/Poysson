@@ -16,11 +16,12 @@ body {
   overflow-x: hidden;
   cursor: var(--cursor-fish);
 }
-:is(a, button, [role='button'], [role='radio'], [role='tab'], label, summary, select, .scenario-card, .hub__track) {
-  cursor: var(--cursor-fish-bite);
+/* every clickable thing gets the biting fish; !important so a component's own `cursor: pointer` can't undo it */
+:is(a[href], button, [role='button'], [role='radio'], [role='tab'], [role='checkbox'], [role='switch'], [role='option'], [role='menuitem'], label, summary, select, [onclick], .scenario-card, .hub__track) {
+  cursor: var(--cursor-fish-bite) !important;
 }
 :is(input, textarea) { cursor: text; }
-:is(button, a):disabled { cursor: not-allowed; }
+:is(button, a, [role='button'], [role='radio'], [role='tab']):is(:disabled, [aria-disabled='true']) { cursor: not-allowed !important; }
 
 /* sunbeams through the surface, cartoon-style: soft wedges that sway */
 body::before {
@@ -60,7 +61,7 @@ button { font-family: inherit; }
 /* ---------- Utilities ---------- */
 /* little handwritten note above titles */
 .eyebrow {
-  font-family: var(--f-hand); font-size: 19px; line-height: 1.1; font-weight: 700;
+  font-family: var(--f-hand); font-size: 22px; line-height: 1.1; font-weight: 700;
   color: var(--c-text-dim); letter-spacing: .01em;
 }
 .eyebrow--cyan { color: var(--c-cyan); }
@@ -121,3 +122,68 @@ button { font-family: inherit; }
   body { background: #fff; color: #111; }
   .glitch { background: none; }
 }
+
+/* Brand face (Water Galon, public/fonts): the POYSSON logo, sidebar options, big stat numbers and
+   the big titles on card buttons (Bait/Breach, Learn/Practice/Drills, threat vectors, guides).
+   One weight only, so no faux bold. !important because these elements set their font in scoped styles. */
+@font-face {
+  font-family: 'Water Galon';
+  src: url('/fonts/WaterGalon.otf') format('opentype');
+  font-weight: 400;
+  font-style: normal;
+  font-display: swap;
+}
+:is(.app-shell__logo span, .app-shell__label, .stat-card__value, .ops__preview-stat b, .res__score-num,
+    .mode__name, .hub__title, .scenario-card__name, .guides__name, .arena__stat-val, .sum__stat-val) {
+  font-family: var(--f-brand) !important;
+  font-weight: 400 !important;
+}
+
+/* Utendo replaces JetBrains Mono (--f-mono) and Stay With Me replaces Caveat (--f-hand) everywhere.
+   Each has one weight; declaring the full weight range stops the browser from faking a bold. */
+@font-face {
+  font-family: 'Utendo';
+  src: url('/fonts/Utendo-Regular.ttf') format('truetype');
+  font-weight: 100 900;
+  font-style: normal;
+  font-display: swap;
+}
+@font-face {
+  font-family: 'Stay With Me';
+  src: url('/fonts/StayWithMe.otf') format('opentype');
+  font-weight: 100 900;
+  font-style: normal;
+  font-display: swap;
+}
+
+/* Deep Water work apps (Mail, Care Portal, My Security, Files, Activity log): hand-drawn rows like the
+   rest of the UI. Shared by components/arena/*App.vue. */
+.wa { display: flex; flex-direction: column; gap: var(--s-4); }
+.wa__section { display: flex; flex-direction: column; gap: var(--s-2); }
+.wa__note { margin: 0; font-size: var(--fs-sm); color: var(--c-text-dim); }
+.wa__row { position: relative; display: flex; align-items: center; gap: var(--s-3); padding: var(--s-3) var(--s-4); background: color-mix(in srgb, var(--paper) 58%, transparent); border-radius: var(--r-md); box-shadow: 3px 4px 0 rgba(18, 34, 74, .1); font-size: var(--fs-sm); transition: transform var(--t-fast) var(--ease-bounce), background var(--t-fast), box-shadow var(--t-fast); }
+.wa__row:hover { transform: translateY(-2px); background: color-mix(in srgb, var(--paper) 78%, transparent); box-shadow: 4px 5px 0 rgba(18, 34, 74, .16); }
+.wa__row--stack { flex-direction: column; align-items: stretch; }
+.wa__row > *:not(.sketch) { position: relative; z-index: 2; }
+.wa__icon { color: var(--c-cyan); flex-shrink: 0; }
+.wa__main { flex: 1; min-width: 0; }
+.wa__meta { font-size: var(--fs-xs); color: var(--c-text-mute); }
+.wa__body { display: block; margin: 4px 0 0; white-space: pre-line; color: var(--c-text-dim); }
+.wa__tag { display: inline-block; margin-left: 6px; padding: 0 8px; font-size: var(--fs-xs); font-weight: 700; color: var(--c-text-dim); background: var(--c-bg-2); border-radius: var(--r-pill); }
+.wa__tag.is-on { color: #fff; background: var(--c-ideal); }
+.wa__empty { margin: 0; font-size: var(--fs-xs); color: var(--c-text-mute); }
+.wa__card-head { display: flex; flex-wrap: wrap; align-items: center; gap: var(--s-2) var(--s-4); }
+.wa__name { font-family: var(--f-display); font-size: var(--fs-lg); color: var(--ink); }
+.wa__table { width: 100%; border-collapse: collapse; font-size: var(--fs-xs); text-align: left; }
+.wa__table th { padding: var(--s-2) var(--s-2) var(--s-1) 0; font-family: var(--f-mono); font-weight: 700; color: var(--c-text-mute); text-transform: uppercase; letter-spacing: .08em; border-bottom: 1.5px solid var(--c-line-strong); }
+.wa__table td { padding: var(--s-2) var(--s-2) var(--s-2) 0; border-bottom: 1px dashed var(--c-line); vertical-align: middle; }
+.wa__table tr.is-reverted { opacity: .5; text-decoration: line-through; }
+.wa__table--log { font-size: var(--fs-sm); background: color-mix(in srgb, var(--paper) 58%, transparent); border-radius: var(--r-md); }
+.wa__table--log th, .wa__table--log td { padding-left: var(--s-3); }
+.wa__files { display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: var(--s-3); }
+.wa__file { position: relative; display: flex; flex-direction: column; align-items: center; gap: var(--s-2); padding: var(--s-4) var(--s-3); text-align: center; color: var(--c-cyan); background: color-mix(in srgb, var(--paper) 58%, transparent); border-radius: var(--r-md); box-shadow: 3px 4px 0 rgba(18, 34, 74, .1); transition: transform var(--t-fast) var(--ease-bounce); }
+.wa__file:hover { transform: translateY(-2px); }
+.wa__file.is-locked { color: var(--c-harmful); background: color-mix(in srgb, var(--c-harmful) 10%, var(--paper-2)); }
+.wa__file-name { font-size: var(--fs-xs); color: var(--c-text); word-break: break-all; }
+.wa__ransom { padding: var(--s-4); background: color-mix(in srgb, var(--c-harmful) 10%, var(--paper-2)); border: 2px dashed var(--c-harmful); border-radius: var(--r-md); }
+.wa__ransom-title { display: flex; align-items: center; gap: 6px; font-weight: 700; color: var(--c-harmful); font-size: var(--fs-sm); }

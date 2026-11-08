@@ -71,9 +71,10 @@
 
   /* --- Typography --------------------------------------------------------- */
   --f-display: 'Fredoka', 'Nunito', sans-serif;      /* headings, numbers */
+  --f-brand: 'Water Galon', 'Fredoka', sans-serif;    /* logo, sidebar, big stats, card titles */
   --f-ui: 'Nunito', system-ui, sans-serif;            /* labels, buttons */
-  --f-hand: 'Caveat', 'Comic Sans MS', cursive;       /* handwritten notes */
-  --f-mono: 'JetBrains Mono', ui-monospace, monospace;
+  --f-hand: 'Stay With Me', 'Caveat', cursive;       /* handwritten notes / eyebrows */
+  --f-mono: 'Utendo', 'JetBrains Mono', ui-monospace, monospace;  /* emails, XP, codes, small data */
 
   --fs-xs: 11px;
   --fs-sm: 13px;

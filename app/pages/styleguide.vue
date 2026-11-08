@@ -16,7 +16,7 @@ const colors = ['--c-bg-0', '--c-bg-1', '--c-bg-2', '--c-line-strong', '--c-cyan
         <h1>Component library</h1>
       </div>
       <div class="spacer" />
-      <CyberButton variant="ghost" size="sm" icon="back" to="/login">Back to app</CyberButton>
+      <BackButton to="/login" label="Back to app" />
     </header>
 
     <section class="sg__sec">

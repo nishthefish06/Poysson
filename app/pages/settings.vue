@@ -91,7 +91,7 @@ function reset() {
 .set__row dt { font-size: var(--fs-xs); letter-spacing: .15em; text-transform: uppercase; color: var(--c-text-mute); }
 .set__row dd { margin: 0; display: flex; align-items: center; flex-wrap: wrap; gap: var(--s-3); color: var(--c-text); }
 .set__seg { gap: 0 !important; }
-.set__seg button { padding: 6px 14px; background: var(--c-bg-2); border: 1px solid var(--c-line-strong); color: var(--c-text-dim); cursor: pointer; font-family: var(--f-ui); font-weight: 600; letter-spacing: .08em; text-transform: uppercase; font-size: var(--fs-xs); }
+.set__seg button { padding: 6px 14px; background: var(--c-bg-2); border: 1px solid var(--c-line-strong); color: var(--c-text-dim); cursor: var(--cursor-fish-bite); font-family: var(--f-ui); font-weight: 600; letter-spacing: .08em; text-transform: uppercase; font-size: var(--fs-xs); }
 .set__seg button + button { border-left: 0; }
 .set__seg button.is-on { color: var(--c-cyan); border-color: var(--c-cyan); background: rgba(var(--rgb-cyan), .12); }
 .set__note { font-size: var(--fs-sm); margin: 0 0 var(--s-3); }

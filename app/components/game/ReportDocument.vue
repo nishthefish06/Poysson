@@ -122,7 +122,7 @@ const docNo = computed(() => `AAR-${date.value.getFullYear()}-${props.run.planId
 .rd__logo { width: 34px; height: 34px; display: grid; place-items: center; background: #16181d; color: #fff; font-family: 'Orbitron', sans-serif; font-weight: 900; }
 .rd__org-name { font-weight: 700; font-size: 14px; }
 .rd__org-sub { font-size: 11px; color: #5b6170; }
-.rd__class { font-family: 'JetBrains Mono', monospace; font-size: 10px; font-weight: 700; letter-spacing: .12em; padding: 4px 8px; border: 1.5px solid #b3132b; color: #b3132b; }
+.rd__class { font-family: var(--f-mono); font-size: 10px; font-weight: 700; letter-spacing: .12em; padding: 4px 8px; border: 1.5px solid #b3132b; color: #b3132b; }
 .rd__title { font-family: 'Orbitron', sans-serif; font-size: 26px; margin-top: 24px; letter-spacing: .02em; color: #16181d; }
 .rd__subtitle { color: #5b6170; margin-bottom: 16px; }
 .rd__meta { width: 100%; border-collapse: collapse; margin-bottom: 8px; }
@@ -140,16 +140,16 @@ const docNo = computed(() => `AAR-${date.value.getFullYear()}-${props.run.planId
 .rd__table th { text-align: left; font-size: 10px; text-transform: uppercase; letter-spacing: .06em; color: #5b6170; padding: 6px; border-bottom: 2px solid #16181d; }
 .rd__table td { padding: 7px 6px; border-bottom: 1px solid #e3e5ea; vertical-align: top; font-size: 11px; }
 .rd__table small { color: #5b6170; }
-.rd__mono { font-family: 'JetBrains Mono', monospace; font-size: 10px !important; white-space: nowrap; }
+.rd__mono { font-family: var(--f-mono); font-size: 10px !important; white-space: nowrap; }
 .rd__tag { display: inline-block; font-size: 10px; font-weight: 700; padding: 1px 6px; border: 1px solid; }
 .rd__tag--ideal { color: #0f7a3d; }
 .rd__tag--ok { color: #9a6200; }
 .rd__tag--harmful { color: #b3132b; }
 .rd__note { color: #5b6170; font-style: italic; }
 .rd__recs { padding-left: 18px; margin: 0; display: flex; flex-direction: column; gap: 6px; }
-.rd__sev { font-family: 'JetBrains Mono', monospace; font-size: 10px; color: #5b6170; }
+.rd__sev { font-family: var(--f-mono); font-size: 10px; color: #5b6170; }
 .rd__foot { display: grid; grid-template-columns: 1fr 1fr 1.4fr; gap: 24px; margin-top: 48px; align-items: end; }
 .rd__sign-line { border-bottom: 1px solid #16181d; height: 30px; margin-bottom: 4px; }
 .rd__sign small, .rd__verify small { font-size: 10px; color: #5b6170; text-transform: uppercase; letter-spacing: .06em; }
-.rd__verify code { display: block; font-family: 'JetBrains Mono', monospace; font-size: 8px; color: #3b404c; word-break: break-all; margin-top: 4px; }
+.rd__verify code { display: block; font-family: var(--f-mono); font-size: 8px; color: #3b404c; word-break: break-all; margin-top: 4px; }
 </style>

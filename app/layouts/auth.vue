@@ -269,7 +269,7 @@ const introOn = useState<boolean>('castIntro', () => false);
   border: 0;
   padding: 0;
   color: inherit;
-  cursor: pointer;
+  cursor: var(--cursor-fish-bite);
   display: grid;
 }
 .auth-btn {
@@ -285,7 +285,7 @@ const introOn = useState<boolean>('castIntro', () => false);
   font-weight: 700;
   letter-spacing: 0.1em;
   text-transform: uppercase;
-  cursor: pointer;
+  cursor: var(--cursor-fish-bite);
   transition: transform 0.15s var(--ease-bounce), box-shadow 0.15s;
 }
 .auth-btn:hover {
@@ -306,7 +306,7 @@ const introOn = useState<boolean>('castIntro', () => false);
   border: 0;
   color: var(--c-text-dim);
   font-size: 12px;
-  cursor: pointer;
+  cursor: var(--cursor-fish-bite);
 }
 .auth-link:hover {
   color: var(--auth-magenta);

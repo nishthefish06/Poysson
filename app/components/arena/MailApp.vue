@@ -6,47 +6,39 @@ const emit = defineEmits<{ respond: [EnvAction] }>();
 </script>
 
 <template>
-  <div class="space-y-6">
-    <section>
-      <h3 class="mb-2 font-semibold">Forwarding rules</h3>
-      <p class="mb-2 text-sm text-neutral-600">
-        Mail matching a rule is automatically copied to another address.
-      </p>
-      <div
-        v-for="r in world.forwardingRules"
-        :key="r.id"
-        class="mb-2 flex items-center gap-3 rounded border border-line p-2 text-sm"
-      >
-        <span class="flex-1"
+  <div class="wa">
+    <section class="wa__section">
+      <div class="eyebrow eyebrow--cyan">Forwarding rules</div>
+      <p class="wa__note">Mail matching a rule is automatically copied to another address.</p>
+      <div v-for="r in world.forwardingRules" :key="r.id" class="wa__row">
+        <CyberIcon name="mail" :size="18" class="wa__icon" />
+        <span class="wa__main"
           >If subject/body contains <b>"{{ r.match }}"</b> → forward to <b>{{ r.forwardTo }}</b>
-          <span class="text-neutral-500"> · created {{ arenaTime(r.createdAt) }}</span></span
+          <span class="wa__meta mono"> · created {{ arenaTime(r.createdAt) }}</span></span
         >
-        <button
+        <CyberButton
+          variant="secondary"
+          size="sm"
+          icon="trash"
           :disabled="disabled"
-          class="rounded border border-line px-2 py-1 hover:border-verdict-harmful disabled:opacity-40"
           @click="emit('respond', { action: 'delete_forwarding_rule', ruleId: r.id })"
+          >Delete</CyberButton
         >
-          Delete
-        </button>
+        <SketchBox :width="1.6" :overshoot="5" />
       </div>
-      <p v-if="!world.forwardingRules.length" class="text-sm text-neutral-500">No rules.</p>
+      <p v-if="!world.forwardingRules.length" class="wa__empty mono">// no rules</p>
     </section>
-    <section>
-      <h3 class="mb-2 font-semibold">Sent</h3>
-      <div
-        v-for="m in [...world.sentMail].reverse()"
-        :key="m.id"
-        class="mb-2 rounded border border-line p-2 text-sm"
-      >
-        <p>
-          <b>To:</b> {{ m.to }} <span class="text-neutral-500">· {{ arenaTime(m.at) }}</span>
-        </p>
-        <p>
+    <section class="wa__section">
+      <div class="eyebrow eyebrow--cyan">Sent</div>
+      <div v-for="m in [...world.sentMail].reverse()" :key="m.id" class="wa__row wa__row--stack">
+        <span class="wa__main">
+          <b>To:</b> {{ m.to }} <span class="wa__meta mono">· {{ arenaTime(m.at) }}</span><br />
           <b>{{ m.subject }}</b>
-        </p>
-        <p class="whitespace-pre-line text-neutral-700">{{ m.body }}</p>
+          <span class="wa__body">{{ m.body }}</span>
+        </span>
+        <SketchBox :width="1.6" :overshoot="5" />
       </div>
-      <p v-if="!world.sentMail.length" class="text-sm text-neutral-500">Nothing sent today.</p>
+      <p v-if="!world.sentMail.length" class="wa__empty mono">// nothing sent today</p>
     </section>
   </div>
 </template>

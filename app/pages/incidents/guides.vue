@@ -27,7 +27,7 @@ const guide = computed(() => {
   <div class="guides">
     <header class="page-head">
       <div>
-        <NuxtLink to="/incidents" class="guides__back mono"><CyberIcon name="back" :size="14" /> {{ copy.incidents }}</NuxtLink>
+        <BackButton to="/incidents" :label="copy.incidents" />
         <div class="eyebrow eyebrow--cyan">{{ copy.guides }} · field manual</div>
         <h1 class="page-head__title">Know the threat</h1>
         <p class="page-head__sub">What each attack looks like, what to do first and what never to do.</p>
@@ -87,8 +87,6 @@ const guide = computed(() => {
 <style scoped>
 .guides { display: flex; flex-direction: column; gap: var(--s-5); }
 .guides .page-head { margin-bottom: 0; }
-.guides__back { display: inline-flex; align-items: center; gap: 6px; font-size: var(--fs-xs); letter-spacing: .15em; text-transform: uppercase; color: var(--c-text-mute); margin-bottom: var(--s-2); }
-.guides__back:hover { color: var(--c-cyan); }
 .guides__intro { display: flex; align-items: center; flex-wrap: wrap; gap: var(--s-5); padding: var(--s-5) var(--s-6); background: var(--paper); border-radius: var(--r-lg); position: relative; box-shadow: 5px 6px 0 color-mix(in srgb, var(--c) 55%, var(--ink)), var(--glow-panel); }
 .guides__icon { width: 56px; height: 56px; display: grid; place-items: center; color: var(--c); border: 2.5px solid var(--ink); background: color-mix(in srgb, var(--c) 12%, var(--paper-2)); border-radius: var(--blob); }
 .guides__name { font-family: var(--f-display); font-size: var(--fs-xl); color: var(--c); letter-spacing: .06em; }

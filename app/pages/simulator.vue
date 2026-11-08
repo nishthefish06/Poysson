@@ -203,7 +203,7 @@ const stamp = (t: number) => `T+${fmtTime(t)}`
   <div v-if="plan" class="sim" :class="[`sim--${phase}`, { 'sim--flagged': flag }]">
     <!-- ============ TOP BAR ============ -->
     <header class="sim__top">
-      <NuxtLink to="/incidents/simulations" class="sim__exit" title="Abort"><CyberIcon name="back" :size="16" /></NuxtLink>
+      <BackButton to="/incidents/simulations" label="Abort incident" />
       <div class="sim__op">
         <div class="eyebrow eyebrow--magenta">{{ plan.id }} · {{ plan.difficulty }} · {{ plan.mode ?? 'unguided' }}</div>
         <div class="sim__op-name">OP: {{ plan.codename }}</div>
@@ -469,8 +469,6 @@ const stamp = (t: number) => `T+${fmtTime(t)}`
 
 /* top bar */
 .sim__top { flex-shrink: 0; height: 64px; display: flex; align-items: center; gap: var(--s-6); padding: 0 var(--s-5); border-bottom: 1px solid var(--c-line); background: var(--paper); border-bottom: 4px solid var(--c-magenta); }
-.sim__exit { width: 34px; height: 34px; display: grid; place-items: center; border: 1px solid var(--c-line-strong); color: var(--c-text-dim); }
-.sim__exit:hover { color: var(--c-harmful); border-color: var(--c-harmful); }
 .sim__op-name { font-family: var(--f-display); font-weight: 700; letter-spacing: .1em; }
 .sim__progress { width: 200px; display: flex; flex-direction: column; gap: 4px; }
 .sim__progress-track { height: 6px; background: var(--c-bg-3); border-radius: var(--r-pill); }
@@ -509,7 +507,7 @@ const stamp = (t: number) => `T+${fmtTime(t)}`
 .sim__inbox-wrap { flex: 1; min-height: 0; display: grid; grid-template-columns: 240px 1fr; }
 .sim__queue { border-right: 1px solid var(--c-line); overflow-y: auto; display: flex; flex-direction: column; }
 .sim__queue-head { padding: var(--s-4) var(--s-4) var(--s-2); }
-.sim__qitem { display: grid; grid-template-columns: 16px 1fr auto; gap: var(--s-2); align-items: start; padding: var(--s-3) var(--s-4); background: none; border: 0; border-left: 2px solid transparent; border-bottom: 1px solid var(--c-line); color: var(--c-text-dim); text-align: left; cursor: pointer; font-family: var(--f-ui); animation: slide-in .3s var(--ease); }
+.sim__qitem { display: grid; grid-template-columns: 16px 1fr auto; gap: var(--s-2); align-items: start; padding: var(--s-3) var(--s-4); background: none; border: 0; border-left: 2px solid transparent; border-bottom: 1px solid var(--c-line); color: var(--c-text-dim); text-align: left; cursor: var(--cursor-fish-bite); font-family: var(--f-ui); animation: slide-in .3s var(--ease); }
 .sim__qitem:hover { background: var(--c-bg-2); }
 .sim__qitem.is-sel { background: var(--c-bg-3); border-left-color: var(--c-cyan); color: var(--c-text); }
 .sim__qitem.is-done { opacity: .55; }
@@ -563,7 +561,7 @@ const stamp = (t: number) => `T+${fmtTime(t)}`
 .sim__response-input::placeholder { color: var(--c-text-mute); }
 .sim__response-input:focus { border-color: var(--c-magenta); box-shadow: 0 0 14px rgba(255, 43, 214, .12); outline: none; }
 .sim__response-hint { color: var(--c-text-mute); font-size: 9px; line-height: 1.4; }
-.sim__guidebook-toggle { display: flex; align-items: center; gap: var(--s-2); min-height: 38px; padding: 0 var(--s-3); color: var(--c-cyan); background: rgba(0, 240, 255, .05); border: 1px solid var(--c-line-strong); font: 700 var(--fs-xs) var(--f-ui); letter-spacing: .08em; text-transform: uppercase; cursor: pointer; }
+.sim__guidebook-toggle { display: flex; align-items: center; gap: var(--s-2); min-height: 38px; padding: 0 var(--s-3); color: var(--c-cyan); background: rgba(0, 240, 255, .05); border: 1px solid var(--c-line-strong); font: 700 var(--fs-xs) var(--f-ui); letter-spacing: .08em; text-transform: uppercase; cursor: var(--cursor-fish-bite); }
 .sim__guidebook-toggle:hover { border-color: var(--c-cyan); background: rgba(0, 240, 255, .1); }
 .sim__guidebook-count { margin-left: auto; color: var(--c-text-mute); font-size: 9px; font-weight: 400; letter-spacing: .04em; text-transform: none; }
 .sim__guidebook { display: flex; flex-direction: column; gap: var(--s-2); padding: var(--s-3); background: rgba(4, 5, 10, .45); border: 1px solid var(--c-line); border-top: 0; }
@@ -601,7 +599,7 @@ const stamp = (t: number) => `T+${fmtTime(t)}`
 .sim__composer-input { min-width: 0; width: 100%; height: 38px; padding: 0 var(--s-3); color: var(--c-text); background: var(--c-bg-2); border: 1px solid var(--c-line-strong); font: var(--fs-sm) var(--f-ui); }
 .sim__composer-input::placeholder { color: var(--c-text-mute); }
 .sim__composer-input:focus { border-color: var(--c-cyan); box-shadow: 0 0 12px rgba(0, 240, 255, .12); outline: none; }
-.sim__send { flex: 0 0 38px; display: grid; place-items: center; color: var(--c-cyan); background: rgba(0, 240, 255, .08); border: 1px solid var(--c-cyan); cursor: pointer; }
+.sim__send { flex: 0 0 38px; display: grid; place-items: center; color: var(--c-cyan); background: rgba(0, 240, 255, .08); border: 1px solid var(--c-cyan); cursor: var(--cursor-fish-bite); }
 .sim__send:hover:not(:disabled) { background: rgba(0, 240, 255, .2); box-shadow: var(--glow-cyan); }
 .sim__send:disabled { color: var(--c-text-mute); border-color: var(--c-line); cursor: not-allowed; }
 
