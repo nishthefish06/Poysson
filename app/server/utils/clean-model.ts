@@ -118,8 +118,16 @@ function safeHost(host: string): string {
 // are left alone: they are everyday words too.)
 const REAL_CARRIERS = /\b(?:T[-\s]?Mobile|Verizon(?:\s+Wireless)?|AT&T|Mint\s+Mobile|U\.?S\.?\s+Cellular)(?![A-Za-z])/gi;
 
+// The model sometimes copies the prompt's "+1 (555) 01xx-xxxx" placeholder literally: fill in digits.
+const PHONE_PLACEHOLDER = /\(555\)\s*[0-9xX]{3,4}-[0-9xX]{4}/g;
+const FILL = '4271903865';
+
 export function fictionalize(text: string): string {
   return text
+    .replace(PHONE_PLACEHOLDER, (m) => {
+      let n = 0;
+      return m.replace(/[xX]/g, () => FILL[n++ % FILL.length]!);
+    })
     .replace(REAL_CARRIERS, 'CorpMobile')
     .replace(
       /([A-Za-z0-9._%+-]+)@([A-Za-z0-9.-]+\.[A-Za-z]{2,})/g,
@@ -129,6 +137,13 @@ export function fictionalize(text: string): string {
       /\b(https?:\/\/)([A-Za-z0-9.-]+)/gi,
       (_m, scheme: string, host: string) => `${scheme}${safeHost(host)}`
     );
+}
+
+/** An attacker's forwarding rule sends mail OUT: a company address (or none) becomes an outside one. */
+export function outsideAddress(addr: string): string {
+  const m = addr.match(/^([^@\s]+)@([^@\s]+)$/);
+  if (!m) return 'archive.backup@freemail.example';
+  return /(^|\.)corp\.example$/i.test(m[2]!) ? `${m[1]}.copy@freemail.example` : addr;
 }
 
 function cleanStep(raw: unknown): Obj | null {
@@ -280,7 +295,7 @@ export function cleanTools(raw: unknown, max = 3): AttackerTool[] {
     if (name === 'add_forwarding_rule')
       Object.assign(candidate, {
         match: clip(t.match, 60) || '*',
-        forwardTo: fictionalize(clip(t.forwardTo ?? t.to, 120)),
+        forwardTo: outsideAddress(fictionalize(clip(t.forwardTo ?? t.to, 120))),
       });
     if (name === 'send_mail_as_you')
       Object.assign(candidate, {

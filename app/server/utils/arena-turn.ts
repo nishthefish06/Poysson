@@ -19,6 +19,7 @@ export async function attackerTurn(
     access: hasAccess(r.env),
     view: attackerView(r.env),
     doneTools: new Set(r.env.truth.records.map((x) => x.kind)),
+    playbook: playbookForAttacker(r.incidents),
   });
   r.attackerLive = live;
   applyMove(r, move);
@@ -34,7 +35,7 @@ export async function finishRound(r: ArenaRound) {
   const runbook = await debriefRunbook(facts, r.mode, mistakes);
   // the coach's debrief and the attacker's own reveal don't depend on each other: run them together
   const [{ text, source }, attackerReveal] = await Promise.all([
-    writeDebrief(facts, score(r), runbook),
+    writeDebrief(facts, score(r), runbook, basedOnLines(r.incidents)),
     writeReveal(r, facts),
   ]);
   r.summary = { ...facts, debrief: text, debriefSource: source, runbook, attackerReveal };
