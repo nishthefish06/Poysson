@@ -111,11 +111,11 @@ const rank = computed(() => {
 .dash__email { font-size: var(--fs-xs); }
 .dash__xp { min-width: 0; }
 .dash__xp-total { font-size: 10px; letter-spacing: .2em; color: var(--c-text-mute); margin-top: var(--s-2); text-align: right; }
-.dash__grid { display: grid; grid-template-columns: 1fr; gap: var(--s-5); }
+.dash__grid { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: var(--s-5); align-items: start; }
 .dash__badge { display: flex; flex-direction: column; align-items: center; gap: var(--s-2); padding: var(--s-3) var(--s-4); background: var(--c-magenta-tint); border-radius: var(--r-md); position: relative; transition: transform var(--t-fast) var(--ease-bounce); }
 .dash__badge:hover { text-decoration: none; transform: rotate(-1.5deg); }
-.dash__radar-body { display: grid; grid-template-columns: auto 1fr; gap: var(--s-6); align-items: center; }
-.dash__skill-list { display: flex; flex-direction: column; gap: var(--s-3); }
+.dash__radar-body { display: flex; flex-direction: column; gap: var(--s-6); align-items: center; }
+.dash__skill-list { display: flex; flex-direction: column; gap: var(--s-3); width: 100%; }
 .dash__skill { display: grid; grid-template-columns: 18px 130px 1fr 32px; gap: var(--s-3); align-items: center; color: var(--c); }
 .dash__skill-name { color: var(--c-text); font-size: var(--fs-sm); font-weight: 600; }
 /* Fish bars: the track is water, the fill is a striped wake, and a fish swims to the score. */
@@ -148,6 +148,5 @@ const rank = computed(() => {
 @media (max-width: 1200px) {
   .dash__grid { grid-template-columns: 1fr; }
   .dash__hero { grid-template-columns: 1fr; gap: var(--s-4); }
-  .dash__radar-body { grid-template-columns: 1fr; justify-items: center; }
 }
 </style>

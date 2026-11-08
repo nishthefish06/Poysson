@@ -165,7 +165,7 @@ function recheckLabel(a: AuditEntry) {
   border-radius: 10px 10px 0 0;
 }
 .ship__porthole { width: 12px; height: 12px; border-radius: 50%; background: #9fdcff; border: 2px solid var(--ink); }
-.ship__time { font-family: var(--f-hand); font-size: 18px; font-weight: 700; color: var(--ink); line-height: 1; }
+.ship__time { font-family: var(--f-hand); font-size: 21px; font-weight: 700; color: var(--ink); line-height: 1; }
 .ship__hull { position: relative; width: 100%; padding: 12px 26px 44px; text-align: center; min-height: 104px; }
 .ship__hull-bg { position: absolute; inset: 0; width: 100%; height: 100%; overflow: visible; filter: drop-shadow(3px 4px 0 rgba(18, 34, 74, .25)); }
 .ship__hull-fill { fill: var(--paper-2); stroke: var(--ink); stroke-width: 2.6; stroke-linejoin: round; }
@@ -201,11 +201,11 @@ function recheckLabel(a: AuditEntry) {
   padding: 4px 10px; background: var(--paper-2); border: 2px solid var(--ink); border-radius: var(--r-sm);
   box-shadow: 2px 3px 0 rgba(18, 34, 74, .35); transform: rotate(-1.5deg);
 }
-.audit__recheck { background: none; border: 0; color: var(--c-text-dim); font-family: var(--f-hand); font-size: 16px; font-weight: 700; text-decoration: underline wavy rgba(var(--rgb-magenta), .5); text-underline-offset: 3px; }
+.audit__recheck { background: none; border: 0; color: var(--c-text-dim); font-family: var(--f-hand); font-size: 19px; font-weight: 700; text-decoration: underline wavy rgba(var(--rgb-magenta), .5); text-underline-offset: 3px; }
 .audit__recheck.is-ok { color: var(--c-ideal); text-decoration: none; }
 .audit__recheck.is-bad { color: var(--c-harmful); text-decoration: none; }
 .audit__recheck:hover { color: var(--c-magenta); }
-.harbor__empty { grid-column: 1 / -1; display: flex; flex-direction: column; align-items: center; gap: var(--s-2); padding: var(--s-10); color: #fff; font-family: var(--f-hand); font-size: 24px; text-shadow: 0 2px 0 var(--ink); }
+.harbor__empty { grid-column: 1 / -1; display: flex; flex-direction: column; align-items: center; gap: var(--s-2); padding: var(--s-10); color: #fff; font-family: var(--f-hand); font-size: 27px; text-shadow: 0 2px 0 var(--ink); }
 
 @keyframes bob { 0%, 100% { transform: translateY(0) rotate(-1deg); } 50% { transform: translateY(-6px) rotate(1deg); } }
 @keyframes rock { 0%, 100% { rotate: 0deg; } 25% { rotate: -4deg; } 75% { rotate: 4deg; } }

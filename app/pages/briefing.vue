@@ -29,7 +29,7 @@ function reroll() { buildIncident() }
         <h1 class="page-head__title">OPERATION <span class="neon-magenta glitch" :data-text="plan.codename">{{ plan.codename }}</span></h1>
       </div>
       <div class="spacer" />
-      <CyberButton variant="ghost" size="sm" icon="back" to="/incidents/simulations">Change mix</CyberButton>
+      <BackButton to="/incidents/simulations" label="Change mix" />
     </header>
 
     <div class="brief__grid">

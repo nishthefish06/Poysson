@@ -32,7 +32,7 @@ function launch() {
   <div class="ops">
     <header class="page-head">
       <div>
-        <NuxtLink to="/incidents/practice" class="ops__back mono"><CyberIcon name="back" :size="14" /> Practice</NuxtLink>
+        <BackButton to="/incidents/practice" label="Back to practice" />
         <div class="eyebrow eyebrow--magenta">{{ copy.sims }} · mixed-threat generator</div>
         <h1 class="page-head__title">Arm your threat mix</h1>
         <p class="page-head__sub">Real incidents don't arrive one at a time. Every vector you arm drops into a single shuffled incident — no two runs play the same.</p>
@@ -52,6 +52,7 @@ function launch() {
           <span class="ops__mode-name">{{ m.label }}</span>
           <span class="ops__mode-desc">{{ m.desc }}</span>
         </span>
+        <SketchBox :width="2" :overshoot="7" />
       </button>
     </section>
 
@@ -74,6 +75,7 @@ function launch() {
             <span class="ops__diff-name">{{ d.label }}</span>
             <span class="ops__diff-desc mono">{{ d.desc }}</span>
             <span class="ops__diff-xp mono">×{{ d.xpMult }} XP</span>
+            <SketchBox :width="2" :overshoot="7" />
           </button>
         </div>
       </CyberPanel>
@@ -96,12 +98,11 @@ function launch() {
 .ops { display: flex; flex-direction: column; gap: var(--s-6); }
 .ops .page-head { margin-bottom: 0; }
 .ops .page-head__sub { max-width: 640px; }
-.ops__back { display: inline-flex; align-items: center; gap: 6px; font-size: var(--fs-xs); letter-spacing: .15em; text-transform: uppercase; color: var(--c-text-mute); margin-bottom: var(--s-2); }
-.ops__back:hover { color: var(--c-cyan); }
 .ops__modes { display: grid; grid-template-columns: 1fr 1fr; gap: var(--s-4); }
-.ops__mode { display: flex; gap: var(--s-4); align-items: flex-start; padding: var(--s-4) var(--s-5); background: var(--c-bg-2); border: 1px solid var(--c-line-strong); color: var(--c-text-dim); cursor: pointer; text-align: left; border-radius: var(--r-md); transition: all var(--t-fast); }
-.ops__mode:hover { border-color: var(--c-cyan); }
-.ops__mode.is-on { color: var(--c-cyan); border-color: var(--c-cyan); background: linear-gradient(180deg, rgba(var(--rgb-cyan), .14), var(--c-bg-2)); box-shadow: inset 0 0 20px rgba(var(--rgb-cyan), .12); }
+.ops__mode { position: relative; display: flex; gap: var(--s-4); align-items: flex-start; padding: var(--s-4) var(--s-5); background: color-mix(in srgb, var(--paper) 58%, transparent); border: 0; color: var(--c-text-dim); box-shadow: 3px 4px 0 rgba(18, 34, 74, .1); cursor: var(--cursor-fish-bite); text-align: left; border-radius: var(--r-lg); transition: transform var(--t-fast) var(--ease-bounce), background var(--t-fast), box-shadow var(--t-fast); }
+.ops__mode:hover { transform: translateY(-2px); background: color-mix(in srgb, var(--paper) 78%, transparent); box-shadow: 4px 5px 0 rgba(18, 34, 74, .16); }
+.ops__mode.is-on { color: var(--c-cyan); background: var(--paper-2); box-shadow: 4px 5px 0 rgba(18, 34, 74, .16); }
+.ops__mode > :deep(.cyber-icon), .ops__mode-text { position: relative; z-index: 2; }
 .ops__mode-text { display: flex; flex-direction: column; gap: 4px; }
 .ops__mode-name { font-family: var(--f-display); font-weight: 700; letter-spacing: .1em; text-transform: uppercase; color: var(--c-text); }
 .ops__mode.is-on .ops__mode-name { color: var(--c-cyan); text-shadow: var(--text-glow-cyan); }
@@ -110,11 +111,16 @@ function launch() {
 .ops__cards { display: grid; grid-template-columns: repeat(5, 1fr); gap: var(--s-4); }
 .ops__config { display: grid; grid-template-columns: 1.3fr 1fr; gap: var(--s-5); }
 .ops__diff-list { display: grid; grid-template-columns: repeat(3, 1fr); gap: var(--s-3); }
-.ops__diff-opt { display: flex; flex-direction: column; gap: var(--s-1); align-items: flex-start; padding: var(--s-4); background: var(--c-bg-2); border: 1px solid var(--c-line-strong); color: var(--c-text); cursor: pointer; text-align: left; border-radius: var(--r-md); transition: all var(--t-fast); }
-.ops__diff-opt:hover { border-color: var(--c-cyan); }
-.ops__diff-opt.is-on { border-color: var(--c-cyan); background: linear-gradient(180deg, rgba(var(--rgb-cyan), .14), var(--c-bg-2)); box-shadow: inset 0 0 20px rgba(var(--rgb-cyan), .12); }
+.ops__diff-opt { position: relative; display: flex; flex-direction: column; gap: var(--s-1); align-items: flex-start; padding: var(--s-4); background: transparent; border: 0; color: var(--c-text); cursor: var(--cursor-fish-bite); text-align: left; border-radius: var(--r-md); transition: transform var(--t-fast) var(--ease-bounce); }
+/* the fill is drawn just inside the hand-drawn lines, rounded, so it never pokes out past them */
+.ops__diff-opt::before { content: ''; position: absolute; inset: 2px; z-index: 0; border-radius: var(--r-md); background: color-mix(in srgb, var(--paper) 58%, transparent); box-shadow: 3px 4px 0 rgba(18, 34, 74, .1); transition: background var(--t-fast), box-shadow var(--t-fast); }
+.ops__diff-opt:hover { transform: translateY(-2px); }
+.ops__diff-opt:hover::before { background: color-mix(in srgb, var(--paper) 78%, transparent); box-shadow: 4px 5px 0 rgba(18, 34, 74, .16); }
+.ops__diff-opt.is-on { color: #fff; }
+.ops__diff-opt.is-on::before { background: var(--c-magenta); box-shadow: 4px 5px 0 rgba(18, 34, 74, .2); }
+.ops__diff-opt > span { position: relative; z-index: 2; }
 .ops__diff-name { font-family: var(--f-display); font-weight: 700; letter-spacing: .08em; text-transform: uppercase; }
-.ops__diff-opt.is-on .ops__diff-name { color: var(--c-cyan); text-shadow: var(--text-glow-cyan); }
+.ops__diff-opt.is-on .ops__diff-name, .ops__diff-opt.is-on .ops__diff-desc { color: #fff; text-shadow: none; }
 .ops__diff-desc { font-size: 11px; color: var(--c-text-dim); }
 .ops__diff-xp { font-size: 11px; color: var(--c-yellow); margin-top: var(--s-2); }
 .ops__preview-body { display: grid; grid-template-columns: repeat(4, 1fr); gap: var(--s-3); margin-bottom: var(--s-4); }

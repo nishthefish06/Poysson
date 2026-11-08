@@ -60,7 +60,7 @@ async function send() {
 
 <template>
   <main v-if="r" class="mx-auto max-w-4xl p-8">
-    <NuxtLink to="/practice" class="text-sm text-neutral-600 underline">← Practice</NuxtLink>
+    <BackButton to="/practice" label="Back to practice" />
     <h1 class="mt-2 text-3xl font-bold">{{ r.title }}</h1>
     <p class="text-sm text-neutral-600">
       {{ r.attackType }} · {{ r.difficulty }} · {{ r.mode }} · {{ r.status }}

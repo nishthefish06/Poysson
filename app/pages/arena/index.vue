@@ -14,7 +14,7 @@ async function start(mode: ArenaMode) {
 
 <template>
   <main class="arena-start">
-    <NuxtLink to="/dashboard" class="arena-start__back mono"><CyberIcon name="back" :size="14" /> Back to dashboard</NuxtLink>
+    <BackButton to="/dashboard" label="Back to dashboard" />
     <h1 class="arena-start__title">Arena</h1>
     <p class="arena-start__intro">
       You get a mock work account: mail, a customer care portal, your security settings and your files. An AI
@@ -66,15 +66,6 @@ async function start(mode: ArenaMode) {
     5px 6px 0 rgba(18, 34, 74, 0.16),
     var(--glow-panel);
 }
-.arena-start__back {
-  display: inline-flex;
-  align-items: center;
-  gap: 6px;
-  font-size: var(--fs-xs);
-  letter-spacing: 0.15em;
-  text-transform: uppercase;
-  color: var(--c-text-mute);
-}
 .arena-start__title {
   font-family: var(--f-display);
   font-size: var(--fs-2xl);
@@ -102,7 +93,7 @@ async function start(mode: ArenaMode) {
   font: inherit;
   text-align: left;
   color: var(--c-text);
-  cursor: pointer;
+  cursor: var(--cursor-fish-bite);
   position: relative;
   background: var(--paper-2);
   border: 0;
@@ -137,7 +128,7 @@ async function start(mode: ArenaMode) {
 }
 .mode__who {
   font-family: var(--f-hand);
-  font-size: var(--fs-lg);
+  font-size: calc(var(--fs-lg) + 3px);
   color: var(--c-text-dim);
   line-height: 1;
 }
@@ -156,7 +147,7 @@ async function start(mode: ArenaMode) {
 .arena-start__busy {
   margin-top: var(--s-4);
   font-family: var(--f-hand);
-  font-size: var(--fs-xl);
+  font-size: calc(var(--fs-xl) + 3px);
   color: var(--c-magenta);
 }
 .arena-start__err {

@@ -99,7 +99,7 @@ const label = (t: string) => ATTACK_LABELS[t as AttackType] ?? t;
 .trip__msg {
   margin-top: var(--s-2);
   font-family: var(--f-hand);
-  font-size: var(--fs-lg);
+  font-size: calc(var(--fs-lg) + 3px);
   color: var(--c-text);
 }
 @media (max-width: 600px) {

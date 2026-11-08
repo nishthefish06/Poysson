@@ -6,24 +6,28 @@ const emit = defineEmits<{ respond: [EnvAction] }>();
 </script>
 
 <template>
-  <div class="text-sm">
-    <div v-if="world.ransomNote" class="mb-4 rounded border border-verdict-harmful bg-verdict-harmful/10 p-3">
-      <p class="font-bold text-verdict-harmful">README_RESTORE_FILES.txt</p>
-      <p class="mt-1 whitespace-pre-line">{{ world.ransomNote }}</p>
+  <div class="wa">
+    <div v-if="world.ransomNote" class="wa__ransom">
+      <div class="wa__ransom-title mono"><CyberIcon name="alert" :size="14" /> README_RESTORE_FILES.txt</div>
+      <p class="wa__body">{{ world.ransomNote }}</p>
     </div>
-    <div class="grid grid-cols-2 gap-3 md:grid-cols-4">
-      <div v-for="f in world.files" :key="f.name" class="rounded border border-line p-3 text-center">
-        <p class="text-2xl">{{ f.encrypted ? '🔒' : '📄' }}</p>
-        <p class="mt-1 break-all">{{ f.encrypted ? f.name + '.locked' : f.name }}</p>
+    <div class="eyebrow eyebrow--cyan">Your drive</div>
+    <div class="wa__files">
+      <div v-for="f in world.files" :key="f.name" class="wa__file" :class="{ 'is-locked': f.encrypted }">
+        <CyberIcon :name="f.encrypted ? 'lock' : 'list'" :size="28" />
+        <span class="wa__file-name mono">{{ f.encrypted ? f.name + '.locked' : f.name }}</span>
+        <SketchBox :width="1.6" :overshoot="5" />
       </div>
     </div>
-    <button
-      v-if="world.files.some((f) => f.encrypted)"
-      :disabled="disabled"
-      class="mt-4 rounded border border-line px-3 py-1 hover:border-neon-cyan disabled:opacity-40"
-      @click="emit('respond', { action: 'restore_files' })"
-    >
-      Restore from last night's backup
-    </button>
+    <div v-if="world.files.some((f) => f.encrypted)">
+      <CyberButton
+        variant="secondary"
+        size="sm"
+        icon="rewind"
+        :disabled="disabled"
+        @click="emit('respond', { action: 'restore_files' })"
+        >Restore from last night's backup</CyberButton
+      >
+    </div>
   </div>
 </template>

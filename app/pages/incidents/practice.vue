@@ -40,7 +40,7 @@ const tracks = computed<HubTrack[]>(() => [
   <div class="hub">
     <header class="page-head">
       <div>
-        <NuxtLink to="/incidents" class="hub__back mono"><CyberIcon name="back" :size="14" /> {{ copy.incidents }}</NuxtLink>
+        <BackButton to="/incidents" :label="copy.incidents" />
         <div class="eyebrow eyebrow--magenta">Practice</div>
         <h1 class="page-head__title">How do you want to practice?</h1>
         <p class="page-head__sub">Work through what you've been assigned, or build an incident of your own.</p>
@@ -54,5 +54,4 @@ const tracks = computed<HubTrack[]>(() => [
 <style scoped>
 .hub { display: flex; flex-direction: column; gap: var(--s-6); }
 .hub .page-head { margin-bottom: 0; }
-.hub__back { display: inline-flex; align-items: center; gap: 6px; font-size: var(--fs-xs); letter-spacing: .15em; text-transform: uppercase; color: var(--c-text-mute); margin-bottom: var(--s-2); }
 </style>

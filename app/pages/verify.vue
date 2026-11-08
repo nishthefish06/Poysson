@@ -35,6 +35,6 @@ const code = ref('');
 
     <button type="submit" class="auth-btn" :disabled="busy">{{ busy ? 'Verifying…' : 'Verify code' }}</button>
     <p class="auth-hint">Lost your phone? Contact IT support to reset 2FA.</p>
-    <button type="button" class="auth-link" @click="cancelLogin()">Back to sign in</button>
+    <BackButton label="Back to sign in" @click="cancelLogin()" />
   </form>
 </template>

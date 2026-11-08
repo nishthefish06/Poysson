@@ -22,7 +22,7 @@ defineProps<{ tabs: { id: string; label: string; icon?: string; count?: number }
 .tab-bar__tab {
   position: relative; display: inline-flex; align-items: center; gap: var(--s-2);
   height: 44px; padding: 0 var(--s-5);
-  background: transparent; border: 0; cursor: pointer;
+  background: transparent; border: 0; cursor: var(--cursor-fish-bite);
   font-family: var(--f-display); font-weight: 500; font-size: var(--fs-md);
   color: var(--c-text-dim);
   border-radius: var(--r-md) var(--r-md) 0 0;

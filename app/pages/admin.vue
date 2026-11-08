@@ -348,7 +348,7 @@ function joined(ts: { microsSinceUnixEpoch: bigint }) {
   text-transform: uppercase;
   letter-spacing: 0.1em;
   font-size: var(--fs-xs);
-  cursor: pointer;
+  cursor: var(--cursor-fish-bite);
 }
 .adm__seg button.is-on {
   background: linear-gradient(90deg, rgba(0, 240, 255, 0.16), transparent);
