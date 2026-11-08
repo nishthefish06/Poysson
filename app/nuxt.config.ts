@@ -29,9 +29,14 @@ export default defineNuxtConfig({
     // Server-only: AI + Photon run on the Nuxt server, never in the browser.
     // Read from the names in .env.example; in production NUXT_<NAME> env vars override.
     geminiApiKey: process.env.GEMINI_API_KEY ?? '',
+    // alias that always points at the newest Flash model; set GEMINI_MODEL to pin one
+    geminiModel: process.env.GEMINI_MODEL ?? 'gemini-flash-latest',
+    geminiBaseUrl: process.env.GEMINI_BASE_URL ?? '', // only for tests / proxies
+    geminiEmbedModel: process.env.GEMINI_EMBED_MODEL ?? 'gemini-embedding-001',
     nvidiaApiKey: process.env.NVIDIA_API_KEY ?? '',
     nvidiaBaseUrl: process.env.NVIDIA_BASE_URL ?? 'https://integrate.api.nvidia.com/v1',
     nemotronModel: process.env.NEMOTRON_MODEL ?? '',
+    nemotronThinking: process.env.NEMOTRON_THINKING ?? '0',
     photonProjectId: process.env.PHOTON_PROJECT_ID ?? '',
     photonProjectSecret: process.env.PHOTON_PROJECT_SECRET ?? '',
     demoPhoneMap: process.env.DEMO_PHONE_MAP ?? '',

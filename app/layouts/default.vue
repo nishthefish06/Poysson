@@ -9,6 +9,8 @@ const route = useRoute();
 const BASE_NAV = [
   { to: '/dashboard', label: 'Dashboard', icon: 'grid' },
   { to: '/incidents', label: 'Incident Ops', icon: 'crosshair' },
+  { to: '/practice', label: 'Practice', icon: 'play' },
+  { to: '/arena', label: 'Arena', icon: 'bolt' },
   { to: '/results', label: 'Last Debrief', icon: 'chart' },
   { to: '/audit', label: 'Audit Log', icon: 'list' },
   { to: '/profile', label: 'Profile', icon: 'user' },
