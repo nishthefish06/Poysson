@@ -215,7 +215,7 @@ const stamp = (t: number) => `T+${fmtTime(t)}`
       <div class="spacer" />
       <div class="sim__vectors">
         <span v-for="v in plan.vectors" :key="v" class="sim__vchip" :class="{ 'is-hit': arrived.some(a => a.inject.vector === v) }" :style="{ '--c': `var(${vectorById(v).color})` }">
-          <CyberIcon :name="vectorById(v).icon" :size="13" /> {{ vectorById(v).code }}
+          <CyberIcon :name="vectorById(v).icon" :size="13" /> <VectorTip :vector="v" placement="bottom" />
         </span>
       </div>
       <div class="sim__live mono" :class="{ 'is-on': phase === 'live' }"><span /> {{ phase === 'live' ? 'LIVE' : phase === 'finished' ? 'CLOSED' : 'STANDBY' }}</div>
@@ -373,7 +373,7 @@ const stamp = (t: number) => `T+${fmtTime(t)}`
                 <div class="sim__guidebook-results">
                   <article v-for="entry in guideResults" :key="entry.id" class="sim__guide-entry">
                     <div class="sim__guide-entry-head">
-                      <span class="sim__guide-entry-vector">{{ vectorById(entry.vector).code }}</span>
+                      <span class="sim__guide-entry-vector"><VectorTip :vector="entry.vector" placement="bottom" /></span>
                       <span class="sim__guide-entry-title">{{ entry.title }}</span>
                     </div>
                     <p class="sim__guide-entry-tip">{{ entry.tip }}</p>
@@ -560,23 +560,52 @@ const stamp = (t: number) => `T+${fmtTime(t)}`
 .sim__response-input { width: 100%; resize: vertical; min-height: 72px; padding: var(--s-3); color: var(--c-text); background: rgba(4, 5, 10, .7); border: 1px solid var(--c-line-strong); font: var(--fs-sm) var(--f-ui); line-height: 1.4; }
 .sim__response-input::placeholder { color: var(--c-text-mute); }
 .sim__response-input:focus { border-color: var(--c-magenta); box-shadow: 0 0 14px rgba(255, 43, 214, .12); outline: none; }
-.sim__response-hint { color: var(--c-text-mute); font-size: 9px; line-height: 1.4; }
-.sim__guidebook-toggle { display: flex; align-items: center; gap: var(--s-2); min-height: 38px; padding: 0 var(--s-3); color: var(--c-cyan); background: rgba(0, 240, 255, .05); border: 1px solid var(--c-line-strong); font: 700 var(--fs-xs) var(--f-ui); letter-spacing: .08em; text-transform: uppercase; cursor: var(--cursor-fish-bite); }
-.sim__guidebook-toggle:hover { border-color: var(--c-cyan); background: rgba(0, 240, 255, .1); }
-.sim__guidebook-count { margin-left: auto; color: var(--c-text-mute); font-size: 9px; font-weight: 400; letter-spacing: .04em; text-transform: none; }
-.sim__guidebook { display: flex; flex-direction: column; gap: var(--s-2); padding: var(--s-3); background: rgba(4, 5, 10, .45); border: 1px solid var(--c-line); border-top: 0; }
-.sim__guidebook-head { display: flex; align-items: flex-end; justify-content: space-between; gap: var(--s-2); padding-bottom: var(--s-2); border-bottom: 1px solid var(--c-line); }
-.sim__guidebook-title { margin-top: 2px; color: var(--c-text); font-size: var(--fs-sm); font-weight: 700; }
-.sim__guidebook-search { width: 100%; height: 34px; padding: 0 var(--s-3); color: var(--c-text); background: var(--c-bg-2); border: 1px solid var(--c-line-strong); font: var(--fs-xs) var(--f-mono); }
-.sim__guidebook-search:focus { border-color: var(--c-magenta); outline: none; box-shadow: 0 0 12px rgba(255, 43, 214, .12); }
-.sim__guidebook-results { display: flex; flex-direction: column; gap: var(--s-2); max-height: 340px; overflow-y: auto; }
-.sim__guide-entry { padding: var(--s-3); background: rgba(15, 20, 36, .72); border-left: 2px solid var(--c-magenta); }
+.sim__response-hint { color: var(--c-text-dim); font-size: 12px; line-height: 1.4; font-family: var(--f-ui); }
+/* toggle: a light-blue tab that opens the guidebook under it */
+.sim__guidebook-toggle {
+  display: flex; align-items: center; gap: var(--s-2); min-height: 40px; padding: 0 var(--s-3);
+  color: var(--c-text); background: rgba(var(--rgb-cyan), .1);
+  border: 2px solid rgba(var(--rgb-cyan), .45); border-radius: var(--r-md);
+  font: 700 var(--fs-sm) var(--f-display); letter-spacing: .01em;
+  cursor: var(--cursor-fish-bite, pointer);
+  transition: background var(--t-fast), border-color var(--t-fast);
+}
+.sim__guidebook-toggle > .cyber-icon { color: var(--c-cyan); }
+.sim__guidebook-toggle:hover { border-color: var(--c-cyan); background: rgba(var(--rgb-cyan), .16); }
+.sim__guidebook-toggle[aria-expanded="true"] { border-radius: var(--r-md) var(--r-md) 0 0; border-bottom-color: transparent; }
+.sim__guidebook-count { margin-left: auto; color: var(--c-text-dim); font: 600 12px var(--f-ui); }
+/* the guidebook: light blue, low-opacity fill so it reads apart from the Response panel */
+.sim__guidebook {
+  display: flex; flex-direction: column; gap: var(--s-3); padding: var(--s-4);
+  background: rgba(var(--rgb-cyan), .1);
+  border: 2px solid rgba(var(--rgb-cyan), .45); border-top: 0;
+  border-radius: 0 0 var(--r-md) var(--r-md);
+}
+.sim__guidebook-head { display: flex; align-items: flex-end; justify-content: space-between; gap: var(--s-2); padding-bottom: var(--s-2); border-bottom: 2px dashed rgba(var(--rgb-cyan), .35); }
+.sim__guidebook-head > .mono { color: var(--c-text-dim); font: 600 12px var(--f-ui); }
+.sim__guidebook-title { margin-top: 2px; color: var(--c-text); font: 600 var(--fs-md) var(--f-display); }
+.sim__guidebook-search {
+  width: 100%; height: 38px; padding: 0 var(--s-3);
+  color: var(--c-text); background: var(--paper-2);
+  border: 2px solid var(--line-ink, var(--c-line-strong)); border-radius: var(--r-md);
+  font: 500 var(--fs-sm) var(--f-ui);
+}
+.sim__guidebook-search::placeholder { color: var(--c-text-dim); }
+.sim__guidebook-search:focus { border-color: var(--c-magenta); outline: none; box-shadow: 3px 4px 0 var(--c-magenta); }
+.sim__guidebook-results { display: flex; flex-direction: column; gap: var(--s-2); max-height: 340px; overflow-y: auto; padding: 2px 4px 4px 2px; }
+/* entries: paper cards with a magenta edge */
+.sim__guide-entry {
+  padding: var(--s-3); background: var(--paper-2);
+  border: 2px solid var(--line-ink, var(--c-line-strong)); border-left: 5px solid var(--c-magenta);
+  border-radius: var(--r-md); box-shadow: 2px 3px 0 rgba(var(--rgb-shade, 18, 34, 74), .14);
+}
 .sim__guide-entry-head { display: flex; align-items: baseline; gap: var(--s-2); }
-.sim__guide-entry-vector { color: var(--c-magenta); font: 700 10px var(--f-mono); letter-spacing: .12em; }
-.sim__guide-entry-title { color: var(--c-text); font-size: var(--fs-xs); font-weight: 700; }
-.sim__guide-entry-tip { margin-top: var(--s-2); color: var(--c-ideal); font-size: var(--fs-xs); line-height: 1.45; }
-.sim__guide-entry-flags { display: flex; flex-direction: column; gap: 2px; margin-top: var(--s-2); color: var(--c-text-dim); font-size: 10px; }
-.sim__guide-entry-flags span::before { content: '•'; margin-right: 5px; color: var(--c-yellow); }
+.sim__guide-entry-vector { flex-shrink: 0; padding: 1px 6px; border-radius: 999px; color: #fff; background: var(--c-magenta); font: 700 10px var(--f-mono); letter-spacing: .08em; }
+.sim__guide-entry-title { color: var(--c-text); font: 600 var(--fs-sm) var(--f-display); }
+.sim__guide-entry-tip { margin-top: var(--s-2); color: var(--c-text); font-size: var(--fs-sm); line-height: 1.45; }
+.sim__guide-entry-tip::before { content: 'Tip'; margin-right: 6px; padding: 0 6px; border-radius: 999px; color: #0b5e2f; background: rgba(var(--rgb-ideal), .2); font: 700 10px var(--f-ui); letter-spacing: .04em; text-transform: uppercase; vertical-align: 1px; }
+.sim__guide-entry-flags { display: flex; flex-direction: column; gap: 3px; margin-top: var(--s-2); color: var(--c-text-dim); font-size: 12px; }
+.sim__guide-entry-flags span::before { content: '!'; display: inline-grid; place-items: center; width: 14px; height: 14px; margin-right: 6px; border-radius: 50%; color: #fff; background: var(--c-ok); font: 700 9px var(--f-ui); }
 .guidebook-enter-active, .guidebook-leave-active { transition: all .2s var(--ease); transform-origin: top; }
 .guidebook-enter-from, .guidebook-leave-to { opacity: 0; transform: scaleY(.95); }
 .sim__feedback { --c: var(--c-ideal); margin-top: var(--s-2); padding: var(--s-3); font-size: var(--fs-sm); border-left: 3px solid var(--c); background: color-mix(in srgb, var(--c) 8%, transparent); animation: slide-in .3s; }

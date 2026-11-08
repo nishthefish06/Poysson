@@ -206,7 +206,7 @@ const ratingColor = (r: Rating) => `var(--c-${r})`
       <CyberPanel v-for="(t, i) in tips" :key="i" :accent="t.rating === 'harmful' ? 'red' : 'none'" class="res__tip">
         <div class="res__tip-head">
           <StatusPill :status="t.rating" />
-          <span class="res__tip-vec mono" :style="{ color: `var(${vectorById(t.vector).color})` }">{{ vectorById(t.vector).code }}</span>
+          <span class="res__tip-vec mono" :style="{ color: `var(${vectorById(t.vector).color})` }"><VectorTip :vector="t.vector" /></span>
           <h3>{{ t.title }}</h3>
         </div>
         <p class="res__tip-body">{{ t.tip }}</p>

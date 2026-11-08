@@ -65,8 +65,27 @@ export interface AuditEntry {
 }
 /** Records saved before anchoring existed have no status: treat them as demo data. */
 export const anchorOf = (x: { anchor?: AnchorState }): AnchorState => x.anchor ?? 'demo'
+/** Fish-pun usernames. Each account gets one, picked from its email, so it never changes. */
+const FISH_HANDLES = [
+  'phish_n_chips', 'reel_deal', 'gill_bates', 'cod_father', 'tuna_turner',
+  'bass_instinct', 'krill_seeker', 'salmon_chanted', 'hook_line_sinker', 'fin_diesel',
+]
+export function fishHandle(seed: string): string {
+  let h = 0
+  for (const ch of seed.toLowerCase()) h = (h * 31 + ch.charCodeAt(0)) >>> 0
+  return FISH_HANDLES[h % FISH_HANDLES.length]!
+}
+/** Two-letter initials from a username: 'phish_n_chips' -> 'PC', 'reel_deal' -> 'RD'. */
+export function initialsOf(handle: string): string {
+  const parts = handle.split(/[_\s.-]+/).filter(Boolean)
+  const first = parts[0] ?? '?'
+  const second = parts.length > 1 ? parts[parts.length - 1]![0] : first[1]
+  return `${first[0] ?? ''}${second ?? ''}`.toUpperCase()
+}
 export interface Player {
   handle: string
+  /** real name from the signed-in account (handle is the fish-pun username) */
+  name?: string
   email: string
   level: number
   xp: number // xp within current level
@@ -162,7 +181,7 @@ export function seedState(): GameState {
   return {
     auth: { email: '', stage: 'none' },
     player: {
-      handle: 'gh0st_r1der',
+      handle: 'phish_n_chips',
       email: 'operator@halcyon.io',
       level: 7,
       xp: 1180,
@@ -184,12 +203,13 @@ export function seedState(): GameState {
 export function useGame() {
   const state = useState<GameState>('game', seedState)
 
-  // Name and email come from the signed-in account; the rest of the player is still sample data.
+  // Email and real name come from the signed-in account, which also picks the fish-pun username;
+  // the rest of the player is still sample data.
   const { account } = useSession()
   const player = computed(() => {
     const p = state.value.player
     const a = account.value
-    return a ? { ...p, handle: a.displayName, email: a.email } : p
+    return a ? { ...p, handle: fishHandle(a.email), name: a.displayName, email: a.email } : p
   })
   const lastRun = computed(() => state.value.runs[0] ?? null)
   const accuracy = computed(() => {

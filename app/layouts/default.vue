@@ -142,12 +142,13 @@ async function doLogout() {
             :aria-expanded="menuOpen"
             @click="menuOpen = !menuOpen"
           >
-            <AvatarFlip :initials="player.handle.slice(0, 2).toUpperCase()" :size="36" />
+            <AvatarFlip :initials="initialsOf(player.handle)" :size="36" />
             <span class="sr-only">Account menu for {{ player.handle }}</span>
           </button>
           <div v-if="menuOpen" class="app-shell__menu" role="menu">
             <div class="app-shell__menu-head">
               <div class="app-shell__menu-name">{{ player.handle }}</div>
+              <div v-if="player.name" class="app-shell__menu-real">{{ player.name }}</div>
               <div class="app-shell__menu-email mono">{{ player.email }}</div>
             </div>
             <NuxtLink to="/profile" class="app-shell__menu-item" role="menuitem">
@@ -354,6 +355,10 @@ async function doLogout() {
   font-weight: 700;
   letter-spacing: 0.06em;
   color: var(--c-text);
+}
+.app-shell__menu-real {
+  font-size: var(--fs-sm);
+  color: var(--c-text-dim);
 }
 .app-shell__menu-email {
   font-size: 11px;

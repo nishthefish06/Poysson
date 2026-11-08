@@ -8,6 +8,8 @@ export default defineNuxtPlugin(() => {
     if (raw) state.value = { ...state.value, ...JSON.parse(raw) }
     // Saves from before guided/unguided mode existed
     state.value.setup.mode ??= 'guided'
+    // The old sample username became a fish pun
+    if (state.value.player.handle === 'gh0st_r1der') state.value.player.handle = 'phish_n_chips'
   } catch { /* storage blocked: run in-memory */ }
   // Finish anchoring anything left pending when the page was closed (or that failed earlier).
   useGame().retryAnchors()

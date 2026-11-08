@@ -31,7 +31,7 @@ const rank = computed(() => {
     <section class="dash__hero">
       <div class="dash__id">
         <div class="dash__avatar" :title="player.handle">
-          <AvatarFlip :initials="player.handle.slice(0, 2).toUpperCase()" :size="84" />
+          <AvatarFlip :initials="initialsOf(player.handle)" :size="84" />
         </div>
         <div class="dash__who">
           <div class="eyebrow eyebrow--magenta">Rank · {{ rank }}</div>

@@ -16,7 +16,9 @@ const fav = computed(() => VECTORS.slice().sort((a, b) => player.value.skills[b.
 <template>
   <div class="prof">
     <section class="prof__card">
-      <div class="prof__avatar">{{ player.handle.slice(0, 2).toUpperCase() }}</div>
+      <div class="prof__avatar" :title="player.handle">
+        <AvatarFlip :initials="initialsOf(player.handle)" :size="110" />
+      </div>
       <div class="prof__id">
         <div class="eyebrow eyebrow--magenta">Operator profile</div>
         <h1 class="glitch" :data-text="player.handle">{{ player.handle }}</h1>
@@ -66,7 +68,7 @@ const fav = computed(() => VECTORS.slice().sort((a, b) => player.value.skills[b.
 <style scoped>
 .prof { display: flex; flex-direction: column; gap: var(--s-5); }
 .prof__card { position: relative;  display: grid; grid-template-columns: auto 1fr 360px; gap: var(--s-6); align-items: center; padding: var(--s-6); background: var(--paper); border: 0; border-radius: var(--r-lg); box-shadow: 5px 6px 0 rgba(18, 34, 74, .16), var(--glow-panel); }
-.prof__avatar { width: 110px; height: 110px; display: grid; place-items: center; font-family: var(--f-display); font-size: 40px; font-weight: 900; color: var(--c-text-invert); background: var(--chrome); box-shadow: var(--pop); border: 3px solid var(--ink); border-radius: var(--blob); animation: blob 10s var(--ease-soft) infinite; }
+.prof__avatar { width: 110px; height: 110px; }
 .prof__tags { display: flex; flex-wrap: wrap; gap: var(--s-2); margin-top: var(--s-3); }
 /* Hand-drawn pills: ink outline, tinted fill, small offset shadow (was neon boxes). */
 .prof__tag { --c: var(--c-magenta); font-family: var(--f-ui); font-size: var(--fs-xs); font-weight: 800; letter-spacing: .06em; padding: 3px 12px; border: 2px solid var(--ink); border-radius: var(--r-pill); background: color-mix(in srgb, var(--c) 14%, var(--paper-2)); color: color-mix(in srgb, var(--c) 80%, var(--ink)); box-shadow: 2px 2px 0 var(--ink); }
