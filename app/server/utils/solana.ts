@@ -37,20 +37,55 @@ let cached: { key: string; url: string; conn: Connection; payer: Keypair } | nul
 
 /** Connection + app wallet (cached). Shared by audit anchoring and badge credentials. */
 export function solanaClient() {
-  const { solanaRpcUrl, solanaSecretKey } = useRuntimeConfig();
-  if (!solanaSecretKey) {
+  const { solanaRpcUrl, solanaSecretKey: rawKey } = useRuntimeConfig();
+  // In production the key arrives as NUXT_SOLANA_SECRET_KEY, and Nuxt parses JSON-looking env
+  // values, so it's already an array there; in dev it's the raw string from .env.
+  if (!rawKey || (Array.isArray(rawKey) && !rawKey.length)) {
     throw createError({ statusCode: 503, statusMessage: 'Solana is not configured (SOLANA_SECRET_KEY)' });
   }
+  let keyBytes: unknown;
+  try {
+    keyBytes = Array.isArray(rawKey) ? rawKey : JSON.parse(String(rawKey));
+  } catch {
+    throw createError({ statusCode: 500, statusMessage: 'SOLANA_SECRET_KEY must be a JSON array of 64 numbers' });
+  }
+  const solanaSecretKey = JSON.stringify(keyBytes);
   if (!cached || cached.key !== solanaSecretKey || cached.url !== solanaRpcUrl) {
     let payer: Keypair;
     try {
-      payer = Keypair.fromSecretKey(Uint8Array.from(JSON.parse(solanaSecretKey) as number[]));
+      payer = Keypair.fromSecretKey(Uint8Array.from(keyBytes as number[]));
     } catch {
       throw createError({ statusCode: 500, statusMessage: 'SOLANA_SECRET_KEY must be a JSON array of 64 numbers' });
     }
-    cached = { key: solanaSecretKey, url: solanaRpcUrl, conn: new Connection(solanaRpcUrl, 'confirmed'), payer };
+    // The public devnet RPC rate-limits hard: fail fast on 429 instead of retrying in the background
+    // (those retries surfaced as unhandled rejections), and let solanaQueue() pace our calls.
+    const conn = new Connection(solanaRpcUrl, { commitment: 'confirmed', disableRetryOnRateLimit: true });
+    cached = { key: solanaSecretKey, url: solanaRpcUrl, conn, payer };
   }
   return cached;
+}
+
+/**
+ * Runs Solana writes one at a time. A page load can ask to anchor ~10 records at once; in parallel
+ * each one makes several RPC calls and the public devnet answers 429 to all of them.
+ */
+let chain: Promise<unknown> = Promise.resolve();
+export function solanaQueue<T>(fn: () => Promise<T>): Promise<T> {
+  const run = chain.then(fn, fn);
+  chain = run.catch(() => undefined);
+  return run;
+}
+
+/** Turns devnet's rate limit into a clear 503 the page can show and retry later. */
+export function rethrowSolana(e: unknown, what: string): never {
+  const msg = e instanceof Error ? e.message : String(e);
+  if (/429|too many requests/i.test(msg)) {
+    throw createError({ statusCode: 503, statusMessage: 'Solana devnet is rate-limiting us; try again in a minute' });
+  }
+  if (/insufficient|no record of a prior credit|debit an account/i.test(msg)) {
+    throw createError({ statusCode: 402, statusMessage: 'Solana wallet has no devnet SOL; fund it at faucet.solana.com' });
+  }
+  throw createError({ statusCode: 502, statusMessage: `${what} failed: ${msg.slice(0, 160)}` });
 }
 
 /** Canonical SHA-256 of an audit event (hex). Field order is fixed so the hash is reproducible. */
@@ -61,24 +96,22 @@ export function hashEvent(e: AnchorableEvent): string {
 /** Writes `poysson:v1:<hash>` to devnet. Returns the transaction signature and its slot. */
 export async function anchorHash(hash: string): Promise<{ tx: string; slot: number }> {
   const { conn, payer } = solanaClient();
-  const tx = new Transaction().add(
-    new TransactionInstruction({
-      programId: MEMO_PROGRAM,
-      keys: [{ pubkey: payer.publicKey, isSigner: true, isWritable: false }],
-      data: Buffer.from(MEMO_PREFIX + hash, 'utf8'),
-    })
-  );
-  try {
-    const signature = await sendAndConfirmTransaction(conn, tx, [payer], { commitment: 'confirmed' });
-    const status = await conn.getSignatureStatus(signature);
-    return { tx: signature, slot: status.value?.slot ?? 0 };
-  } catch (e) {
-    const msg = e instanceof Error ? e.message : String(e);
-    if (/insufficient|no record of a prior credit|debit an account/i.test(msg)) {
-      throw createError({ statusCode: 402, statusMessage: 'Solana wallet has no devnet SOL; fund it at faucet.solana.com' });
+  return solanaQueue(async () => {
+    const tx = new Transaction().add(
+      new TransactionInstruction({
+        programId: MEMO_PROGRAM,
+        keys: [{ pubkey: payer.publicKey, isSigner: true, isWritable: false }],
+        data: Buffer.from(MEMO_PREFIX + hash, 'utf8'),
+      })
+    );
+    try {
+      const signature = await sendAndConfirmTransaction(conn, tx, [payer], { commitment: 'confirmed' });
+      const status = await conn.getSignatureStatus(signature);
+      return { tx: signature, slot: status.value?.slot ?? 0 };
+    } catch (e) {
+      rethrowSolana(e, 'Solana anchor');
     }
-    throw createError({ statusCode: 502, statusMessage: `Solana anchor failed: ${msg.slice(0, 160)}` });
-  }
+  });
 }
 
 /** True if transaction `tx` carries the memo for `hash` and was signed by our wallet. */

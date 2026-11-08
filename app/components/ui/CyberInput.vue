@@ -61,7 +61,7 @@ const inputType = computed(() => (props.type === 'password' && reveal.value ? 't
   caret-color: var(--c-magenta);
 }
 .cyber-input__control::placeholder { color: var(--c-text-mute); }
-.cyber-input__reveal { background: none; border: 0; color: var(--c-text-mute); cursor: pointer; padding: 4px; display: flex; }
+.cyber-input__reveal { background: none; border: 0; color: var(--c-text-mute); cursor: var(--cursor-fish-bite); padding: 4px; display: flex; }
 .cyber-input__reveal:hover { color: var(--c-cyan); }
 .cyber-input__msg { font-family: var(--f-mono); font-size: var(--fs-xs); color: var(--c-text-mute); }
 .cyber-input--error .cyber-input__field { box-shadow: 3px 4px 0 var(--c-harmful); animation: shake .35s; }

@@ -16,6 +16,7 @@ export interface AttackerInput {
   access: boolean; // does the attacker currently have access to the employee account?
   view: string; // what the attacker can see of the environment (env-engine attackerView)
   doneTools: ReadonlySet<string>; // kinds of attacker actions already done (sign_in, add_forwarding_rule, ...)
+  playbook?: string; // the real-world incidents this round is modeled on (incident-playbook.ts)
 }
 
 // Tidy the model's output (null/empty optional fields, missing labels, odd tool names) before validating it.
@@ -64,15 +65,28 @@ Field notes (do NOT put comments in your reply):
 - "narration": one short line the EMPLOYEE sees, from their point of view ("Your work phone buzzes."), or null.
   Never describe what you did, what you know or what you can access; the employee must find that out.
 
+Who they are: a care rep AT WORK at the fictional carrier CorpMobile. They matter to you because their
+sign-in reaches every customer account, and because they are the person who approves SIM changes,
+port-outs and account changes. Reach them the way work reaches them: work email, the care chat queue
+(a "customer"), a call or voicemail transcript, team chat from a "coworker" or "supervisor", or a text
+to their work phone. Never treat them as a subscriber getting consumer alerts about their own phone line.
+
 Rules:
-- FICTIONAL ONLY: invented brands, domains ending in ".example", phone numbers like +1 (555) 01xx-xxxx.
+- FICTIONAL ONLY: invented brands, domains ending in ".example", phone numbers like +1 (555) 0142-7781 (always real digits).
+  Forwarding rules send mail OUTSIDE the company (e.g. archive.backup@freemail.example), never to @corp.example.
   Never real brands, real people or real URLs. Never ask for the trainee's real personal information.
-- Mix in benign steps (about 1 in 3): real coworkers, legit notices, genuine customers.
+- Mix in benign steps (about 1 in 3): real coworkers, legit notices, genuine customers who pass verification.
 - Malicious steps need realistic but detectable tells; list them in redFlags.
-- WITHOUT access: trick them. Lure them to a fake login page, impersonate IT/customers/vendors.
-- WITH access: act like a real intruder. Quietly set up persistence (forwarding rule, extra sign-in device),
-  then cause damage (SIM-swap a customer by changing "sim", change a customer email, send mail as them,
-  export customers, ransomware). 1-2 tools per turn. Don't announce yourself until ransomware.
+- WITHOUT access: follow this round's real-world playbook (given with each turn). The angles that work on
+  care reps: a fake IT/help desk (password expiry, sign-in migration, "read me the code"), a fake customer
+  who can't pass the PIN but needs a SIM change or port-out now, a fake supervisor pushing an urgent VIP
+  change or a customer export, an outsider offering money per SIM swap, a fake vendor tool to install.
+- WITH access (the Environment says so): you are inside. EVERY turn, use 1-2 tools until you have both
+  persistence (forwarding rule, extra sign-in device) and damage (SIM-swap a customer by changing "sim",
+  change a customer email, send mail as them, export customers, ransomware). Don't spend a turn only
+  sending messages while you have access. Don't announce yourself until ransomware.
+- ONE THREAD PER SENDER: to keep talking to them as the same sender, reuse that step's id (and include the
+  conversation so far); never start a new message from a sender who already has one on screen.
 - ADAPT: if they clicked/complied/submitted credentials, press the advantage. If they reported, refused or
   locked you out, switch tactics or try to get back in.
 - Set endRound=true after about 10 turns, or once you've been fully locked out and failed twice to get back in.`;
@@ -96,6 +110,7 @@ async function nemotronMove(input: AttackerInput): Promise<ArenaMove> {
           ? `${ctx.lastAction.kind} on "${ctx.lastAction.stepId}"${ctx.lastAction.detail ? ` (detail: ${ctx.lastAction.detail.slice(0, 300)})` : ''}`
           : 'none yet'
     }`,
+    `This round's real-world playbook (adapt it to the fictional company; never name real companies or people):\n${input.playbook ?? '(none: use the angles in your instructions)'}`,
     `Environment:\n${input.view}`,
     `Messages on screen:\n${describeScreen(input.onScreen)}`,
     `History:\n${ctx.history.length ? ctx.history.map((h) => `- ${h}`).join('\n') : '(none)'}`,
@@ -113,7 +128,8 @@ export function safeNarration(n: string | null): string | null {
   return n.length <= 140 && !SPOILER.test(n) ? n : null;
 }
 
-export async function nextArenaMove(input: AttackerInput): Promise<ArenaMove> {
+/** The attacker's next move, and whether live Nemotron played it (false = scripted fallback). */
+export async function nextArenaMove(input: AttackerInput): Promise<{ move: ArenaMove; live: boolean }> {
   if (nemotronEnabled()) {
     try {
       const move = await nemotronMove(input);
@@ -125,12 +141,12 @@ export async function nextArenaMove(input: AttackerInput): Promise<ArenaMove> {
         move.flags = opening.flags;
         move.narration ??= opening.narration;
       }
-      return move;
+      return { move, live: true };
     } catch (e) {
       console.warn('[arena] Nemotron failed, using scripted move:', e instanceof Error ? e.message : e);
     }
   }
-  return stubMove(input);
+  return { move: stubMove(input), live: false };
 }
 
 // ---------- Scripted fallback: plays a full attack without any model ----------

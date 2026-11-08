@@ -17,15 +17,21 @@ const actions: { kind: ArenaAction['kind']; label: string }[] = [
 </script>
 
 <template>
-  <div class="flex flex-wrap gap-2 border-t border-line px-4 py-3">
-    <button
-      v-for="a in actions"
-      :key="a.kind"
-      :disabled="disabled"
-      class="rounded border border-line px-3 py-1 text-sm hover:border-neon-cyan disabled:opacity-40"
-      @click="emit('act', a.kind)"
-    >
-      {{ a.label }}
-    </button>
+  <div class="step-actions">
+    <div class="eyebrow eyebrow--magenta">What do you do?</div>
+    <div class="step-actions__grid">
+      <ActionButton
+        v-for="a in actions"
+        :key="a.kind"
+        :label="a.label"
+        :state="disabled ? 'disabled' : 'idle'"
+        @select="emit('act', a.kind)"
+      />
+    </div>
   </div>
 </template>
+
+<style scoped>
+.step-actions { display: flex; flex-direction: column; gap: var(--s-2); }
+.step-actions__grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: var(--s-2); }
+</style>

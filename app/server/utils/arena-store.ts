@@ -33,6 +33,14 @@ export interface ArenaRound {
   busy: boolean; // true while judging / the attacker is moving (blocks double-clicks)
   env: Env;
   summary: ArenaSummary | null;
+  attackerLive: boolean; // did live Nemotron play the last move (false = scripted fallback)
+  incidents: string[]; // real-world incidents this round is modeled on (incident-playbook.ts)
+  // --- live mirror in SpacetimeDB (arena-sync.ts) ---
+  claimCode: string; // returned only to the browser that started the round
+  rev: number; // bumps on every sync; the page ignores snapshots older than what it has
+  syncedSeq: number; // log entries already written to SpacetimeDB
+  thinking: boolean; // the attacker's move is running after the response was sent
+  pendingMove: (() => Promise<void>) | null; // queued by moveAfterResponse()
 }
 
 const rounds = new Map<string, ArenaRound>();
@@ -56,6 +64,13 @@ export function createRound(mode: ArenaMode, employeeName = 'You'): ArenaRound {
     busy: false,
     env: seedEnv(mode, employeeName),
     summary: null,
+    attackerLive: false,
+    incidents: pickIncidents(mode),
+    claimCode: randomUUID(),
+    rev: 0,
+    syncedSeq: 0,
+    thinking: false,
+    pendingMove: null,
   };
   rounds.set(r.id, r);
   return r;
@@ -74,14 +89,43 @@ function push(r: ArenaRound, e: Omit<ArenaLogEntry, 'seq' | 'tMs'>) {
   r.log.push({ ...e, seq: r.log.length, tMs: elapsed(r) });
 }
 
-/** Runs `fn` while holding the round's lock; a second request meanwhile gets a 409. */
+/**
+ * Runs `fn` while holding the round's lock; a second request meanwhile gets a 409. Afterwards the
+ * round is mirrored to SpacetimeDB, and a move queued with moveAfterResponse() starts, keeping
+ * the lock until it's done.
+ */
 export async function withRoundLock<T>(r: ArenaRound, fn: () => Promise<T>): Promise<T> {
   if (r.busy) throw createError({ statusCode: 409, statusMessage: 'One sec: the attacker is still moving' });
   r.busy = true;
   try {
     return await fn();
   } finally {
+    const next = r.pendingMove;
+    r.pendingMove = null;
+    void syncRound(r);
+    if (next) void runPendingMove(r, next);
+    else r.busy = false;
+  }
+}
+
+/**
+ * Lets the response go out now and plays `move` right after. The attacker's reply then reaches the
+ * browser through SpacetimeDB (or the page's poll while `thinking`), instead of a long spinner.
+ */
+export function moveAfterResponse(r: ArenaRound, move: () => Promise<void>) {
+  r.thinking = true;
+  r.pendingMove = move;
+}
+
+async function runPendingMove(r: ArenaRound, move: () => Promise<void>) {
+  try {
+    await move();
+  } catch (e) {
+    console.warn('[arena] attacker move failed:', e instanceof Error ? e.message : e);
+  } finally {
+    r.thinking = false;
     r.busy = false;
+    void syncRound(r);
   }
 }
 
@@ -199,7 +243,9 @@ const SAFE_KINDS = new Set([
 const DISTRUST_KINDS = new Set(['reported_suspicious', 'refused_request', 'blocked_sender']);
 
 /** Everything the summary needs except the written debrief. Reveals the truth: only call once finished. */
-export function summaryFacts(r: ArenaRound): Omit<ArenaSummary, 'debrief' | 'debriefSource' | 'runbook'> {
+export function summaryFacts(
+  r: ArenaRound
+): Omit<ArenaSummary, 'debrief' | 'debriefSource' | 'runbook' | 'attackerReveal'> {
   const result = outcome(r.env);
   const records = r.env.truth.records;
   const stillThere = records.filter((x) => !isRemediated(r.env, x)).length;
@@ -252,5 +298,11 @@ export function toArenaState(r: ArenaRound): ArenaState {
     score: score(r),
     accuracy: accuracy(r),
     summary: r.summary,
+    rev: r.rev,
+    thinking: r.thinking,
+    attacker: {
+      live: r.attackerLive,
+      model: r.attackerLive ? useRuntimeConfig().nemotronModel || null : null,
+    },
   };
 }

@@ -21,17 +21,17 @@ async function start(scenarioId: bigint) {
   const before = new Set(runs.value.map((r) => r.id));
   const ok = await run(() => startSimulation({ scenarioId, mode: 'guided' }));
   if (!ok) return;
-  const stop = watch(
-    runs,
-    (rs) => {
-      const fresh = rs.find((r) => !before.has(r.id) && r.scenarioId === scenarioId);
-      if (fresh) {
-        stop();
-        void navigateTo(`/practice/${fresh.id}`);
-      }
-    },
-    { immediate: true }
-  );
+  const findFresh = () => runs.value.find((r) => !before.has(r.id) && r.scenarioId === scenarioId);
+  // Usually the new row has already arrived by the time the reducer resolves.
+  const now = findFresh();
+  if (now) return navigateTo(`/practice/${now.id}`);
+  const stop = watch(runs, () => {
+    const fresh = findFresh();
+    if (fresh) {
+      stop();
+      void navigateTo(`/practice/${fresh.id}`);
+    }
+  });
 }
 </script>
 

@@ -67,7 +67,7 @@ onMounted(async () => {
     <button type="submit" class="auth-btn" :disabled="busy">
       {{ busy ? 'Verifying…' : 'Finish setup' }}
     </button>
-    <button type="button" class="auth-link" @click="cancelLogin()">Back to sign in</button>
+    <BackButton label="Back to sign in" @click="cancelLogin()" />
   </form>
 </template>
 

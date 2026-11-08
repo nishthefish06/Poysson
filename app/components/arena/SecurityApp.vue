@@ -6,59 +6,63 @@ const emit = defineEmits<{ respond: [EnvAction] }>();
 </script>
 
 <template>
-  <div class="space-y-6 text-sm">
-    <section>
-      <h3 class="mb-2 font-semibold">Where you're signed in</h3>
-      <div
-        v-for="s in world.sessions"
-        :key="s.id"
-        class="mb-2 flex items-center gap-3 rounded border border-line p-2"
-      >
-        <span class="flex-1"
-          >{{ s.device }} · {{ s.location }} · <span class="font-mono">{{ s.ip }}</span>
-          <span class="text-neutral-500"> · since {{ arenaTime(s.startedAt) }}</span>
-          <span v-if="s.current" class="ml-2 rounded bg-neon-cyan/20 px-1 text-xs">this device</span></span
+  <div class="wa">
+    <section class="wa__section">
+      <div class="eyebrow eyebrow--cyan">Where you're signed in</div>
+      <div v-for="s in world.sessions" :key="s.id" class="wa__row">
+        <CyberIcon name="user" :size="18" class="wa__icon" />
+        <span class="wa__main"
+          >{{ s.device }} · {{ s.location }} · <span class="mono">{{ s.ip }}</span>
+          <span class="wa__meta mono"> · since {{ arenaTime(s.startedAt) }}</span>
+          <span v-if="s.current" class="wa__tag">this device</span></span
         >
-        <button
+        <CyberButton
+          variant="secondary"
+          size="sm"
+          icon="logout"
           :disabled="disabled"
-          class="rounded border border-line px-2 py-1 hover:border-verdict-harmful disabled:opacity-40"
           @click="emit('respond', { action: 'revoke_session', sessionId: s.id })"
+          >Sign out</CyberButton
         >
-          Sign out
-        </button>
+        <SketchBox :width="1.6" :overshoot="5" />
       </div>
     </section>
-    <section>
-      <h3 class="mb-2 font-semibold">Sign-in devices (2-step verification)</h3>
-      <div
-        v-for="d in world.mfaDevices"
-        :key="d.id"
-        class="mb-2 flex items-center gap-3 rounded border border-line p-2"
-      >
-        <span class="flex-1"
-          >{{ d.name }} <span class="text-neutral-500">· added {{ arenaTime(d.addedAt) }}</span></span
+    <section class="wa__section">
+      <div class="eyebrow eyebrow--cyan">Sign-in devices (2-step verification)</div>
+      <div v-for="d in world.mfaDevices" :key="d.id" class="wa__row">
+        <CyberIcon name="phone" :size="18" class="wa__icon" />
+        <span class="wa__main"
+          >{{ d.name }} <span class="wa__meta mono">· added {{ arenaTime(d.addedAt) }}</span></span
         >
-        <button
+        <CyberButton
+          variant="secondary"
+          size="sm"
+          icon="trash"
           :disabled="disabled"
-          class="rounded border border-line px-2 py-1 hover:border-verdict-harmful disabled:opacity-40"
           @click="emit('respond', { action: 'remove_mfa_device', deviceId: d.id })"
+          >Remove</CyberButton
         >
-          Remove
-        </button>
+        <SketchBox :width="1.6" :overshoot="5" />
       </div>
     </section>
-    <section class="flex items-center gap-3">
-      <span class="flex-1"
-        ><b>Password</b>
-        <span class="text-neutral-500">· last changed {{ arenaTime(world.passwordChangedAt) }}</span></span
-      >
-      <button
-        :disabled="disabled"
-        class="rounded border border-line px-3 py-1 hover:border-neon-cyan disabled:opacity-40"
-        @click="emit('respond', { action: 'reset_password' })"
-      >
-        Reset password
-      </button>
+    <section class="wa__section">
+      <div class="eyebrow eyebrow--cyan">Password</div>
+      <div class="wa__row">
+        <CyberIcon name="key" :size="18" class="wa__icon" />
+        <span class="wa__main"
+          ><b>Password</b>
+          <span class="wa__meta mono">· last changed {{ arenaTime(world.passwordChangedAt) }}</span></span
+        >
+        <CyberButton
+          variant="secondary"
+          size="sm"
+          icon="key"
+          :disabled="disabled"
+          @click="emit('respond', { action: 'reset_password' })"
+          >Reset password</CyberButton
+        >
+        <SketchBox :width="1.6" :overshoot="5" />
+      </div>
     </section>
   </div>
 </template>

@@ -1,6 +1,6 @@
 <script setup lang="ts">
 /*
- * ADMIN — user management. Admin-only: SessionGate sends admins here after sign-in, and anyone
+ * ADMIN — assign drills, watch live activity, manage users. Admin-only: SessionGate sends admins here after sign-in, and anyone
  * else who opens it goes back to /dashboard.
  * LIVE: admin_accounts view; adminCreateAccount / adminSetRole / adminResetTotp reducers.
  */
@@ -92,7 +92,7 @@ function joined(ts: { microsSinceUnixEpoch: bigint }) {
       <div>
         <div class="eyebrow eyebrow--magenta">Command · access control</div>
         <h1 class="page-head__title">Admin console</h1>
-        <p class="page-head__sub">Add operators, promote admins and reset authenticators.</p>
+        <p class="page-head__sub">Assign drills, watch your team live, and manage accounts.</p>
       </div>
     </header>
 
@@ -102,6 +102,9 @@ function joined(ts: { microsSinceUnixEpoch: bigint }) {
       <StatCard label="2FA enrolled" :value="enrolled" icon="key" accent="green" />
       <StatCard label="Awaiting 2FA" :value="pending2fa" icon="alert" accent="yellow" caption="first sign-in pending" />
     </section>
+
+    <div class="adm__live"><AdminAssignDrill /></div>
+    <div class="adm__live"><AdminLiveFeed /></div>
 
     <p v-if="error" class="adm__msg adm__msg--err" role="alert">{{ error }}</p>
     <p v-else-if="notice" class="adm__msg" role="status">{{ notice }}</p>
@@ -215,6 +218,9 @@ function joined(ts: { microsSinceUnixEpoch: bigint }) {
 </template>
 
 <style scoped>
+.adm__live {
+  margin-bottom: var(--s-6);
+}
 .adm__stats {
   display: grid;
   grid-template-columns: repeat(4, minmax(0, 1fr));
@@ -342,7 +348,7 @@ function joined(ts: { microsSinceUnixEpoch: bigint }) {
   text-transform: uppercase;
   letter-spacing: 0.1em;
   font-size: var(--fs-xs);
-  cursor: pointer;
+  cursor: var(--cursor-fish-bite);
 }
 .adm__seg button.is-on {
   background: linear-gradient(90deg, rgba(0, 240, 255, 0.16), transparent);

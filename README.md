@@ -13,7 +13,6 @@ spacetimedb/src/   the module
   views.ts         everything clients can read
   seed.ts          init: owner + starter guides, practice questions, two scenarios
   crypto.ts        PBKDF2 password hashing, TOTP (RFC 6238)
-test-client/       bare-bones Vue page for testing the backend (not the real UI)
 deploy/vultr/      server setup (cloud-init), deploy and admin scripts
 ```
 
@@ -33,7 +32,6 @@ spacetime start                                              # own terminal
 SERVICE_SECRET=local-dev-secret-0123456789 spacetime publish  # publishes ./spacetimedb as hackutd2026
 spacetime call -s local hackutd2026 seed_demo_accounts '"choose-a-demo-password"'
 npm run dev                                                  # Nuxt app: http://localhost:3001
-npm run test-client                                          # bare-bones test page: http://localhost:5173
 ```
 
 Demo accounts skip 2FA: `demo.admin@example.com` and `demo.employee@example.com`. Create a real admin (with 2FA) with:
@@ -100,7 +98,7 @@ Two areas after login: **Practice** (assigned and self-started simulations, prac
 spacetime generate --lang typescript --out-dir <frontend>/module_bindings --module-path spacetimedb
 ```
 
-- URL `ws://127.0.0.1:3000` locally (not `localhost`: the server is IPv4-only), `wss://poysson.fishing` in production; database `hackutd2026`. The SDK ships Vue helpers (`spacetimedb/vue`); `test-client/src` has working examples of every call.
+- URL `ws://127.0.0.1:3000` locally (not `localhost`: the server is IPv4-only), `wss://poysson.fishing` in production; database `hackutd2026`. The SDK ships Vue helpers (`spacetimedb/vue`); `app/pages/admin.vue` and `app/components/` have working examples (tables, views, reducers).
 - Store the token from `onConnect` and pass it back with `withToken`, so the browser keeps its identity and session across reloads.
 - In Nuxt, create the connection client-side only (a `.client` plugin).
 - Reducer errors (wrong password, invalid input, wrong role) reject the reducer promise with a readable message.
@@ -128,7 +126,7 @@ Reducers (camelCase in the bindings):
 | Admin          | `adminCreateAccount`, `adminSetRole`, `adminResetTotp`, `createScenario`, `updateScenario`, `setScenarioStatus`, `deleteScenario`, `assignScenario(scenarioId, accountId, mode, popupMessage)`, `assignScenarioToAllEmployees`, `reviewRun`, `upsertGuide`, `deleteGuide`, `createPracticeQuestion`, `deletePracticeQuestion` |
 | Owner (CLI)    | `bootstrapAdmin`, `seedDemoAccounts`                                                                                                                                                                                                                                                                                          |
 
-Admins can call the agent reducers too, so the test client can stand in for Nemotron.
+Admins can call the agent reducers too, so you can stand in for Nemotron from the CLI.
 
 Shapes live in `shared/src/index.ts`: `AttackType`, `AttackStage`, `SimMode`, `Channel`, `RunEventKind`, `SimSender`, `ScenarioDraft` (`ScenarioContent` + `ScenarioRubric`), `AttackerTurn` and `RunScore`. The module rejects anything that doesn't match, so validate with the same schemas before sending.
 
@@ -138,7 +136,7 @@ It runs in the Nuxt server and connects to SpacetimeDB directly on the box (`NUX
 
 ## Deploy to Vultr
 
-The server (Ubuntu 24.04, Atlanta) runs SpacetimeDB, the Nuxt app and the test client behind Caddy, with automatic HTTPS for `poysson.fishing` and `www.poysson.fishing`. Only the two SpacetimeDB endpoints browsers use are public; every other `/v1/` path returns 404. Publishing and admin commands go over SSH, so nobody else can push code to the server.
+The server (Ubuntu 24.04, Atlanta) runs SpacetimeDB and the Nuxt app behind Caddy, with automatic HTTPS for `poysson.fishing` and `www.poysson.fishing`. Only the two SpacetimeDB endpoints browsers use are public; every other `/v1/` path returns 404. Publishing and admin commands go over SSH, so nobody else can push code to the server.
 
 Set `VULTR_SSH`, `PUBLIC_HOST` and `SERVICE_SECRET` in `.env`, then from the repo root:
 
@@ -146,7 +144,6 @@ Set `VULTR_SSH`, `PUBLIC_HOST` and `SERVICE_SECRET` in `.env`, then from the rep
 deploy/vultr/deploy.sh                    # publish the module (DELETE_DATA=1 after a breaking schema change)
 deploy/vultr/stdb.sh call hackutd2026 seed_demo_accounts '"choose-a-demo-password"'
 deploy/vultr/stdb.sh logs hackutd2026
-deploy/vultr/deploy-test-client.sh        # https://poysson.fishing/test/
 deploy/vultr/deploy-web.sh                # the Nuxt app (app/) at https://poysson.fishing/
 ```
 

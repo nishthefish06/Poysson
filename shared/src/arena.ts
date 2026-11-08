@@ -1,5 +1,6 @@
 // Arena: play against the Nemotron attacker inside a mock work environment. Runs on the Nuxt
-// server (not stored in SpacetimeDB). Messages reuse the scenario shapes (ScenarioStep + StepFlag);
+// server, which mirrors every round to SpacetimeDB (arena_round / arena_log) for live updates.
+// Messages reuse the scenario shapes (ScenarioStep + StepFlag);
 // once the attacker gets in, it uses tools that change the mock apps (mail rules, customer
 // accounts, sessions, files). The employee investigates and contains it.
 import { z } from 'zod';
@@ -233,9 +234,14 @@ export const ArenaSummary = z.object({
     })
   ),
   debrief: z.string(),
-  debriefSource: z.enum(['gemini', 'template']),
+  debriefSource: z.enum(['gemini', 'nemotron', 'template']),
   // runbook sections the debrief is grounded in
   runbook: z.array(RunbookRef).default([]),
+  // the attacker explains its own play after the round (Nemotron, or a scripted version)
+  attackerReveal: z
+    .object({ text: z.string(), source: z.enum(['nemotron', 'template']) })
+    .nullable()
+    .default(null),
 });
 export type ArenaSummary = z.infer<typeof ArenaSummary>;
 
@@ -252,6 +258,12 @@ export const ArenaState = z.object({
   score: z.number().int(),
   accuracy: z.number().min(0).max(1),
   summary: ArenaSummary.nullable(),
+  // bumps every time the server mirrors the round to SpacetimeDB; newer snapshot wins
+  rev: z.number().int().default(0),
+  // the attacker is choosing its next move (it arrives live, a few seconds later)
+  thinking: z.boolean().default(false),
+  // who played the attacker's last move: live Nemotron, or the scripted fallback
+  attacker: z.object({ live: z.boolean(), model: z.string().nullable() }),
 });
 export type ArenaState = z.infer<typeof ArenaState>;
 

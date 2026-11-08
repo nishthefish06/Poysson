@@ -88,11 +88,15 @@ function recheckLabel(a: AuditEntry) {
           <div class="ship__hull">
             <svg class="ship__hull-bg" viewBox="0 0 200 90" preserveAspectRatio="none" aria-hidden="true">
               <path d="M3 4 H197 Q193 50 172 86 H28 Q7 50 3 4Z" class="ship__hull-fill" vector-effect="non-scaling-stroke" />
-              <path d="M10 62 H190" class="ship__stripe" vector-effect="non-scaling-stroke" />
+            </svg>
+            <!-- the stripe sits a fixed distance from the bottom, so wrapped text above never hits it -->
+            <svg class="ship__stripe-bg" viewBox="0 0 200 10" preserveAspectRatio="none" aria-hidden="true">
+              <path d="M14 5 H186" class="ship__stripe" vector-effect="non-scaling-stroke" />
             </svg>
             <div class="ship__name">{{ pretty(a.event) }}</div>
             <div class="ship__cargo">{{ a.detail }}</div>
-            <div class="ship__reg mono">{{ day(a.ts) }} · {{ a.ip }} · slot {{ a.slot.toLocaleString() }}</div>
+            <div class="ship__reg mono">{{ day(a.ts) }} · {{ a.ip }}</div>
+            <div class="ship__slot mono">slot {{ a.slot.toLocaleString() }}</div>
           </div>
         </div>
 
@@ -161,14 +165,16 @@ function recheckLabel(a: AuditEntry) {
   border-radius: 10px 10px 0 0;
 }
 .ship__porthole { width: 12px; height: 12px; border-radius: 50%; background: #9fdcff; border: 2px solid var(--ink); }
-.ship__time { font-family: var(--f-hand); font-size: 18px; font-weight: 700; color: var(--ink); line-height: 1; }
-.ship__hull { position: relative; width: 100%; padding: 12px 26px 22px; text-align: center; min-height: 104px; }
+.ship__time { font-family: var(--f-hand); font-size: 21px; font-weight: 700; color: var(--ink); line-height: 1; }
+.ship__hull { position: relative; width: 100%; padding: 12px 26px 44px; text-align: center; min-height: 104px; }
 .ship__hull-bg { position: absolute; inset: 0; width: 100%; height: 100%; overflow: visible; filter: drop-shadow(3px 4px 0 rgba(18, 34, 74, .25)); }
 .ship__hull-fill { fill: var(--paper-2); stroke: var(--ink); stroke-width: 2.6; stroke-linejoin: round; }
+.ship__stripe-bg { position: absolute; left: 0; right: 0; bottom: 26px; width: 100%; height: 10px; overflow: visible; }
 .ship__stripe { stroke: var(--k); stroke-width: 6; stroke-linecap: round; }
 .ship__name { position: relative; font-family: var(--f-display); font-weight: 600; font-size: var(--fs-md); color: var(--ink); }
 .ship__cargo { position: relative; font-size: var(--fs-sm); color: var(--c-text-dim); line-height: 1.3; margin-top: 2px; }
 .ship__reg { position: relative; font-size: 9px; color: var(--c-text-mute); margin-top: 6px; letter-spacing: .02em; }
+.ship__slot { position: absolute; left: 0; right: 0; bottom: 9px; font-size: 9px; color: var(--c-text-mute); letter-spacing: .02em; }
 
 /* water + pier */
 .berth__water { position: relative; z-index: 1; width: calc(100% + var(--s-6)); height: 14px; display: block; fill: rgba(255, 255, 255, .55); }
@@ -195,11 +201,11 @@ function recheckLabel(a: AuditEntry) {
   padding: 4px 10px; background: var(--paper-2); border: 2px solid var(--ink); border-radius: var(--r-sm);
   box-shadow: 2px 3px 0 rgba(18, 34, 74, .35); transform: rotate(-1.5deg);
 }
-.audit__recheck { background: none; border: 0; color: var(--c-text-dim); font-family: var(--f-hand); font-size: 16px; font-weight: 700; text-decoration: underline wavy rgba(var(--rgb-magenta), .5); text-underline-offset: 3px; }
+.audit__recheck { background: none; border: 0; color: var(--c-text-dim); font-family: var(--f-hand); font-size: 19px; font-weight: 700; text-decoration: underline wavy rgba(var(--rgb-magenta), .5); text-underline-offset: 3px; }
 .audit__recheck.is-ok { color: var(--c-ideal); text-decoration: none; }
 .audit__recheck.is-bad { color: var(--c-harmful); text-decoration: none; }
 .audit__recheck:hover { color: var(--c-magenta); }
-.harbor__empty { grid-column: 1 / -1; display: flex; flex-direction: column; align-items: center; gap: var(--s-2); padding: var(--s-10); color: #fff; font-family: var(--f-hand); font-size: 24px; text-shadow: 0 2px 0 var(--ink); }
+.harbor__empty { grid-column: 1 / -1; display: flex; flex-direction: column; align-items: center; gap: var(--s-2); padding: var(--s-10); color: #fff; font-family: var(--f-hand); font-size: 27px; text-shadow: 0 2px 0 var(--ink); }
 
 @keyframes bob { 0%, 100% { transform: translateY(0) rotate(-1deg); } 50% { transform: translateY(-6px) rotate(1deg); } }
 @keyframes rock { 0%, 100% { rotate: 0deg; } 25% { rotate: -4deg; } 75% { rotate: 4deg; } }

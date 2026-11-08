@@ -120,13 +120,10 @@ async function doLogout() {
           :title="navOpen ? undefined : n.label"
         >
           <CyberIcon :name="n.icon" :size="18" /> <span class="app-shell__label">{{ n.label }}</span>
+          <SketchBox v-if="route.path.startsWith(n.to)" :width="2" :overshoot="7" :boil="false" />
         </NuxtLink>
       </nav>
       <div class="spacer" />
-      <div v-show="navOpen" class="app-shell__status mono">
-        <div><span class="app-shell__live" /> SOC LINK ONLINE</div>
-        <div class="mute">latency 12ms · enc AES-256</div>
-      </div>
     </aside>
 
     <div class="app-shell__main">
@@ -170,6 +167,7 @@ async function doLogout() {
         <slot />
       </main>
     </div>
+    <AssignmentPopup />
   </div>
 </template>
 
@@ -232,13 +230,15 @@ async function doLogout() {
   border: 1px solid transparent;
   border-radius: var(--r-pill);
   color: var(--c-text-dim);
-  cursor: pointer;
-  transition: all var(--t-fast);
+  cursor: var(--cursor-fish-bite);
+  transition: color var(--t-fast);
+  -webkit-tap-highlight-color: transparent;
 }
-.app-shell__toggle:hover {
-  color: var(--c-cyan);
-  border-color: var(--c-line-strong);
-  background: var(--c-bg-2);
+.app-shell__toggle:hover,
+.app-shell__toggle:active {
+  color: var(--ink);
+  border-color: transparent;
+  background: none;
 }
 .app-shell__links {
   display: flex;
@@ -246,6 +246,7 @@ async function doLogout() {
   gap: 4px;
 }
 .app-shell__link {
+  position: relative;
   display: flex;
   align-items: center;
   gap: var(--s-3);
@@ -273,31 +274,14 @@ async function doLogout() {
   text-shadow: none;
 }
 .app-shell__link.is-active {
-  color: #fff;
-  background: var(--c-magenta);
-  box-shadow: 2px 3px 0 var(--ink);
-  transform: rotate(-1deg);
+  color: var(--c-magenta);
+  background: var(--paper-2);
+  box-shadow: 3px 4px 0 rgba(18, 34, 74, .14);
 }
-.app-shell__status {
-  font-size: 10px;
-  letter-spacing: 0.1em;
-  color: var(--c-ideal);
-  display: flex;
-  flex-direction: column;
-  gap: 2px;
-  padding: var(--s-3);
-  border: 2px dashed var(--c-line-strong);
-  border-radius: var(--r-md);
-  white-space: nowrap;
-}
-.app-shell__live {
-  display: inline-block;
-  width: 6px;
-  height: 6px;
-  background: var(--c-ideal);
-  box-shadow: 0 0 6px var(--c-ideal);
-  animation: blink 1.4s steps(2) infinite;
-  margin-right: 4px;
+.app-shell__link > :deep(.cyber-icon),
+.app-shell__label {
+  position: relative;
+  z-index: 2;
 }
 .app-shell__main {
   min-width: 0;
@@ -387,7 +371,7 @@ async function doLogout() {
   padding: 0 var(--s-3);
   background: none;
   border: 0;
-  cursor: pointer;
+  cursor: var(--cursor-fish-bite);
   color: var(--c-text-dim);
   font-family: var(--f-ui);
   font-size: var(--fs-sm);

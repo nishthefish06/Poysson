@@ -62,7 +62,15 @@ const rank = computed(() => {
             <div v-for="v in VECTORS" :key="v.id" class="dash__skill" :style="{ '--c': `var(${v.color})` }">
               <CyberIcon :name="v.icon" :size="16" />
               <span class="dash__skill-name">{{ v.name }}</span>
-              <span class="dash__skill-bar"><span :style="{ width: player.skills[v.id] + '%' }" /></span>
+              <!-- the bar is water; the fish swims to the score, leaving a striped wake -->
+              <span class="dash__skill-bar">
+                <span class="dash__skill-wake" :style="{ width: player.skills[v.id] + '%' }" />
+                <svg class="dash__fish" :style="{ left: player.skills[v.id] + '%' }" viewBox="0 0 28 18" aria-hidden="true">
+                  <path class="dash__fish-shape" d="M8 9 2 4v10Z" />
+                  <ellipse class="dash__fish-shape" cx="16" cy="9" rx="9" ry="6" />
+                  <circle cx="20.5" cy="7.5" r="1.3" fill="var(--ink)" />
+                </svg>
+              </span>
               <span class="dash__skill-val mono">{{ player.skills[v.id] }}</span>
             </div>
             <div class="dash__hint mono">
@@ -75,7 +83,10 @@ const rank = computed(() => {
       <!-- AUDIT PREVIEW -->
       <CyberPanel title="Audit trail" eyebrow="Anchored on Solana" accent="none" class="dash__audit">
         <template #actions><CyberButton variant="ghost" size="sm" to="/audit" icon-right="arrow">Full log</CyberButton></template>
-        <table class="dash__audit-table">
+        <p v-if="!state.audit.length" class="dash__audit-empty">
+          Nothing logged yet. Finish a practice incident and it's recorded here, with its hash written to Solana.
+        </p>
+        <table v-else class="dash__audit-table">
           <tbody>
             <tr v-for="a in state.audit.slice(0, 5)" :key="a.id">
               <td class="mono mute">{{ new Date(a.ts).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) }}</td>
@@ -99,17 +110,36 @@ const rank = computed(() => {
 .dash__email { font-size: var(--fs-xs); }
 .dash__xp { min-width: 0; }
 .dash__xp-total { font-size: 10px; letter-spacing: .2em; color: var(--c-text-mute); margin-top: var(--s-2); text-align: right; }
-.dash__grid { display: grid; grid-template-columns: 1fr; gap: var(--s-5); }
+.dash__grid { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: var(--s-5); align-items: start; }
 .dash__badge { display: flex; flex-direction: column; align-items: center; gap: var(--s-2); padding: var(--s-3) var(--s-4); background: var(--c-magenta-tint); border-radius: var(--r-md); position: relative; transition: transform var(--t-fast) var(--ease-bounce); }
 .dash__badge:hover { text-decoration: none; transform: rotate(-1.5deg); }
-.dash__radar-body { display: grid; grid-template-columns: auto 1fr; gap: var(--s-6); align-items: center; }
-.dash__skill-list { display: flex; flex-direction: column; gap: var(--s-3); }
+.dash__radar-body { display: flex; flex-direction: column; gap: var(--s-6); align-items: center; }
+.dash__skill-list { display: flex; flex-direction: column; gap: var(--s-3); width: 100%; }
 .dash__skill { display: grid; grid-template-columns: 18px 130px 1fr 32px; gap: var(--s-3); align-items: center; color: var(--c); }
 .dash__skill-name { color: var(--c-text); font-size: var(--fs-sm); font-weight: 600; }
-.dash__skill-bar { height: 6px; background: var(--c-bg-3); border-radius: var(--r-pill); }
-.dash__skill-bar span { display: block; height: 100%; background: var(--c); box-shadow: 0 0 8px var(--c); transition: width .8s var(--ease); }
-.dash__skill-val { text-align: right; font-size: var(--fs-sm); }
+/* Fish bars: the track is water, the fill is a striped wake, and a fish swims to the score. */
+.dash__skill-bar { position: relative; height: 14px; background: color-mix(in srgb, var(--c-cyan) 14%, var(--paper-2)); border: 2px solid var(--ink); border-radius: var(--r-pill); }
+.dash__skill-wake {
+  position: absolute; left: 0; top: 0; bottom: 0; border-radius: var(--r-pill);
+  background: repeating-linear-gradient(-45deg, color-mix(in srgb, var(--c) 75%, white) 0 7px, color-mix(in srgb, var(--c) 45%, white) 7px 11px);
+  transition: width .8s var(--ease);
+}
+.dash__fish {
+  position: absolute; top: 50%; width: 28px; height: 18px; overflow: visible;
+  translate: -80% -50%;
+  transition: left .8s var(--ease);
+  animation: fish-bob 2.4s ease-in-out infinite;
+}
+.dash__skill:nth-child(2) .dash__fish { animation-delay: -.5s; }
+.dash__skill:nth-child(3) .dash__fish { animation-delay: -1s; }
+.dash__skill:nth-child(4) .dash__fish { animation-delay: -1.5s; }
+.dash__skill:nth-child(5) .dash__fish { animation-delay: -2s; }
+.dash__fish-shape { fill: var(--c); stroke: var(--ink); stroke-width: 1.6; stroke-linejoin: round; }
+@keyframes fish-bob { 0%, 100% { transform: translateY(0) rotate(0deg); } 50% { transform: translateY(-2px) rotate(-4deg); } }
+@media (prefers-reduced-motion: reduce) { .dash__fish { animation: none; } }
+.dash__skill-val { text-align: right; font-family: var(--f-display); font-weight: 700; font-size: var(--fs-md); }
 .dash__hint { display: block; font-size: 11px; color: var(--c-text-dim); margin-top: var(--s-2); padding: var(--s-2) var(--s-3); border: 1px dashed var(--c-line-strong); }
+.dash__audit-empty { color: var(--c-text-dim); font-size: var(--fs-sm); }
 .dash__audit-table { width: 100%; border-collapse: collapse; font-size: 12px; }
 .dash__audit-table td { padding: 8px 6px; border-bottom: 1px solid var(--c-line); }
 .dash__audit-ev { color: var(--c-cyan); font-size: 11px; }
@@ -117,6 +147,5 @@ const rank = computed(() => {
 @media (max-width: 1200px) {
   .dash__grid { grid-template-columns: 1fr; }
   .dash__hero { grid-template-columns: 1fr; gap: var(--s-4); }
-  .dash__radar-body { grid-template-columns: 1fr; justify-items: center; }
 }
 </style>

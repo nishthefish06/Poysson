@@ -509,3 +509,93 @@ export const adminAccounts = spacetimedb.view(
     }));
   }
 );
+
+// ---------- Arena (live Nemotron rounds, mirrored by the Nuxt server) ----------
+
+const ArenaRoundInfo = t.object('ArenaRoundInfo', {
+  id: t.u64(),
+  roundKey: t.string(),
+  accountId: t.u64(),
+  displayName: t.string(),
+  mode: t.string(),
+  status: t.string(),
+  rev: t.u32(),
+  turn: t.u32(),
+  score: t.i32(),
+  accuracy: t.f64(),
+  attackerLive: t.bool(),
+  thinking: t.bool(),
+  outcome: t.string(),
+  stateJson: t.string(),
+  startedAt: t.timestamp(),
+  updatedAt: t.timestamp(),
+  online: t.bool(), // the player still has the app open (any signed-in connection)
+});
+
+const ArenaLogInfo = t.object('ArenaLogInfo', {
+  id: t.u64(),
+  roundId: t.u64(),
+  seq: t.u32(),
+  tMs: t.u32(),
+  type: t.string(),
+  verdict: t.string(),
+  points: t.i32(),
+  text: t.string(),
+  at: t.timestamp(),
+});
+
+function isOnline(ctx: ReadCtx, accountId: bigint) {
+  for (const s of ctx.db.session.accountId.filter(accountId)) {
+    for (const _ of ctx.db.onlineConnection.identity.filter(s.identity)) return true;
+  }
+  return false;
+}
+
+type ArenaRoundRow = ReturnType<ReadCtx['db']['arenaRound']['id']['find']> & {};
+function arenaRoundInfo(ctx: ReadCtx, r: ArenaRoundRow) {
+  const { claimCode: _secret, ...rest } = r;
+  return {
+    ...rest,
+    displayName: ctx.db.account.id.find(r.accountId)?.displayName ?? '',
+    online: isOnline(ctx, r.accountId),
+  };
+}
+
+export const myArenaRounds = spacetimedb.view(
+  { name: 'my_arena_rounds', public: true },
+  t.array(ArenaRoundInfo),
+  (ctx) => {
+    const me = currentAccount(ctx);
+    if (!me) return [];
+    return [...ctx.db.arenaRound.accountId.filter(me.id)].map((r) => arenaRoundInfo(ctx, r));
+  }
+);
+
+export const myArenaLog = spacetimedb.view(
+  { name: 'my_arena_log', public: true },
+  t.array(ArenaLogInfo),
+  (ctx) => {
+    const me = currentAccount(ctx);
+    if (!me) return [];
+    const out = [];
+    for (const r of ctx.db.arenaRound.accountId.filter(me.id))
+      out.push(...ctx.db.arenaLog.roundId.filter(r.id));
+    return out;
+  }
+);
+
+// Claimed rounds only: unclaimed ones belong to nobody yet (or to signed-out dev sessions).
+export const allArenaRounds = spacetimedb.view(
+  { name: 'all_arena_rounds', public: true },
+  t.array(ArenaRoundInfo),
+  (ctx) =>
+    isAgentOrAdmin(ctx)
+      ? [...ctx.db.arenaRound.iter()].filter((r) => r.accountId !== 0n).map((r) => arenaRoundInfo(ctx, r))
+      : []
+);
+
+export const allArenaLog = spacetimedb.view(
+  { name: 'all_arena_log', public: true },
+  t.array(ArenaLogInfo),
+  (ctx) => (isAgentOrAdmin(ctx) ? [...ctx.db.arenaLog.iter()] : [])
+);

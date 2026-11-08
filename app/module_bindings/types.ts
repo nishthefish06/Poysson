@@ -51,6 +51,12 @@ export type AdminAccountInfo = __Infer<typeof AdminAccountInfo>;
 export const AdminAccounts = __t.object("AdminAccounts", {});
 export type AdminAccounts = __Infer<typeof AdminAccounts>;
 
+export const AllArenaLog = __t.object("AllArenaLog", {});
+export type AllArenaLog = __Infer<typeof AllArenaLog>;
+
+export const AllArenaRounds = __t.object("AllArenaRounds", {});
+export type AllArenaRounds = __Infer<typeof AllArenaRounds>;
+
 export const AllRunEvents = __t.object("AllRunEvents", {});
 export type AllRunEvents = __Infer<typeof AllRunEvents>;
 
@@ -74,6 +80,83 @@ export const AnswerInfo = __t.object("AnswerInfo", {
   explanation: __t.string(),
 });
 export type AnswerInfo = __Infer<typeof AnswerInfo>;
+
+export const ArenaLog = __t.object("ArenaLog", {
+  id: __t.u64(),
+  roundId: __t.u64(),
+  seq: __t.u32(),
+  tMs: __t.u32(),
+  type: __t.string(),
+  verdict: __t.string(),
+  points: __t.i32(),
+  text: __t.string(),
+  at: __t.timestamp(),
+});
+export type ArenaLog = __Infer<typeof ArenaLog>;
+
+export const ArenaLogInfo = __t.object("ArenaLogInfo", {
+  id: __t.u64(),
+  roundId: __t.u64(),
+  seq: __t.u32(),
+  tMs: __t.u32(),
+  type: __t.string(),
+  verdict: __t.string(),
+  points: __t.i32(),
+  text: __t.string(),
+  at: __t.timestamp(),
+});
+export type ArenaLogInfo = __Infer<typeof ArenaLogInfo>;
+
+export const ArenaLogLine = __t.object("ArenaLogLine", {
+  seq: __t.u32(),
+  tMs: __t.u32(),
+  type: __t.string(),
+  verdict: __t.string(),
+  points: __t.i32(),
+  text: __t.string(),
+});
+export type ArenaLogLine = __Infer<typeof ArenaLogLine>;
+
+export const ArenaRound = __t.object("ArenaRound", {
+  id: __t.u64(),
+  roundKey: __t.string(),
+  claimCode: __t.string(),
+  accountId: __t.u64(),
+  mode: __t.string(),
+  status: __t.string(),
+  rev: __t.u32(),
+  turn: __t.u32(),
+  score: __t.i32(),
+  accuracy: __t.f64(),
+  attackerLive: __t.bool(),
+  thinking: __t.bool(),
+  outcome: __t.string(),
+  stateJson: __t.string(),
+  startedAt: __t.timestamp(),
+  updatedAt: __t.timestamp(),
+});
+export type ArenaRound = __Infer<typeof ArenaRound>;
+
+export const ArenaRoundInfo = __t.object("ArenaRoundInfo", {
+  id: __t.u64(),
+  roundKey: __t.string(),
+  accountId: __t.u64(),
+  displayName: __t.string(),
+  mode: __t.string(),
+  status: __t.string(),
+  rev: __t.u32(),
+  turn: __t.u32(),
+  score: __t.i32(),
+  accuracy: __t.f64(),
+  attackerLive: __t.bool(),
+  thinking: __t.bool(),
+  outcome: __t.string(),
+  stateJson: __t.string(),
+  startedAt: __t.timestamp(),
+  updatedAt: __t.timestamp(),
+  online: __t.bool(),
+});
+export type ArenaRoundInfo = __Infer<typeof ArenaRoundInfo>;
 
 export const AttackStats = __t.object("AttackStats", {
   accountId: __t.u64(),
@@ -144,6 +227,12 @@ export type ModuleOwner = __Infer<typeof ModuleOwner>;
 export const MyAccount = __t.object("MyAccount", {});
 export type MyAccount = __Infer<typeof MyAccount>;
 
+export const MyArenaLog = __t.object("MyArenaLog", {});
+export type MyArenaLog = __Infer<typeof MyArenaLog>;
+
+export const MyArenaRounds = __t.object("MyArenaRounds", {});
+export type MyArenaRounds = __Infer<typeof MyArenaRounds>;
+
 export const MyAttackStats = __t.object("MyAttackStats", {});
 export type MyAttackStats = __Infer<typeof MyAttackStats>;
 
@@ -164,6 +253,13 @@ export type MyRuns = __Infer<typeof MyRuns>;
 
 export const MyStats = __t.object("MyStats", {});
 export type MyStats = __Infer<typeof MyStats>;
+
+export const OnlineConnection = __t.object("OnlineConnection", {
+  connectionId: __t.connectionId(),
+  identity: __t.identity(),
+  connectedAt: __t.timestamp(),
+});
+export type OnlineConnection = __Infer<typeof OnlineConnection>;
 
 export const PendingLogin = __t.object("PendingLogin", {
   identity: __t.identity(),

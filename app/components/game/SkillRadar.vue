@@ -1,6 +1,6 @@
 <script setup lang="ts">
 /**
- * SkillRadar: mastery per threat vector, drawn as a magenta starfish.
+ * SkillRadar: mastery per threat vector, drawn as a cartoon starfish (round arms, a face).
  * Each vector is a star tip; its distance from center is that skill.
  * The valleys between tips sit at a fixed fraction of the neighbouring tips,
  * so the shape always reads as a star, fat when skills are high and small when low.
@@ -13,23 +13,39 @@ const uid = `sr${Math.floor(Math.random() * 1e6)}`
 const cx = 150
 const cy = 150
 const R = 108
-// inner radius as a share of the tips around it; starfish arms are chunkier
-const VALLEY_FISH = 0.52
+// inner radius as a share of the tips around it; starfish arms are chunky
+const VALLEY_FISH = 0.46
 const n = VECTORS.length
 const ang = (i: number) => -Math.PI / 2 + (i * 2 * Math.PI) / n
 const at = (a: number, r: number) => [cx + Math.cos(a) * r, cy + Math.sin(a) * r] as const
 const tip = (i: number, v: number) => at(ang(i), R * (v / 100))
 
-/** star polygon: tip, valley, tip, valley… */
-const star = (vals: number[]) => {
-  const pts: string[] = []
+/** star outline points: tip, valley, tip, valley… */
+const starPoints = (vals: number[]) => {
+  const pts: (readonly [number, number])[] = []
   vals.forEach((v, i) => {
     const next = vals[(i + 1) % n]
-    pts.push(tip(i, v).join(','))
-    const valley = VALLEY_FISH
-    pts.push(at(ang(i) + Math.PI / n, R * valley * ((v + next) / 2 / 100)).join(','))
+    pts.push(tip(i, v))
+    pts.push(at(ang(i) + Math.PI / n, R * VALLEY_FISH * ((v + next) / 2 / 100)))
   })
-  return pts.join(' ')
+  return pts
+}
+/**
+ * Starfish path: a closed Catmull-Rom curve through the star points, so tips and valleys are
+ * round (chunky arms) while each tip still lands exactly on its skill value.
+ */
+const star = (vals: number[]) => {
+  const p = starPoints(vals)
+  const m = p.length
+  const k = (a: number) => p[(a + m) % m]!
+  let d = `M${k(0)[0].toFixed(1)},${k(0)[1].toFixed(1)}`
+  for (let i = 0; i < m; i++) {
+    const [p0, p1, p2, p3] = [k(i - 1), k(i), k(i + 1), k(i + 2)]
+    const c1 = [p1[0] + (p2[0] - p0[0]) / 6, p1[1] + (p2[1] - p0[1]) / 6]
+    const c2 = [p2[0] - (p3[0] - p1[0]) / 6, p2[1] - (p3[1] - p1[1]) / 6]
+    d += ` C${c1[0]!.toFixed(1)},${c1[1]!.toFixed(1)} ${c2[0]!.toFixed(1)},${c2[1]!.toFixed(1)} ${p2[0].toFixed(1)},${p2[1].toFixed(1)}`
+  }
+  return `${d}Z`
 }
 // Keep a tiny minimum so a brand-new player still sees a star, not a dot.
 const vals = computed(() => VECTORS.map(v => Math.max(8, props.skills[v.id] ?? 0)))
@@ -72,10 +88,10 @@ const SPARK = 'M0-7C.4-2.6 2.6-.4 7 0 2.6.4.4 2.6 0 7-.4 2.6-2.6.4-7 0-2.6-.4-.4
     </defs>
 
     <!-- concentric guide stars -->
-    <polygon v-for="r in rings" :key="r" :points="star(VECTORS.map(() => r))" class="skill-radar__ring" />
+    <path v-for="r in rings" :key="r" :d="star(VECTORS.map(() => r))" class="skill-radar__ring" />
     <line v-for="(v, i) in VECTORS" :key="v.id" :x1="cx" :y1="cy" :x2="tip(i, 100)[0]" :y2="tip(i, 100)[1]" class="skill-radar__axis" />
 
-    <polygon v-if="cmp" :points="cmp" class="skill-radar__compare" />
+    <path v-if="cmp" :d="cmp" class="skill-radar__compare" />
     <g class="skill-radar__glow">
       <polygon :points="shape" class="skill-radar__shape" :fill="`url(#${uid}-fill)`" stroke="var(--ink)" />
       <g class="skill-radar__bumps" aria-hidden="true">
@@ -87,6 +103,14 @@ const SPARK = 'M0-7C.4-2.6 2.6-.4 7 0 2.6.4.4 2.6 0 7-.4 2.6-2.6.4-7 0-2.6-.4-.4
       </g>
     </g>
     <circle :cx="cx" :cy="cy" r="22" :fill="`url(#${uid}-core)`" class="skill-radar__core" />
+    <!-- a little starfish face -->
+    <g class="skill-radar__face">
+      <ellipse :cx="cx - 8" :cy="cy - 3" rx="3" ry="4" fill="var(--ink)" />
+      <ellipse :cx="cx + 8" :cy="cy - 3" rx="3" ry="4" fill="var(--ink)" />
+      <circle :cx="cx - 7" :cy="cy - 4.5" r="1.1" fill="#fff" />
+      <circle :cx="cx + 9" :cy="cy - 4.5" r="1.1" fill="#fff" />
+      <path :d="`M${cx - 6} ${cy + 5} Q${cx} ${cy + 10} ${cx + 6} ${cy + 5}`" fill="none" stroke="var(--ink)" stroke-width="2" stroke-linecap="round" />
+    </g>
 
     <g v-for="(v, i) in VECTORS" :key="v.id + 'p'">
       <!-- sparkle on each tip -->
@@ -112,6 +136,7 @@ const SPARK = 'M0-7C.4-2.6 2.6-.4 7 0 2.6.4.4 2.6 0 7-.4 2.6-2.6.4-7 0-2.6-.4-.4
 .skill-radar__bump { fill: #ffe3f1; stroke: rgba(143, 0, 77, .35); stroke-width: .8; }
 .skill-radar__disc { fill: #ffd1e8; stroke: rgba(143, 0, 77, .35); stroke-width: 1; }
 .skill-radar__compare { fill: none; stroke: var(--c-magenta); stroke-width: 1.5; stroke-dasharray: 4 4; stroke-linejoin: round; opacity: .8; }
+.skill-radar__face { animation: star-breathe 5s var(--ease-soft) infinite; transform-origin: 150px 150px; pointer-events: none; }
 .skill-radar__core { opacity: .5; animation: core-pulse 3.2s var(--ease-soft) infinite; transform-origin: 150px 150px; }
 .skill-radar__spark { fill: #fff; stroke: var(--ink); stroke-width: 1.2; animation: tip-twinkle 2.6s var(--ease-soft) infinite; transform-box: fill-box; transform-origin: center; }
 .skill-radar__lbl { font-family: var(--f-display); font-size: 11px; font-weight: 600; fill: var(--c-text); letter-spacing: .1em; }

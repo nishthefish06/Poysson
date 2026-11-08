@@ -30,7 +30,7 @@ Each step is wired with real navigation and state. Progress is saved to `localSt
 | 8 | **Simulator** | `/simulator` | feed · inbox/ticket · timer+score+actions · comms. States: start, live (harmful flag), finished |
 | 9 | Results | `/results` | tabs: Score · Replay (scrubber: your path vs ideal) · Tips · Report |
 | 10 | Report | `/report` | clean, print-ready after-action report (Print → Save as PDF) |
-| 11 | Profile | `/profile` | badge case, lifetime stats, passkey management |
+| 11 | Profile | `/profile` | badge case, lifetime stats, and skill mastery |
 | — | Component library | `/styleguide` | every component and variant on one page |
 
 ## Components (`components/ui`)

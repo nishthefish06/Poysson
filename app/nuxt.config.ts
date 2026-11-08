@@ -6,13 +6,31 @@ export default defineNuxtConfig({
   ssr: false,
   // SpacetimeDB's local server already uses :3000
   devServer: { port: 3001 },
+  // Bundle the Solana SDK into the server build. Left external, Nitro copies only the hoisted
+  // @noble/hashes v2 (from the SpacetimeDB module), but @solana/web3.js needs its nested v1.
+  nitro: {
+    externals: {
+      inline: [
+        '@solana/web3.js',
+        '@solana/spl-token',
+        '@solana/spl-token-metadata',
+        '@noble/hashes',
+        '@noble/curves',
+        'jayson',
+      ],
+    },
+  },
   modules: ['@nuxtjs/tailwindcss'],
   // Pages use <CyberInput>, not <UiCyberInput>: register components by file name only.
   components: [{ path: '~/components', pathPrefix: false }],
   app: {
     head: {
-      title: 'Poysson Training',
+      title: 'Poysson',
       link: [
+        // .ico for Windows (pinned sites, taskbar, older Edge); PNG for everything else
+        { rel: 'icon', href: '/favicon.ico', sizes: '48x48' },
+        { rel: 'icon', type: 'image/png', href: '/favicon.png' },
+        { rel: 'apple-touch-icon', href: '/apple-touch-icon.png' },
         { rel: 'preconnect', href: 'https://fonts.googleapis.com' },
         { rel: 'preconnect', href: 'https://fonts.gstatic.com', crossorigin: '' },
         {
@@ -40,6 +58,9 @@ export default defineNuxtConfig({
     photonProjectId: process.env.PHOTON_PROJECT_ID ?? '',
     photonProjectSecret: process.env.PHOTON_PROJECT_SECRET ?? '',
     demoPhoneMap: process.env.DEMO_PHONE_MAP ?? '',
+    // The server's own SpacetimeDB connection (arena-sync.ts), registered as the agent service.
+    spacetimeInternalUrl: process.env.SPACETIME_INTERNAL_URL ?? 'ws://127.0.0.1:3000',
+    serviceSecret: process.env.SERVICE_SECRET ?? '',
     // Solana devnet wallet that signs audit-log memo transactions (server-only, never public)
     solanaRpcUrl: process.env.SOLANA_RPC_URL ?? 'https://api.devnet.solana.com',
     solanaSecretKey: process.env.SOLANA_SECRET_KEY ?? '',

@@ -13,7 +13,7 @@ function print() {
 <template>
   <div class="report-page">
     <div class="report-page__bar">
-      <CyberButton variant="ghost" size="sm" icon="back" to="/results">Back to debrief</CyberButton>
+      <BackButton to="/results" label="Back to debrief" />
       <div class="spacer" />
       <SolanaVerified v-if="run" :tx="run.tx" :status="anchorOf(run)" />
       <CyberButton variant="primary" size="sm" icon="print" @click="print">Print / Save PDF</CyberButton>

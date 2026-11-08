@@ -43,6 +43,17 @@ const session = table(
   }
 );
 
+// Open browser connections, kept by the clientConnected / clientDisconnected hooks. Lets admins
+// see who is still on the page (e.g. an arena round whose tab was closed).
+const onlineConnection = table(
+  { name: 'online_connection' },
+  {
+    connectionId: t.connectionId().primaryKey(),
+    identity: t.identity().index('btree'),
+    connectedAt: t.timestamp(),
+  }
+);
+
 // Identity that published the module; allowed to bootstrap the first admin.
 const moduleOwner = table(
   { name: 'module_owner' },
@@ -203,11 +214,53 @@ const review = table(
   }
 );
 
+// Arena rounds (the live Nemotron attacker). The Nuxt server plays the round and, as the
+// registered service, mirrors every change here so the employee's page and admins update live.
+// stateJson is the browser-safe ArenaState (no truth labels until the round is over).
+const arenaRound = table(
+  { name: 'arena_round' },
+  {
+    id: t.u64().primaryKey().autoInc(),
+    roundKey: t.string().unique(), // the Nuxt server's round id (URL /arena/<roundKey>)
+    claimCode: t.string(), // given only to the browser that started the round; proves ownership
+    accountId: t.u64().index('btree'), // 0 until the employee's browser claims the round
+    mode: t.string(), // ArenaMode
+    status: t.string(), // active | finished
+    rev: t.u32(), // bumps on every sync, so clients can drop stale snapshots
+    turn: t.u32(),
+    score: t.i32(),
+    accuracy: t.f64(),
+    attackerLive: t.bool(), // live Nemotron played the last move (false = scripted fallback)
+    thinking: t.bool(), // the attacker is choosing its next move right now
+    outcome: t.string(), // '' while active; clean | contained | compromised
+    stateJson: t.string(),
+    startedAt: t.timestamp(),
+    updatedAt: t.timestamp(),
+  }
+);
+
+// One line per arena log entry (attacker message, employee decision, environment action).
+const arenaLog = table(
+  { name: 'arena_log' },
+  {
+    id: t.u64().primaryKey().autoInc(),
+    roundId: t.u64().index('btree'),
+    seq: t.u32(),
+    tMs: t.u32(), // ms since the round started
+    type: t.string(), // narration | step | action | env
+    verdict: t.string(), // '' | ideal | ok | neutral | harmful
+    points: t.i32(),
+    text: t.string(),
+    at: t.timestamp(),
+  }
+);
+
 const spacetimedb = schema(
   {
     account,
     pendingLogin,
     session,
+    onlineConnection,
     moduleOwner,
     serviceIdentity,
     guide,
@@ -219,6 +272,8 @@ const spacetimedb = schema(
     simMessage,
     runReport,
     review,
+    arenaRound,
+    arenaLog,
   },
   {
     env: {

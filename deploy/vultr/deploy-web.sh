@@ -22,7 +22,7 @@ trap 'rm -f "$ENV_FILE"' EXIT
   echo "NUXT_PUBLIC_SPACETIME_URL=wss://$HOST"
   echo "NUXT_PUBLIC_SPACETIME_DB=${SPACETIME_DB:-hackutd2026}"
   echo "NUXT_SPACETIME_INTERNAL_URL=ws://127.0.0.1:3000"
-  echo "SERVICE_SECRET=${SERVICE_SECRET:-}"
+  echo "NUXT_SERVICE_SECRET=${SERVICE_SECRET:-}"
   # Nuxt only reads runtimeConfig overrides as NUXT_<KEY> at runtime.
   echo "NUXT_GEMINI_API_KEY=${GEMINI_API_KEY:-}"
   echo "NUXT_GEMINI_MODEL=${GEMINI_MODEL:-gemini-flash-latest}"
@@ -34,6 +34,10 @@ trap 'rm -f "$ENV_FILE"' EXIT
   echo "NUXT_PHOTON_PROJECT_ID=${PHOTON_PROJECT_ID:-}"
   echo "NUXT_PHOTON_PROJECT_SECRET=${PHOTON_PROJECT_SECRET:-}"
   echo "NUXT_DEMO_PHONE_MAP=${DEMO_PHONE_MAP:-}"
+  # Solana devnet wallet for audit anchoring + badges (server-only)
+  echo "NUXT_SOLANA_RPC_URL=${SOLANA_RPC_URL:-https://api.devnet.solana.com}"
+  echo "NUXT_SOLANA_SECRET_KEY=${SOLANA_SECRET_KEY:-}"
+  echo "NUXT_SOLANA_METADATA_BASE_URL=${SOLANA_METADATA_BASE_URL:-https://$HOST}"
 } >"$ENV_FILE"
 
 rsync -az --delete "$ROOT/$WEB_DIR/.output/" "$TARGET:/srv/web/.output/"

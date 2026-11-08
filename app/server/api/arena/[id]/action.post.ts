@@ -1,6 +1,6 @@
 import { ArenaAction, type ArenaActionResponse } from '@hackutd2026/shared/arena';
 
-// Employee acts on a message -> judged (rules, then model) -> attacker reacts.
+// Employee acts on a message -> judged (rules, then model) -> attacker reacts (after the response).
 export default defineEventHandler(async (event): Promise<ArenaActionResponse> => {
   const r = getRound(getRouterParam(event, 'id') ?? '');
   const a = await parseBody(event, ArenaAction);
@@ -13,15 +13,18 @@ export default defineEventHandler(async (event): Promise<ArenaActionResponse> =>
     const judgment = ruleJudge(flag, a) ?? (await modelJudge(step, flag, a));
     const counted = recordAction(r, a, judgment);
 
-    // typing your password into the attacker's page hands them your account
+    // Falling for an attack hands over the account: typing the password into the attacker's page,
+    // or doing what the attacker asked (sending the code, "verifying" the login).
     if (
       counted &&
-      a.kind === 'shared_credentials' &&
+      (a.kind === 'shared_credentials' || a.kind === 'complied_request') &&
       flag.isMalicious &&
       leakCredentials(r.env, elapsed(r))
     ) {
       r.history.push(
-        `(the employee submitted your fake login page '${a.stepId}': you now have their password and are signed in)`
+        a.kind === 'shared_credentials'
+          ? `(the employee submitted your fake login page '${a.stepId}': you now have their password and are signed in)`
+          : `(the employee did what '${a.stepId}' asked and handed you their sign-in: you are now signed in to their account)`
       );
     }
     // the attacker only reacts to real decisions, not to opening a message or taking a note
@@ -30,7 +33,8 @@ export default defineEventHandler(async (event): Promise<ArenaActionResponse> =>
     const guidance = decision
       ? guidanceFor(`${step.channel} ${a.kind.replaceAll('_', ' ')}. ${judgment.reason}`, r.mode)
       : Promise.resolve(null);
-    if (counted && decision) await attackerTurn(r, a);
+    // the attacker answers right after this response, live through SpacetimeDB
+    if (counted && decision) moveAfterResponse(r, () => attackerTurn(r, a));
     return { judgment, counted, state: toArenaState(r), guidance: await guidance };
   });
 });

@@ -155,7 +155,6 @@ export function seedState(): GameState {
     { id: 'a2', ts: ago(1510), event: 'MFA_APPROVED', detail: 'Duo push · iPhone 15', kind: 'auth', ip: '10.24.8.17', tx: fakeTx(), slot: nextSlot() },
     { id: 'a3', ts: ago(2900), event: 'REPORT_EXPORTED', detail: 'SILENT RELAY · PDF', kind: 'report', ip: '10.24.8.17', tx: fakeTx(), slot: nextSlot() },
     { id: 'a4', ts: ago(2920), event: 'RUN_COMPLETE', detail: 'SILENT RELAY · Recruit · S', kind: 'run', ip: '10.24.8.17', tx: runs[1].tx, slot: nextSlot(), runId: runs[1].id },
-    { id: 'a5', ts: ago(5800), event: 'PASSKEY_REGISTERED', detail: 'YubiKey 5C NFC', kind: 'config', ip: '10.31.2.200', tx: fakeTx(), slot: nextSlot() },
     { id: 'a6', ts: ago(5810), event: 'LOGIN_SUCCESS', detail: 'Password + Duo', kind: 'auth', ip: '10.31.2.200', tx: fakeTx(), slot: nextSlot() },
   ] satisfies AuditEntry[]).map(a => ({ ...a, tx: '', slot: 0, anchor: 'pending' as const })) // sample history is anchored for real on first load
   // the two runs those records point at get their real tx when the records are anchored
@@ -185,7 +184,13 @@ export function seedState(): GameState {
 export function useGame() {
   const state = useState<GameState>('game', seedState)
 
-  const player = computed(() => state.value.player)
+  // Name and email come from the signed-in account; the rest of the player is still sample data.
+  const { account } = useSession()
+  const player = computed(() => {
+    const p = state.value.player
+    const a = account.value
+    return a ? { ...p, handle: a.displayName, email: a.email } : p
+  })
   const lastRun = computed(() => state.value.runs[0] ?? null)
   const accuracy = computed(() => {
     const r = state.value.runs.slice(0, 10)
@@ -235,6 +240,8 @@ export function useGame() {
    * real pending records (and link sample runs to their records) so they get anchored too.
    */
   function promoteSamples() {
+    // The sample 'YubiKey 5C NFC' passkey event was dropped; remove it from older saves too.
+    state.value.audit = state.value.audit.filter(e => e.id !== 'a5')
     for (const e of state.value.audit) {
       if (anchorOf(e) !== 'demo') continue
       Object.assign(e, { tx: '', slot: 0, anchor: 'pending' as const })
@@ -245,11 +252,26 @@ export function useGame() {
     }
   }
 
-  /** Re-sends anything left pending (page closed mid-request) or failed. */
-  function retryAnchors() {
-    promoteSamples()
-    for (const e of state.value.audit) {
-      if (e.anchor === 'pending' || e.anchor === 'failed') void anchorEntry(e.id)
+  /**
+   * Re-sends anything left pending (page closed mid-request) or failed, one record at a time.
+   * Skipped when the server has no Solana wallet; stops early if devnet rate-limits or errors,
+   * and the rest stay "retry" until the next load.
+   */
+  let retrying = false
+  async function retryAnchors() {
+    if (retrying) return
+    retrying = true
+    try {
+      promoteSamples()
+      const status = await $fetch<{ configured: boolean }>('/api/solana/status').catch(() => ({ configured: false }))
+      if (!status.configured) return
+      for (const e of [...state.value.audit].reverse()) {
+        if (e.anchor !== 'pending' && e.anchor !== 'failed') continue
+        await anchorEntry(e.id)
+        if (state.value.audit.find(a => a.id === e.id)?.anchor === 'failed') break
+      }
+    } finally {
+      retrying = false
     }
   }
 

@@ -1,7 +1,7 @@
 import { EnvAction, type ArenaActionResponse } from '@hackutd2026/shared/arena';
 
 // Employee acts inside the environment (revoke a session, delete a mail rule, revert a change, ...)
-// -> judged by the engine's rules -> attacker reacts.
+// -> judged by the engine's rules -> attacker reacts (after the response).
 export default defineEventHandler(async (event): Promise<ArenaActionResponse> => {
   const r = getRound(getRouterParam(event, 'id') ?? '');
   const a = await parseBody(event, EnvAction);
@@ -19,7 +19,7 @@ export default defineEventHandler(async (event): Promise<ArenaActionResponse> =>
     const judgment = { ...result, confidence: 1, source: 'rule' as const };
     const counted = recordEnvAction(r, a, judgment, text);
     const guidance = guidanceFor(`${text}. ${judgment.reason}`, r.mode);
-    if (counted) await attackerTurn(r, null, `${text} (${judgment.verdict})`);
+    if (counted) moveAfterResponse(r, () => attackerTurn(r, null, `${text} (${judgment.verdict})`));
     return { judgment, counted, state: toArenaState(r), guidance: await guidance };
   });
 });
