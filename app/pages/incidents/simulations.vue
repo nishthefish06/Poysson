@@ -10,6 +10,10 @@ import { DIFFICULTY, VECTORS, type Difficulty } from '~/data/incidents'
 const { state, player, toggleVector, buildIncident } = useGame()
 const setup = computed(() => state.value.setup)
 const ready = computed(() => setup.value.vectors.length >= 2)
+const MODES = [
+  { id: 'guided', label: 'Guided', icon: 'eye', desc: 'Red flags and an analyst tip appear on every inject before you respond. Learn the playbook.' },
+  { id: 'unguided', label: 'Unguided', icon: 'crosshair', desc: 'No hints. Spot the red flags yourself; they are revealed only after you commit.' },
+] as const
 const diffs = Object.entries(DIFFICULTY) as [Difficulty, typeof DIFFICULTY[Difficulty]][]
 
 function armAll() { state.value.setup.vectors = VECTORS.map(v => v.id) }
@@ -27,7 +31,8 @@ function launch() {
   <div class="ops">
     <header class="page-head">
       <div>
-        <div class="eyebrow eyebrow--magenta">Incident Ops · mixed-threat generator</div>
+        <NuxtLink to="/incidents" class="ops__back mono"><CyberIcon name="back" :size="14" /> Incident Ops</NuxtLink>
+        <div class="eyebrow eyebrow--magenta">Simulations · mixed-threat generator</div>
         <h1 class="page-head__title">Arm your threat mix</h1>
         <p class="page-head__sub">Real incidents don't arrive one at a time. Every vector you arm drops into a single shuffled incident — no two runs play the same.</p>
       </div>
@@ -35,6 +40,19 @@ function launch() {
       <CyberButton variant="secondary" size="sm" icon="shuffle" @click="randomize">Randomize</CyberButton>
       <CyberButton variant="secondary" size="sm" icon="radar" @click="armAll">Arm all</CyberButton>
     </header>
+
+    <section class="ops__modes" role="radiogroup" aria-label="Simulation mode">
+      <button
+        v-for="m in MODES" :key="m.id" role="radio" :aria-checked="setup.mode === m.id"
+        class="ops__mode" :class="{ 'is-on': setup.mode === m.id }" @click="state.setup.mode = m.id"
+      >
+        <CyberIcon :name="m.icon" :size="22" />
+        <span class="ops__mode-text">
+          <span class="ops__mode-name">{{ m.label }}</span>
+          <span class="ops__mode-desc">{{ m.desc }}</span>
+        </span>
+      </button>
+    </section>
 
     <section class="ops__cards">
       <ScenarioCard
@@ -61,8 +79,8 @@ function launch() {
 
       <CyberPanel title="Incident preview" eyebrow="Generator output" accent="magenta" class="ops__preview">
         <div class="ops__preview-body">
+          <div class="ops__preview-stat"><span class="eyebrow">Mode</span><b class="ops__preview-mode">{{ setup.mode === 'guided' ? 'GUIDED' : 'UNGUIDED' }}</b></div>
           <div class="ops__preview-stat"><span class="eyebrow">Vectors</span><b>{{ setup.vectors.length }}</b></div>
-          <div class="ops__preview-stat"><span class="eyebrow">Injects</span><b>{{ setup.vectors.length }}</b></div>
           <div class="ops__preview-stat"><span class="eyebrow">Clock</span><b>{{ fmtTime(DIFFICULTY[setup.difficulty].seconds) }}</b></div>
           <div class="ops__preview-stat"><span class="eyebrow">Max XP</span><b>{{ Math.round((setup.vectors.length * 110 + 110) * DIFFICULTY[setup.difficulty].xpMult) }}</b></div>
         </div>
@@ -77,6 +95,17 @@ function launch() {
 .ops { display: flex; flex-direction: column; gap: var(--s-6); }
 .ops .page-head { margin-bottom: 0; }
 .ops .page-head__sub { max-width: 640px; }
+.ops__back { display: inline-flex; align-items: center; gap: 6px; font-size: var(--fs-xs); letter-spacing: .15em; text-transform: uppercase; color: var(--c-text-mute); margin-bottom: var(--s-2); }
+.ops__back:hover { color: var(--c-cyan); }
+.ops__modes { display: grid; grid-template-columns: 1fr 1fr; gap: var(--s-4); }
+.ops__mode { display: flex; gap: var(--s-4); align-items: flex-start; padding: var(--s-4) var(--s-5); background: var(--c-bg-2); border: 1px solid var(--c-line-strong); color: var(--c-text-dim); cursor: pointer; text-align: left; clip-path: var(--clip-chamfer-sm); transition: all var(--t-fast); }
+.ops__mode:hover { border-color: var(--c-cyan); }
+.ops__mode.is-on { color: var(--c-cyan); border-color: var(--c-cyan); background: linear-gradient(180deg, rgba(0, 240, 255, .14), var(--c-bg-2)); box-shadow: inset 0 0 20px rgba(0, 240, 255, .12); }
+.ops__mode-text { display: flex; flex-direction: column; gap: 4px; }
+.ops__mode-name { font-family: var(--f-display); font-weight: 700; letter-spacing: .1em; text-transform: uppercase; color: var(--c-text); }
+.ops__mode.is-on .ops__mode-name { color: var(--c-cyan); text-shadow: var(--text-glow-cyan); }
+.ops__mode-desc { font-size: var(--fs-sm); color: var(--c-text-dim); }
+.ops__preview-mode { font-size: var(--fs-md, 16px) !important; line-height: 2; }
 .ops__cards { display: grid; grid-template-columns: repeat(5, 1fr); gap: var(--s-4); }
 .ops__config { display: grid; grid-template-columns: 1.3fr 1fr; gap: var(--s-5); }
 .ops__diff-list { display: grid; grid-template-columns: repeat(3, 1fr); gap: var(--s-3); }
@@ -92,5 +121,5 @@ function launch() {
 .ops__preview-stat b { font-family: var(--f-display); font-size: var(--fs-xl); color: var(--c-magenta); text-shadow: var(--text-glow-magenta); }
 .ops__warn { color: var(--c-ok); font-size: var(--fs-xs); margin-bottom: var(--s-3); }
 @media (max-width: 1300px) { .ops__cards { grid-template-columns: repeat(3, 1fr); } .ops__config { grid-template-columns: 1fr; } }
-@media (max-width: 800px) { .ops__cards { grid-template-columns: 1fr 1fr; } .ops__diff-list { grid-template-columns: 1fr; } }
+@media (max-width: 800px) { .ops__modes { grid-template-columns: 1fr; } .ops__cards { grid-template-columns: 1fr 1fr; } .ops__diff-list { grid-template-columns: 1fr; } }
 </style>

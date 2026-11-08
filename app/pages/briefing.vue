@@ -8,7 +8,7 @@ import { COMMS_ACTIONS, DIFFICULTY, vectorById } from '~/data/incidents'
 
 const { state, buildIncident } = useGame()
 const plan = computed(() => state.value.plan)
-if (!plan.value) navigateTo('/incidents')
+if (!plan.value) navigateTo('/incidents/simulations')
 
 const typed = ref('')
 const intro = computed(() => plan.value
@@ -29,7 +29,7 @@ function reroll() { buildIncident() }
         <h1 class="page-head__title">OPERATION <span class="neon-magenta glitch" :data-text="plan.codename">{{ plan.codename }}</span></h1>
       </div>
       <div class="spacer" />
-      <CyberButton variant="ghost" size="sm" icon="back" to="/incidents">Change mix</CyberButton>
+      <CyberButton variant="ghost" size="sm" icon="back" to="/incidents/simulations">Change mix</CyberButton>
     </header>
 
     <div class="brief__grid">
@@ -70,6 +70,7 @@ function reroll() { buildIncident() }
         <div class="brief__launch">
           <div class="brief__launch-meta mono">
             <span>{{ DIFFICULTY[plan.difficulty].label.toUpperCase() }}</span>
+            <span>{{ (plan.mode ?? 'unguided').toUpperCase() }}</span>
             <span>CLOCK {{ fmtTime(plan.duration) }}</span>
             <span>SEED {{ plan.seed }}</span>
           </div>

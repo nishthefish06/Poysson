@@ -1,23 +1,27 @@
 <script setup lang="ts">
 /*
  * DASHBOARD
- * DYNAMIC DATA: player (level, xp, streak, skills, badges), runs[] (recent runs), audit[] (preview).
+ * DYNAMIC DATA: player (level, xp, skills, badges), audit[] (preview).
  */
-import { BADGES } from '~/data/badges'
-import { DIFFICULTY, VECTORS, vectorById } from '~/data/incidents'
+import { badgeById, type BadgeDef } from '~/data/badges'
+import { VECTORS } from '~/data/incidents'
 
-const { player, state, accuracy } = useGame()
-const runs = computed(() => state.value.runs.slice(0, 5))
-const best = computed(() => state.value.runs.reduce((a, r) => Math.max(a, r.score), 0))
+const { player, state } = useGame()
+// Current badge: the highest-tier badge earned; on a tie, the most recently earned.
+const TIER_RANK: Record<BadgeDef['tier'], number> = { bronze: 0, silver: 1, gold: 2, neon: 3 }
+const currentBadge = computed(() => {
+  let best: BadgeDef | undefined
+  for (const id of player.value.badges) {
+    const b = badgeById(id)
+    if (b && (!best || TIER_RANK[b.tier] >= TIER_RANK[best.tier])) best = b
+  }
+  return best
+})
 const weakest = computed(() => VECTORS.slice().sort((a, b) => player.value.skills[a.id] - player.value.skills[b.id])[0])
 const rank = computed(() => {
   const l = player.value.level
   return l >= 20 ? 'ICE BREAKER' : l >= 12 ? 'NETRUNNER' : l >= 6 ? 'OPERATOR' : 'RECRUIT'
 })
-const when = (iso: string) => {
-  const m = Math.round((Date.now() - new Date(iso).getTime()) / 60000)
-  return m < 60 ? `${m}m ago` : m < 1440 ? `${Math.round(m / 60)}h ago` : `${Math.round(m / 1440)}d ago`
-}
 </script>
 
 <template>
@@ -39,15 +43,11 @@ const when = (iso: string) => {
         <XpBar :value="player.xp" :max="xpForLevel(player.level)" :level="player.level" size="lg" />
         <div class="dash__xp-total mono">LIFETIME {{ player.totalXp.toLocaleString() }} XP</div>
       </div>
-      <CyberButton to="/incidents" variant="primary" size="lg" icon="crosshair" class="dash__cta">Start incident</CyberButton>
-    </section>
-
-    <!-- STAT ROW -->
-    <section class="dash__stats">
-      <StatCard label="Level" :value="player.level" icon="chip" accent="magenta" :caption="`${rank}`" />
-      <StatCard label="Accuracy" :value="accuracy" unit="%" icon="crosshair" accent="cyan" :delta="state.runs[0] && state.runs[1] ? state.runs[0].accuracy - state.runs[1].accuracy : undefined" caption="last 10 runs" />
-      <StatCard label="Streak" :value="player.streak" unit="d" icon="flame" accent="yellow" :caption="`best ${player.bestStreak}d`" />
-      <StatCard label="High score" :value="best" icon="trophy" accent="green" :caption="`${state.runs.length} incidents run`" />
+      <NuxtLink to="/profile" class="dash__badge" :title="currentBadge?.desc ?? 'Complete an incident to earn your first badge'">
+        <div class="eyebrow">Current badge</div>
+        <CyberBadge v-if="currentBadge" :name="currentBadge.name" :icon="currentBadge.icon" :tier="currentBadge.tier" size="sm" />
+        <CyberBadge v-else name="None yet" icon="lock" locked size="sm" />
+      </NuxtLink>
     </section>
 
     <div class="dash__grid">
@@ -66,37 +66,6 @@ const when = (iso: string) => {
               <CyberIcon name="info" :size="14" style="margin-right:6px" />Weakest vector: <b :style="{ color: `var(${weakest.color})` }">{{ weakest.name }}</b>. Mixed incidents weight it higher.
             </div>
           </div>
-        </div>
-      </CyberPanel>
-
-      <!-- RECENT RUNS -->
-      <CyberPanel title="Recent runs" eyebrow="Debrief history" accent="magenta" class="dash__runs">
-        <template #actions><CyberButton variant="ghost" size="sm" to="/results" icon-right="arrow">Last debrief</CyberButton></template>
-        <ul class="dash__run-list">
-          <li v-for="r in runs" :key="r.id" class="dash__run">
-            <span class="dash__grade" :class="`g-${r.grade}`">{{ r.grade }}</span>
-            <div class="dash__run-main">
-              <div class="dash__run-name">OP: {{ r.codename }}</div>
-              <div class="dash__run-meta mono">
-                {{ DIFFICULTY[r.difficulty].label }} · {{ when(r.finishedAt) }}
-              </div>
-              <div class="dash__run-vectors">
-                <span v-for="v in r.vectors" :key="v" class="dash__vchip" :style="{ '--c': `var(${vectorById(v).color})` }">{{ vectorById(v).code }}</span>
-              </div>
-            </div>
-            <div class="dash__run-score">
-              <div class="dash__run-pts">{{ r.score }}</div>
-              <div class="mono mute">+{{ r.xpEarned }} XP</div>
-            </div>
-          </li>
-        </ul>
-      </CyberPanel>
-
-      <!-- BADGES -->
-      <CyberPanel title="Badges" :eyebrow="`${player.badges.length} / ${BADGES.length} unlocked`" class="dash__badges">
-        <template #actions><CyberButton variant="ghost" size="sm" to="/profile" icon-right="arrow">All</CyberButton></template>
-        <div class="dash__badge-grid">
-          <CyberBadge v-for="b in BADGES" :key="b.id" :name="b.name" :icon="b.icon" :tier="b.tier" :desc="b.desc" :locked="!player.badges.includes(b.id)" size="sm" />
         </div>
       </CyberPanel>
 
@@ -128,8 +97,9 @@ const when = (iso: string) => {
 .dash__email { font-size: var(--fs-xs); }
 .dash__xp { min-width: 0; }
 .dash__xp-total { font-size: 10px; letter-spacing: .2em; color: var(--c-text-mute); margin-top: var(--s-2); text-align: right; }
-.dash__stats { display: grid; grid-template-columns: repeat(4, 1fr); gap: var(--s-4); }
-.dash__grid { display: grid; grid-template-columns: 1.4fr 1fr; gap: var(--s-5); }
+.dash__grid { display: grid; grid-template-columns: 1fr; gap: var(--s-5); }
+.dash__badge { display: flex; flex-direction: column; align-items: center; gap: var(--s-2); padding: var(--s-3) var(--s-4); border: 1px solid var(--c-line-strong); background: rgba(4, 5, 10, .5); clip-path: var(--clip-chamfer-sm); transition: border-color var(--t-fast); }
+.dash__badge:hover { border-color: var(--c-magenta); text-shadow: none; }
 .dash__radar-body { display: grid; grid-template-columns: auto 1fr; gap: var(--s-6); align-items: center; }
 .dash__skill-list { display: flex; flex-direction: column; gap: var(--s-3); }
 .dash__skill { display: grid; grid-template-columns: 18px 130px 1fr 32px; gap: var(--s-3); align-items: center; color: var(--c); }
@@ -138,22 +108,6 @@ const when = (iso: string) => {
 .dash__skill-bar span { display: block; height: 100%; background: var(--c); box-shadow: 0 0 8px var(--c); transition: width .8s var(--ease); }
 .dash__skill-val { text-align: right; font-size: var(--fs-sm); }
 .dash__hint { display: block; font-size: 11px; color: var(--c-text-dim); margin-top: var(--s-2); padding: var(--s-2) var(--s-3); border: 1px dashed var(--c-line-strong); }
-.dash__run-list { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: var(--s-2); }
-.dash__run { display: grid; grid-template-columns: 44px 1fr auto; gap: var(--s-3); align-items: center; padding: var(--s-3); background: var(--c-bg-2); border-left: 2px solid var(--c-line-strong); transition: border-color var(--t-fast); }
-.dash__run:hover { border-left-color: var(--c-magenta); }
-.dash__grade { width: 44px; height: 44px; display: grid; place-items: center; font-family: var(--f-display); font-size: var(--fs-xl); font-weight: 900; border: 1px solid currentColor; clip-path: var(--clip-chamfer-sm); }
-.g-S { color: var(--c-magenta); text-shadow: var(--text-glow-magenta); }
-.g-A { color: var(--c-ideal); }
-.g-B { color: var(--c-cyan); }
-.g-C { color: var(--c-ok); }
-.g-D { color: var(--c-harmful); }
-.dash__run-name { font-family: var(--f-display); font-size: var(--fs-sm); letter-spacing: .08em; }
-.dash__run-meta { font-size: 10px; color: var(--c-text-mute); letter-spacing: .1em; text-transform: uppercase; }
-.dash__run-vectors { display: flex; gap: 4px; margin-top: 4px; }
-.dash__vchip { font-family: var(--f-mono); font-size: 9px; padding: 0 4px; color: var(--c); border: 1px solid color-mix(in srgb, var(--c) 50%, transparent); }
-.dash__run-score { text-align: right; font-size: 10px; }
-.dash__run-pts { font-family: var(--f-display); font-size: var(--fs-lg); color: var(--c-cyan); }
-.dash__badge-grid { display: flex; flex-wrap: wrap; gap: var(--s-3) var(--s-2); }
 .dash__audit-table { width: 100%; border-collapse: collapse; font-size: 12px; }
 .dash__audit-table td { padding: 8px 6px; border-bottom: 1px solid var(--c-line); }
 .dash__audit-ev { color: var(--c-cyan); font-size: 11px; }
@@ -161,7 +115,6 @@ const when = (iso: string) => {
 @media (max-width: 1200px) {
   .dash__grid { grid-template-columns: 1fr; }
   .dash__hero { grid-template-columns: 1fr; gap: var(--s-4); }
-  .dash__stats { grid-template-columns: repeat(2, 1fr); }
   .dash__radar-body { grid-template-columns: 1fr; justify-items: center; }
 }
 </style>

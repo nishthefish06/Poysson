@@ -61,10 +61,13 @@ export interface Player {
   badges: string[]
   passkeys: Passkey[]
 }
+/** guided: red flags + analyst tip shown before you respond. unguided: the classic blind run. */
+export type SimMode = 'guided' | 'unguided'
+
 export interface GameState {
   auth: { email: string; stage: 'none' | 'mfa' | 'passkey' | 'done' }
   player: Player
-  setup: { vectors: VectorId[]; difficulty: Difficulty }
+  setup: { vectors: VectorId[]; difficulty: Difficulty; mode: SimMode }
   plan: IncidentPlan | null
   runs: RunResult[]
   audit: AuditEntry[]
@@ -137,7 +140,7 @@ export function seedState(): GameState {
       badges: ['first-blood', 'clean-sweep', 'comms-officer', 'chain-anchor'],
       passkeys: [{ id: 'pk1', name: 'YubiKey 5C NFC', device: 'Hardware key', created: ago(5800), lastUsed: ago(1510) }],
     },
-    setup: { vectors: VECTORS.map(v => v.id), difficulty: 'operator' },
+    setup: { vectors: VECTORS.map(v => v.id), difficulty: 'operator', mode: 'guided' },
     plan: null,
     runs,
     audit,
@@ -189,7 +192,7 @@ export function useGame() {
     state.value.setup.vectors = v.includes(id) ? v.filter(x => x !== id) : [...v, id]
   }
   function buildIncident() {
-    state.value.plan = generateIncident(state.value.setup.vectors, state.value.setup.difficulty)
+    state.value.plan = generateIncident(state.value.setup.vectors, state.value.setup.difficulty, state.value.setup.mode ?? 'guided')
     return state.value.plan
   }
 

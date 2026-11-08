@@ -15,7 +15,7 @@ import type { Decision, RunResult } from '~/composables/useGame'
 definePageMeta({ layout: 'bare' })
 const { state, completeRun } = useGame()
 const plan = state.value.plan
-if (!plan) navigateTo('/incidents')
+if (!plan) navigateTo('/incidents/simulations')
 
 type Phase = 'start' | 'countdown' | 'live' | 'finished'
 const phase = ref<Phase>('start')
@@ -155,9 +155,9 @@ const stamp = (t: number) => `T+${fmtTime(t)}`
   <div v-if="plan" class="sim" :class="[`sim--${phase}`, { 'sim--flagged': flag }]">
     <!-- ============ TOP BAR ============ -->
     <header class="sim__top">
-      <NuxtLink to="/incidents" class="sim__exit" title="Abort"><CyberIcon name="back" :size="16" /></NuxtLink>
+      <NuxtLink to="/incidents/simulations" class="sim__exit" title="Abort"><CyberIcon name="back" :size="16" /></NuxtLink>
       <div class="sim__op">
-        <div class="eyebrow eyebrow--magenta">{{ plan.id }} · {{ plan.difficulty }}</div>
+        <div class="eyebrow eyebrow--magenta">{{ plan.id }} · {{ plan.difficulty }} · {{ plan.mode ?? 'unguided' }}</div>
         <div class="sim__op-name">OP: {{ plan.codename }}</div>
       </div>
       <div class="sim__progress">
@@ -260,9 +260,13 @@ const stamp = (t: number) => `T+${fmtTime(t)}`
               </template>
             </dl>
 
-            <div v-if="decisionFor(selected.inject.id)" class="sim__flags">
-              <div class="eyebrow eyebrow--cyan">Red flags you should have spotted</div>
+            <div v-if="decisionFor(selected.inject.id) || plan.mode === 'guided'" class="sim__flags">
+              <div class="eyebrow eyebrow--cyan">{{ decisionFor(selected.inject.id) ? 'Red flags you should have spotted' : 'Guided · red flags to look for' }}</div>
               <ul><li v-for="f in selected.inject.item.redFlags" :key="f">{{ f }}</li></ul>
+            </div>
+            <div v-if="plan.mode === 'guided' && !decisionFor(selected.inject.id)" class="sim__guide">
+              <CyberIcon name="info" :size="14" />
+              <span><b>Analyst tip:</b> {{ selected.inject.tip }}</span>
             </div>
           </article>
           <div v-else class="sim__detail sim__detail--empty">
@@ -480,4 +484,6 @@ const stamp = (t: number) => `T+${fmtTime(t)}`
 .g-B { color: var(--c-cyan); text-shadow: 0 0 30px var(--c-cyan); }
 .g-C { color: var(--c-ok); text-shadow: 0 0 30px var(--c-ok); }
 .g-D { color: var(--c-harmful); text-shadow: 0 0 30px var(--c-harmful); }
+.sim__guide { display: flex; gap: var(--s-2); align-items: flex-start; margin-top: var(--s-3); padding: var(--s-3); font-size: var(--fs-sm); color: var(--c-text); border: 1px dashed var(--c-cyan); background: rgba(0, 240, 255, .06); }
+.sim__guide b { color: var(--c-cyan); }
 </style>

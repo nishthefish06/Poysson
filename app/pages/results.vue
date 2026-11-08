@@ -93,7 +93,7 @@ const ratingColor = (r: Rating) => `var(--c-${r})`
       </div>
       <div class="spacer" />
       <CyberButton variant="secondary" icon="print" to="/report">Official report</CyberButton>
-      <CyberButton variant="primary" icon="crosshair" to="/incidents">Run another</CyberButton>
+      <CyberButton variant="primary" icon="crosshair" to="/incidents/simulations">Run another</CyberButton>
     </header>
 
     <TabBar v-model="tab" :tabs="tabs" />
