@@ -61,6 +61,7 @@ import RegisterServiceReducer from "./register_service_reducer";
 import ReviewRunReducer from "./review_run_reducer";
 import ScoreRunReducer from "./score_run_reducer";
 import SeedDemoAccountsReducer from "./seed_demo_accounts_reducer";
+import SeedDemoActivityReducer from "./seed_demo_activity_reducer";
 import SendSimReplyReducer from "./send_sim_reply_reducer";
 import SetRunLockoutReducer from "./set_run_lockout_reducer";
 import SetScenarioStatusReducer from "./set_scenario_status_reducer";
@@ -254,6 +255,7 @@ const reducersSchema = __reducers(
   __reducerSchema("review_run", ReviewRunReducer),
   __reducerSchema("score_run", ScoreRunReducer),
   __reducerSchema("seed_demo_accounts", SeedDemoAccountsReducer),
+  __reducerSchema("seed_demo_activity", SeedDemoActivityReducer),
   __reducerSchema("send_sim_reply", SendSimReplyReducer),
   __reducerSchema("set_run_lockout", SetRunLockoutReducer),
   __reducerSchema("set_scenario_status", SetScenarioStatusReducer),
