@@ -151,7 +151,13 @@ export function seedState(): GameState {
 export function useGame() {
   const state = useState<GameState>('game', seedState)
 
-  const player = computed(() => state.value.player)
+  // Name and email come from the signed-in account; the rest of the player is still sample data.
+  const { account } = useSession()
+  const player = computed(() => {
+    const p = state.value.player
+    const a = account.value
+    return a ? { ...p, handle: a.displayName, email: a.email } : p
+  })
   const lastRun = computed(() => state.value.runs[0] ?? null)
   const accuracy = computed(() => {
     const r = state.value.runs.slice(0, 10)
