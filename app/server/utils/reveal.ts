@@ -17,6 +17,8 @@ The round is over. Speak to the employee as the attacker, in the first person, i
 2. how you adapted to one specific thing they did (name it),
 3. what you did or were about to do next, and
 4. the one habit that would have stopped you.
+Refer to messages by their subject, never by an id. Describe what the employee did ONLY from the
+"What the employee actually did" list; never invent a refusal or a mistake that isn't there.
 Stay inside the fiction: fictional company, ".example" domains only, no real brands or people, and no
 step-by-step technique a real attacker could reuse. Plain text, no markdown.
 Reply with ONLY JSON: {"reveal": string}`;
@@ -55,13 +57,30 @@ export function templateReveal(f: Facts, mode: 'bait' | 'breach' = 'bait'): stri
 export async function writeReveal(r: ArenaRound, f: Facts): Promise<Reveal> {
   if (nemotronEnabled() && r.attackerLive) {
     try {
+      // The model saw message ids while playing; the employee knows messages by their subject.
+      const title = (id: string) => {
+        const st = r.steps.get(id);
+        return st ? `"${st.subject || st.from}"` : `"${id}"`;
+      };
+      const byTitle = (line: string) =>
+        line.replace(/'([a-z0-9][a-z0-9_-]{0,31})'/g, (m, id: string) => (r.steps.has(id) ? title(id) : m));
+      const did = r.log
+        .filter(
+          (e) => e.type === 'env' || (e.type === 'action' && e.kind !== 'opened_step' && e.kind !== 'note')
+        )
+        .map((e) =>
+          e.type === 'env'
+            ? `- in their account: ${e.text} -> ${e.verdict}`
+            : `- on ${title(e.stepId ?? '')}: ${(e.kind ?? '').replaceAll('_', ' ')} -> ${e.verdict}`
+        );
       const user = [
         `Mode: ${r.mode}. Outcome: ${f.outcome}.`,
-        `Your moves and what the employee did, in order:\n${r.history
+        `Your moves, in order:\n${r.history
           .slice(-40)
-          .map((h) => `- ${h}`)
+          .map((h) => `- ${byTitle(h)}`)
           .join('\n')}`,
-        `Messages (revealed): ${JSON.stringify(f.messages.map(({ title, malicious, handledWell, ignored }) => ({ title, malicious, handledWell, ignored })))}`,
+        `What the employee actually did, in order (the only facts about them you may use):\n${did.join('\n') || '- nothing: they never acted on any message'}`,
+        `Messages (revealed): ${JSON.stringify(f.messages.map(({ title: t, malicious, handledWell, ignored }) => ({ title: t, malicious, handledWell, ignored })))}`,
         `What you did inside their account: ${JSON.stringify(f.attackerActions)}`,
         'Your reveal. JSON only.',
       ].join('\n\n');
